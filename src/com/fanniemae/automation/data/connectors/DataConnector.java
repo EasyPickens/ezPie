@@ -37,6 +37,7 @@ public abstract class DataConnector implements AutoCloseable {
 		_DataSourceID = _DataSource.getAttribute("ID");
 		_DataSourceType = _DataSource.getAttribute("Type");
 		_SchemaOnly = isSchemaOnly;
+		
 		_ConnectionID = _DataSource.getAttribute("ConnectionID");
 		_Connection = _Session.getConnection(_ConnectionID);
 		if (_Connection != null) {
@@ -44,10 +45,16 @@ public abstract class DataConnector implements AutoCloseable {
 			_ConnectionDialect = _Session.getAttribute(_Connection, "Dialect");
 			_ConnectionString = _Session.getAttribute(_Connection, "ConnectionString");
 		}
+		
 		if (StringUtilities.isNullOrEmpty(_DataSourceID))
 			throw new RuntimeException(String.format("DataSource.%s is missing an ID value.", _DataSourceType));
 
 		_Session.addLogMessage(String.format("DataSource.%s", _DataSourceType), "ID", _DataSourceID);
+		
+		String sRowLimit = _Session.getAttribute(_DataSource, "RowLimit");
+		_RowLimit = (StringUtilities.isNullOrEmpty(sRowLimit)) ? -1 : StringUtilities.toInteger(sRowLimit, -1);
+		if (_RowLimit != -1) 
+			_Session.addLogMessage("", "Row Limit", String.format("%,d", _RowLimit));
 	}
 
 	public abstract Boolean open();
