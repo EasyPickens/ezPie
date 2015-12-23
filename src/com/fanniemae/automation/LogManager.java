@@ -13,21 +13,22 @@ import java.util.Date;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.fanniemae.automation.common.FileUtilities;
+import com.fanniemae.automation.common.StringUtilities;
 
 /**
-*
-* @author Richard Monson
-* @since 2015-12-14
-* 
-*/
+ * 
+ * @author Richard Monson
+ * @since 2015-12-14
+ * 
+ */
 public class LogManager {
 
 	protected String _LogFilename;
 	protected String _TemplatePath;
-	protected String _HtmlFooter = "</table></body></html>";
-	protected String _BasicLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.4f</td></tr>\n";
-	protected String _ExceptionRow = "<tr class=\"exceptionRow\"><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.4f</td></tr>\n";
-	
+	protected final String _HtmlFooter = "</table></body></html>";
+	protected final String _BasicLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.4f</td></tr>\n";
+	protected final String _ExceptionRow = "<tr class=\"exceptionRow\"><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.4f</td></tr>\n";
+
 	protected byte[] _aHtmlFooter;
 
 	protected int _Backup;
@@ -42,28 +43,27 @@ public class LogManager {
 		initializeLog();
 	}
 
-    public void addFileDetails(String filename, String logGroup)
-    {
+	public void addFileDetails(String filename, String logGroup) {
 		if (!FileUtilities.isValidFile(_LogFilename))
 			return;
-		
-        File fi = new File(filename);
-        long lastModified = fi.lastModified();
-        Date dtModified = new Date(lastModified);
+
+		File fi = new File(filename);
+		long lastModified = fi.lastModified();
+		Date dtModified = new Date(lastModified);
 
 		try (RandomAccessFile raf = new RandomAccessFile(_LogFilename, "rw")) {
 			raf.seek(raf.length() - _Backup);
-	        raf.write(String.format(_BasicLine, logGroup, "File Name", fi.getName(), elapsedTime()).getBytes());
-            raf.write(String.format(_BasicLine, "", "Full Path", filename, elapsedTime()).getBytes());
-            raf.write(String.format(_BasicLine, "", "Last Modified Date", dtModified.toString(), elapsedTime()).getBytes());
-            raf.write(String.format(_BasicLine, "", "Size", String.format("%,d bytes", fi.length()), elapsedTime()).getBytes());
+			raf.write(String.format(_BasicLine, logGroup, "File Name", fi.getName(), elapsedTime()).getBytes());
+			raf.write(String.format(_BasicLine, "", "Full Path", filename, elapsedTime()).getBytes());
+			raf.write(String.format(_BasicLine, "", "Last Modified Date", dtModified.toString(), elapsedTime()).getBytes());
+			raf.write(String.format(_BasicLine, "", "Size", String.format("%,d bytes", fi.length()), elapsedTime()).getBytes());
 			raf.write(_aHtmlFooter);
 			raf.close();
 		} catch (IOException e) {
 			throw new RuntimeException("Error trying to add message to debug page.", e);
 		}
-    }
-	
+	}
+
 	public void addMessage(String logGroup, String event, String description) {
 		addMessage(logGroup, event, description, "");
 	}
@@ -73,19 +73,21 @@ public class LogManager {
 	}
 
 	public void addErrorMessage(Exception ex) {
-		updateLog(true, "** ERROR **", ex.getClass().toString(), ex.getMessage());
+		updateLog(true, "** ERROR **", "Exception Type", ex.getClass().toString());
+		if (StringUtilities.isNotNullOrEmpty(ex.getMessage()))
+			updateLog(true, "", "Message", ex.getMessage());
 
 		StringBuilder sbStack = new StringBuilder();
 		boolean bAddLinebreak = false;
 		for (StackTraceElement ele : ex.getStackTrace()) {
 			if (bAddLinebreak)
-				sbStack.append("<br />");
+				sbStack.append("\n");
 			sbStack.append(ele.toString());
 			bAddLinebreak = true;
 		}
-		updateLog(true, "", "Stack Trace", sbStack.toString());
+		updateLog(true, "", "Details", sbStack.toString());
 	}
-	
+
 	protected void initializeLog() {
 		// Read JVM runtime settings
 		Runtime oRuntime = Runtime.getRuntime();
@@ -124,7 +126,7 @@ public class LogManager {
 		// sw.writeUTF(String.format(_BasicLine,
 		// "",key,props.getProperty(key),ElapsedTime()));
 		// }
-	}	
+	}
 
 	protected String readTemplateFile(String filename) {
 		if (!FileUtilities.isValidFile(filename))
@@ -135,7 +137,7 @@ public class LogManager {
 			String sLine = br.readLine();
 			while (sLine != null) {
 				sb.append(sLine);
-				//sb.append("\n");
+				// sb.append("\n");
 				sLine = br.readLine();
 			}
 			return sb.toString();
@@ -161,7 +163,7 @@ public class LogManager {
 
 		// Encode the description line and preserve any CRLFs.
 		description = StringEscapeUtils.escapeHtml3(description).replace("\n", "<br />");
-		
+
 		try (RandomAccessFile raf = new RandomAccessFile(_LogFilename, "rw")) {
 			raf.seek(raf.length() - _Backup);
 			if (isError)
@@ -169,7 +171,7 @@ public class LogManager {
 			else
 				raf.write(String.format(_BasicLine, logGroup, event, description, elapsedTime()).getBytes());
 
-			//raf.write("\n".getBytes());
+			// raf.write("\n".getBytes());
 			raf.write(_aHtmlFooter);
 		} catch (IOException e) {
 			throw new RuntimeException("Error trying to add message to debug page.", e);

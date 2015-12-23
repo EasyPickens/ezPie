@@ -33,9 +33,7 @@ public class SqlConnector extends DataConnector {
 	protected String _SqlCommand;
 
 	protected String[] _FieldNames;
-	// protected JavaDataType[] _FieldTypes;
 
-	protected Boolean _Closed = true;
 	protected Boolean _CalledCommandCancel = false;
 
 	protected int _ColumnCount;
@@ -56,18 +54,13 @@ public class SqlConnector extends DataConnector {
 			_ConnectionString = _con.getMetaData().getURL();
 
 			AddCommandParameters();
-			// Issue 16358 - Timeout not used in all cases - moved to reader.
-			// Issue 17118, 17120 - Set command timeout if any value other than
-			// empty string.
-			int nCommandTimeout; // = _cmd.getQueryTimeout();
-			String sCommandTimeout = _DataSource.getAttribute("CommandTimeOut");
+			String sCommandTimeout = _DataSource.getAttribute("CommandTimeout");
 			if (StringUtilities.isNotNullOrEmpty(sCommandTimeout)) {
-				sCommandTimeout = _Connection.getAttribute("CommandTimeOut");
+				sCommandTimeout = _Connection.getAttribute("CommandTimeout");
 			}
 
 			if (StringUtilities.isNotNullOrEmpty(sCommandTimeout) && NotPostgreSQL()) {
-				nCommandTimeout = Integer.parseInt(sCommandTimeout);
-				_pstmt.setQueryTimeout(nCommandTimeout);
+				_pstmt.setQueryTimeout(StringUtilities.toInteger(sCommandTimeout, 60));
 			}
 
 			if (_SchemaOnly) {
@@ -75,7 +68,7 @@ public class SqlConnector extends DataConnector {
 			} else if (_RowLimit != -1) {
 				_pstmt.setFetchSize(_RowLimit);
 			}
-
+			
 			_rs = _pstmt.executeQuery();
 
 			ResultSetMetaData rsmd = _rs.getMetaData();
@@ -217,9 +210,6 @@ public class SqlConnector extends DataConnector {
 
 	@Override
 	public void close() {
-		if (_Closed)
-			return;
-
 		try {
 			if (_rs != null) {
 				_rs.close();
@@ -243,9 +233,6 @@ public class SqlConnector extends DataConnector {
 			}
 		} catch (SQLException e) {
 		}
-
-		_Closed = true;
-
 	}
 
 }

@@ -3,6 +3,7 @@ package com.fanniemae.automation;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.fanniemae.automation.actions.DataSet;
 import com.fanniemae.automation.actions.LocalTokens;
 import com.fanniemae.automation.actions.RunCommand;
 
@@ -38,6 +39,8 @@ public class JobManager {
 					break;
 				case "DataSet":
 					// Pull data and process
+					DataSet ds = new DataSet(_Session, eleOperation);
+					ds.execute();
 					break;
 				default:
 					_Session.addLogMessage("** Warning **", nlOperations.item(i).getNodeName(), "Operation not currently supported.");

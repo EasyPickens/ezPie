@@ -29,9 +29,11 @@ public class SessionManager {
 	protected String _LogPath;
 	protected String _StagingPath;
 	protected String _TemplatePath;
-	
 	protected String _PathSeparator = System.getProperty("file.separator");
+	
+	protected int _MemoryLimit = 20;
 
+	protected Document _SettingsDoc;
 	protected Element _Settings;
 	protected Element _Job;
 
@@ -42,7 +44,8 @@ public class SessionManager {
 		Document xSettings = XmlUtilities.loadXmlDefinition(settingsFilename);
 		if (xSettings == null)
 			throw new RuntimeException("No settings information found.");
-
+		
+		_SettingsDoc = xSettings;
 		_Settings = xSettings.getDocumentElement();
 		Node nodeConfig = XmlUtilities.selectSingleNode(_Settings, "Configuration");
 		if (nodeConfig == null)
@@ -91,6 +94,10 @@ public class SessionManager {
 	public String getStagingPath() {
 		return _StagingPath;
 	}
+	
+	public int getMemoryLimit() {
+		return _MemoryLimit;
+	}
 
 	public String getAttribute(Element ele, String name) {
 		return _Tokenizer.getAttribute(ele, name);
@@ -111,8 +118,8 @@ public class SessionManager {
 	public Element getConnection(String connectionID) {
 		if (StringUtilities.isNullOrEmpty(connectionID))
 			return null;
-
-		Node nodeConnection = XmlUtilities.selectSingleNode(_Job, String.format("..//Connections/Connection[ID='%s']", connectionID));
+		
+		Node nodeConnection = XmlUtilities.selectSingleNode(_Settings, String.format("..//Connections/Connection[@ID='%s']", connectionID));
 		if (nodeConnection == null)
 			return null;
 		return (Element) nodeConnection;
@@ -134,3 +141,4 @@ public class SessionManager {
 		_Tokenizer.addTokens(tokenType, node);
 	}
 }
+

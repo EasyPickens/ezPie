@@ -47,6 +47,10 @@ public class DataProvider {
 		if (StringUtilities.isNullOrEmpty(_SqlDialect)) {
 			_SqlDialect = "SQL92";
 		}
+		
+		_URL = eleConnection.getAttribute("URL");
+		_ClassName = eleConnection.getAttribute("ClassName");
+		_ConnectionString = eleConnection.getAttribute("ConnectionString");
 	}
 
 	public Connection getConnection() {
