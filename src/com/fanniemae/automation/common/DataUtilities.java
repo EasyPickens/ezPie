@@ -2,6 +2,8 @@ package com.fanniemae.automation.common;
 
 import java.sql.Types;
 
+import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
+
 /**
  * 
  * @author Richard Monson
@@ -78,4 +80,47 @@ public class DataUtilities {
 			return Types.VARCHAR;
 		}
 	}
+	
+    public static DataType DataTypeToEnum(String sTypeName) {
+        switch (sTypeName) {
+            case "java.math.BigDecimal":
+            case "BigDecimalData":
+                return DataType.BigDecimalData;            
+            case "java.lang.Boolean":
+            case "BooleanData":
+                return DataType.BooleanData;            
+            case "java.lang.Byte":
+            case "ByteData":
+                return DataType.ByteData;
+            case "java.lang.Character":
+            case "CharData":
+                return DataType.CharData;                
+            case "java.util.Date":
+            case "DateData":
+                return DataType.DateData;
+            case "java.lang.Double":
+            case "DoubleData":
+                return DataType.DoubleData;
+            case "java.lang.Float":
+            case "FloatData":
+                return DataType.FloatData;
+            case "java.lang.Integer":
+            case "IntegerData":
+                return DataType.IntegerData;
+            case "java.lang.Long":
+            case "LongData":
+                return DataType.LongData;
+            case "java.lang.Short":
+            case "ShortData":
+                return DataType.ShortData;                
+            case "java.lang.String":
+            case "StringData":
+                return DataType.StringData;
+            case "java.sql.Timestamp":
+            case "SqlTimestampData":
+                return DataType.SqlTimestampData;
+            default:
+                throw new RuntimeException("Error: " + sTypeName);
+        }
+    }
 }

@@ -1,6 +1,8 @@
 package com.fanniemae.automation.common;
 
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * 
@@ -105,6 +107,61 @@ public class StringUtilities {
 			return new BigDecimal(value);
 		} catch (NumberFormatException ex) {
 			return defaultValue;
+		}
+	}
+
+	public static Object toObject(String typeName, String value) {
+		if ((value == null) || value.isEmpty()) {
+			return "";
+		}
+
+		switch (typeName) {
+		case "Boolean":
+			return Boolean.parseBoolean(value);
+		case "Byte":
+		case "SByte":
+			return Byte.parseByte(value);
+		case "Byte[]":
+			return value.toCharArray();
+		case "Char":
+			return value.charAt(0);
+		case "Char[]":
+			return value.toCharArray();
+		case "DateTime":
+			Date dtValue = new Date(Long.parseLong(value));
+			if (dtValue == new Date(Long.MIN_VALUE)) {
+				return null;
+			}
+			return dtValue;
+		case "Decimal":
+		case "Double":
+		case "Single":
+			return Double.parseDouble(value);
+		case "Float":
+			return Float.parseFloat(value);
+		case "UUID":
+			return UUID.fromString(value);
+		case "Int":
+		case "Integer":
+		case "Int16":
+		case "Int32":
+		case "UInt16":
+			return Integer.parseInt(value);
+		case "Int64":
+		case "Long":
+		case "UInt32":
+		case "UInt64":
+			return Long.parseLong(value);
+		case "NCLOB":
+			return "NCLOB";
+		case "Short":
+			return Short.parseShort(value);
+		case "String":
+			return value;
+		case "TimeSpan":
+			return value;
+		default:
+			return null;
 		}
 	}
 }

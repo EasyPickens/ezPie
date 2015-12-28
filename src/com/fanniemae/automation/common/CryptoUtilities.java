@@ -34,4 +34,38 @@ public class CryptoUtilities {
 		}
 		return result;
 	}
+	
+	// Simple string encrypting using a single byte salt.
+	public static String EncryptDecrypt(String value) {
+		byte[] aCrypt = { 0x34 };
+		byte[] aInput = value.getBytes();
+		int iLength = aInput.length;
+		byte[] aOutput = new byte[iLength];
+
+		for (int pos = 0; pos < iLength; ++pos) {
+			aOutput[pos] = (byte) (aInput[pos] ^ aCrypt[0]);
+		}
+		return new String(aOutput);
+	}
+
+	// Simple string encrypt/decrypt using a variable length key (or salt).
+	public static String EncryptDecrypt(String value, String key) {
+		byte[] aCrypt = key.getBytes();
+		byte[] aInput = value.getBytes();
+
+		int iLength = aInput.length;
+		int iKeyLength = aCrypt.length;
+
+		byte[] aOutput = new byte[iLength];
+
+		int ikeypos = 0;
+		for (int pos = 0; pos < iLength; ++pos) {
+			aOutput[pos] = (byte) (aInput[pos] ^ aCrypt[ikeypos]);
+			ikeypos++;
+			if (ikeypos >= iKeyLength) {
+				ikeypos = 0;
+			}
+		}
+		return new String(aOutput);
+	}
 }

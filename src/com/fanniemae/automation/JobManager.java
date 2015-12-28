@@ -6,6 +6,7 @@ import org.w3c.dom.NodeList;
 import com.fanniemae.automation.actions.DataSet;
 import com.fanniemae.automation.actions.LocalTokens;
 import com.fanniemae.automation.actions.RunCommand;
+import com.fanniemae.automation.common.XmlUtilities;
 
 /**
  * 
@@ -23,10 +24,10 @@ public class JobManager {
 
 	public String runJob() {
 		try {
-			NodeList nlOperations = _Session.getJobDefinition().getElementsByTagName("*"); // .getChildNodes();
-			int iLen = nlOperations.getLength();
+			NodeList nlActions = XmlUtilities.selectNodes(_Session.getJobDefinition(), "*");
+			int iLen = nlActions.getLength();
 			for (int i = 0; i < iLen; i++) {
-				Element eleOperation = (Element) nlOperations.item(i);
+				Element eleOperation = (Element) nlActions.item(i);
 				switch (eleOperation.getNodeName()) {
 				case "RunCommand":
 					// Run external command or batch file
@@ -43,7 +44,7 @@ public class JobManager {
 					ds.execute();
 					break;
 				default:
-					_Session.addLogMessage("** Warning **", nlOperations.item(i).getNodeName(), "Operation not currently supported.");
+					_Session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}
 			}
 			return "";

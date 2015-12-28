@@ -14,6 +14,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.automation.SessionManager;
 import com.fanniemae.automation.common.DataUtilities;
+import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.data.DataProvider;
@@ -43,6 +44,10 @@ public class SqlConnector extends DataConnector {
 		super(session, dataSource, isSchemaOnly);
 
 		_SqlCommand = _Session.getAttribute(dataSource, "Command");
+		if (_SqlCommand.startsWith("file://")) {
+			_SqlCommand = FileUtilities.loadFile(_SqlCommand.substring(7));
+		}
+		_Session.addLogMessage("", "Command", _SqlCommand);
 	}
 
 	@Override
@@ -53,6 +58,8 @@ public class SqlConnector extends DataConnector {
 			_pstmt = _con.prepareStatement(_SqlCommand);
 			_ConnectionString = _con.getMetaData().getURL();
 
+			_Session.addLogMessage("", "ConnectionID", _Connection.getAttribute("ID"));
+
 			AddCommandParameters();
 			String sCommandTimeout = _DataSource.getAttribute("CommandTimeout");
 			if (StringUtilities.isNotNullOrEmpty(sCommandTimeout)) {
@@ -61,22 +68,28 @@ public class SqlConnector extends DataConnector {
 
 			if (StringUtilities.isNotNullOrEmpty(sCommandTimeout) && NotPostgreSQL()) {
 				_pstmt.setQueryTimeout(StringUtilities.toInteger(sCommandTimeout, 60));
+				_Session.addLogMessage("", "Command Timeout", String.format("%,d", _pstmt.getQueryTimeout()));
 			}
 
 			if (_SchemaOnly) {
 				_pstmt.setFetchSize(1);
 			} else if (_RowLimit != -1) {
 				_pstmt.setFetchSize(_RowLimit);
+				_Session.addLogMessage("", "Row Limit", String.format("%, d", _RowLimit));
 			}
-			
-			_rs = _pstmt.executeQuery();
 
+			_Session.addLogMessage("", "Execute Query", "Send the query to the database server.");
+			_rs = _pstmt.executeQuery();
+			_Session.addLogMessage("", "", "Database server returned.");
+			
+			_Session.addLogMessage("", "Read MetaData", "Read field names and data types.");
 			ResultSetMetaData rsmd = _rs.getMetaData();
 			_ColumnCount = rsmd.getColumnCount();
 			_FieldNames = new String[_ColumnCount];
 			// _FieldTypes = new JavaDataType[_ColumnCount];
 			_DataSchema = new String[_ColumnCount][2];
 
+			StringBuilder sbFields = new StringBuilder();
 			String sUsedFieldNames = "";
 			int nFieldNumber = 0;
 			int nColNumber = 0;
@@ -104,8 +117,11 @@ public class SqlConnector extends DataConnector {
 				_FieldNames[nFieldNumber] = sName;
 				_DataSchema[nFieldNumber][0] = sName;
 				_DataSchema[nFieldNumber][1] = rsmd.getColumnClassName(i + 1);
+				if (i > 0) sbFields.append(",\n");
+				sbFields.append(String.format("%s (%s)", sName, rsmd.getColumnClassName(i + 1)));
 				nFieldNumber++;
 			}
+			_Session.addLogMessage("", "Fields Returned", sbFields.toString());
 		} catch (NumberFormatException | SQLException ex) {
 			throw new RuntimeException("Error while trying to open database connection. " + ex.getMessage(), ex);
 		}

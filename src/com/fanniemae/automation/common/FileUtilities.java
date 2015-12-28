@@ -1,7 +1,12 @@
 package com.fanniemae.automation.common;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.UUID;
+
+import org.w3c.dom.Element;
 
 /**
  * 
@@ -49,6 +54,10 @@ public class FileUtilities {
 		return String.format("%s%s.tmp", sDirectory, sRandomGuid);
 	}
 
+	public static String getDataFilename(String filepath, Element eleDataset, Element eleConnection) {
+		return getDataFilename(filepath, XmlUtilities.getOuterXml(eleDataset),XmlUtilities.getOuterXml(eleConnection));
+	}
+	
 	public static String getDataFilename(String filePath, String datasetXML, String connectionXML) {
 		String sIdentifier = datasetXML;
 		if (connectionXML != null) {
@@ -65,9 +74,31 @@ public class FileUtilities {
 		}
 		return sName;
 	}
+	
+	public static String loadFile(String filename) {
+		if (!FileUtilities.isValidFile(filename))
+			throw new RuntimeException(String.format("%s file not found.", filename));
+
+		try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+			StringBuilder sb = new StringBuilder();
+			String sLine = br.readLine();
+			boolean bAddNewLine = false;
+			while (sLine != null) {
+				if (bAddNewLine) sb.append("\n");
+				sb.append(sLine);
+				sLine = br.readLine();
+				bAddNewLine = true;
+			}
+			return sb.toString();
+		} catch (IOException e) {
+			throw new RuntimeException(String.format("Error while trying to read %s text file.", filename), e);
+		}
+	}
 
 	private static String getHashFilename(String filePath, String datasetXML, String fileExtension) {
 		String sFilename = CryptoUtilities.hashValue(datasetXML);
 		return String.format("%s%s.%s", filePath, sFilename, fileExtension);
 	}
+	
+	
 }
