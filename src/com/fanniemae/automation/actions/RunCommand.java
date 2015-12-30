@@ -87,7 +87,7 @@ public class RunCommand extends Action {
 				if (_WaitForExit)
 					p.waitFor();
 
-				_Session.addLogMessage("", "Console Output", sb.toString());
+				_Session.addLogMessagePreserveLayout("", "Console Output", sb.toString());
 			} catch (InterruptedException ex) {
 				_Session.addErrorMessage(ex);
 				throw new RuntimeException("Error while running external command.", ex);

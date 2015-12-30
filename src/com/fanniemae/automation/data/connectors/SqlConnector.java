@@ -47,7 +47,7 @@ public class SqlConnector extends DataConnector {
 		if (_SqlCommand.startsWith("file://")) {
 			_SqlCommand = FileUtilities.loadFile(_SqlCommand.substring(7));
 		}
-		_Session.addLogMessage("", "Command", _SqlCommand);
+		_Session.addLogMessagePreserveLayout("", "Command", _SqlCommand);
 	}
 
 	@Override
@@ -62,13 +62,26 @@ public class SqlConnector extends DataConnector {
 
 			AddCommandParameters();
 			String sCommandTimeout = _DataSource.getAttribute("CommandTimeout");
-			if (StringUtilities.isNotNullOrEmpty(sCommandTimeout)) {
+			if (StringUtilities.isNullOrEmpty(sCommandTimeout)) {
 				sCommandTimeout = _Connection.getAttribute("CommandTimeout");
 			}
 
-			if (StringUtilities.isNotNullOrEmpty(sCommandTimeout) && NotPostgreSQL()) {
+			if (StringUtilities.isNotNullOrEmpty(sCommandTimeout)) { // &&
+																		// NotPostgreSQL())
+																		// {
 				_pstmt.setQueryTimeout(StringUtilities.toInteger(sCommandTimeout, 60));
 				_Session.addLogMessage("", "Command Timeout", String.format("%,d", _pstmt.getQueryTimeout()));
+				// } else if (StringUtilities.isNotNullOrEmpty(sCommandTimeout)
+				// && isPostgreSQL()) {
+				// int iTimeout = StringUtilities.toInteger(sCommandTimeout, 60)
+				// * 1000;
+				// if (!_SqlCommand.trim().endsWith(";"))
+				// _SqlCommand = _SqlCommand.trim() + ";";
+				// _pstmt =
+				// _con.prepareStatement(String.format("SET statement_timeout TO %d; \n%s\n RESET statement_timeout;",
+				// iTimeout, _SqlCommand));
+				// _Session.addLogMessage("", "Command Timeout",
+				// String.format("%,d", iTimeout / 1000));
 			}
 
 			if (_SchemaOnly) {
@@ -79,8 +92,31 @@ public class SqlConnector extends DataConnector {
 			}
 
 			_Session.addLogMessage("", "Execute Query", "Send the query to the database server.");
-			_rs = _pstmt.executeQuery();
+			// JDBC executeQuery does not support SQL queries that combine
+			// multiple statements
+			// _rs = _pstmt.executeQuery();
+			boolean isResultSet = _pstmt.execute();
+			if (isResultSet) {
+				_rs = _pstmt.getResultSet();
+			} else {
+				// Look through up to 30 results, taking only the first ResultSet.
+				// Could switch to a while(true), but concerned about infinite loop
+				for (int i = 0; i < 31; i++) {
+					isResultSet = _pstmt.getMoreResults();
+					if (isResultSet) {
+						_rs = _pstmt.getResultSet();
+						break;
+					} else if (_pstmt.getUpdateCount() == -1) {
+						break;
+					}
+				}
+			}
 			_Session.addLogMessage("", "", "Database server returned.");
+
+			if (_rs == null) {
+				RuntimeException ex = new RuntimeException("Query returned null result set information.");
+				throw ex;
+			}
 			
 			_Session.addLogMessage("", "Read MetaData", "Read field names and data types.");
 			ResultSetMetaData rsmd = _rs.getMetaData();
@@ -117,13 +153,14 @@ public class SqlConnector extends DataConnector {
 				_FieldNames[nFieldNumber] = sName;
 				_DataSchema[nFieldNumber][0] = sName;
 				_DataSchema[nFieldNumber][1] = rsmd.getColumnClassName(i + 1);
-				if (i > 0) sbFields.append(",\n");
+				if (i > 0)
+					sbFields.append(",\n");
 				sbFields.append(String.format("%s (%s)", sName, rsmd.getColumnClassName(i + 1)));
 				nFieldNumber++;
 			}
 			_Session.addLogMessage("", "Fields Returned", sbFields.toString());
 		} catch (NumberFormatException | SQLException ex) {
-			throw new RuntimeException("Error while trying to open database connection. " + ex.getMessage(), ex);
+			throw new RuntimeException("Error while trying to open and run the query. " + ex.getMessage(), ex);
 		}
 		return true;
 	}
@@ -151,9 +188,13 @@ public class SqlConnector extends DataConnector {
 		}
 	}
 
-	protected boolean NotPostgreSQL() throws SQLException {
+	protected boolean isPostgreSQL() throws SQLException {
 		String sUrl = _con.getMetaData().getURL().toLowerCase();
-		return !sUrl.contains("postgresql");
+		return sUrl.contains("postgresql");
+	}
+
+	protected boolean NotPostgreSQL() throws SQLException {
+		return !isPostgreSQL();
 	}
 
 	protected void AddCommandParameters() throws SQLException {

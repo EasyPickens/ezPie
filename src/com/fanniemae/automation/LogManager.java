@@ -67,9 +67,13 @@ public class LogManager {
 	public void addMessage(String logGroup, String event, String description) {
 		addMessage(logGroup, event, description, "");
 	}
+	
+	public void addMessagePreserveLayout(String logGroup, String event, String description) {
+		updateLog(false, logGroup, event, description, "", true);
+	}
 
 	public void addMessage(String logGroup, String event, String description, String cargo) {
-		updateLog(false, logGroup, event, description, cargo);
+		updateLog(false, logGroup, event, description, cargo, false);
 	}
 
 	public void addErrorMessage(Exception ex) {
@@ -151,10 +155,10 @@ public class LogManager {
 	}
 
 	protected void updateLog(Boolean isError, String logGroup, String event, String description) {
-		updateLog(isError, logGroup, event, description, "");
+		updateLog(isError, logGroup, event, description, "", false);
 	}
 
-	protected void updateLog(Boolean isError, String logGroup, String event, String description, String cargo) {
+	protected void updateLog(Boolean isError, String logGroup, String event, String description, String cargo, Boolean preserveLayout) {
 		// Skip blank description messages
 		if (description == null)
 			return;
@@ -162,7 +166,11 @@ public class LogManager {
 			return;
 
 		// Encode the description line and preserve any CRLFs.
-		description = StringEscapeUtils.escapeHtml3(description).replace("\n", "<br />");
+		if (preserveLayout) {
+		description = StringEscapeUtils.escapeHtml3(description).replace(" ","&nbsp;").replace("\n", "<br />");
+		} else {
+			description = StringEscapeUtils.escapeHtml3(description).replace("\n", "<br />");
+		}
 
 		try (RandomAccessFile raf = new RandomAccessFile(_LogFilename, "rw")) {
 			raf.seek(raf.length() - _Backup);

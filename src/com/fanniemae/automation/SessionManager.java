@@ -140,5 +140,9 @@ public class SessionManager {
 	public void addTokens(String tokenType, Node node) {
 		_Tokenizer.addTokens(tokenType, node);
 	}
+
+	public void addLogMessagePreserveLayout(String logGroup, String event, String description) {
+		_Log.addMessagePreserveLayout(logGroup, event, description);
+	}
 }
 
