@@ -2,6 +2,8 @@ package com.fanniemae.automation;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 //import javax.xml.parsers.DocumentBuilder;
 //import javax.xml.bind.annotation.XmlElement;
@@ -10,6 +12,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.fanniemae.automation.common.CryptoUtilities;
+import com.fanniemae.automation.common.DataStream;
 import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
@@ -23,14 +26,14 @@ import com.fanniemae.automation.common.XmlUtilities;
 public class SessionManager {
 	protected String _LogFilename;
 	protected String _JobFilename;
-	
+
 	protected String _AppPath;
 	protected String _DefinitionPath;
 	protected String _LogPath;
 	protected String _StagingPath;
 	protected String _TemplatePath;
 	protected String _PathSeparator = System.getProperty("file.separator");
-	
+
 	protected int _MemoryLimit = 20;
 
 	protected Document _SettingsDoc;
@@ -40,25 +43,27 @@ public class SessionManager {
 	protected LogManager _Log;
 	protected TokenManager _Tokenizer;
 
+	protected Map<String, DataStream> _DataSets = new HashMap<String, DataStream>();
+
 	public SessionManager(String settingsFilename, String jobFilename) {
 		Document xSettings = XmlUtilities.loadXmlDefinition(settingsFilename);
 		if (xSettings == null)
 			throw new RuntimeException("No settings information found.");
-		
+
 		_SettingsDoc = xSettings;
 		_Settings = xSettings.getDocumentElement();
 		Node nodeConfig = XmlUtilities.selectSingleNode(_Settings, "Configuration");
 		if (nodeConfig == null)
 			throw new RuntimeException("Settings file is missing the Configuration element.  Please update the settings file.");
 
-		Element eleConfig = (Element)nodeConfig; 
+		Element eleConfig = (Element) nodeConfig;
 		_AppPath = FileUtilities.formatPath(eleConfig.getAttribute("ApplicationPath"), System.getProperty("user.dir"), "ApplicationPath");
 		_StagingPath = FileUtilities.formatPath(eleConfig.getAttribute("StagingPath"), String.format("%1$s_Staging", _AppPath), "StagingPath");
 		_LogPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _AppPath), "LogPath");
 		_DefinitionPath = FileUtilities.formatPath(eleConfig.getAttribute("DefinitionPath"), String.format("%1$s_Definitions", _AppPath), "DefinitionPath");
 		_TemplatePath = FileUtilities.formatPath(eleConfig.getAttribute("TemplatePath"), String.format("%1$s_Templates", _AppPath), "TemplatePath");
-		_LogFilename = String.format("%1$s%2$s_%3$s.html", _LogPath,FileUtilities.getFilenameWithoutExtension(jobFilename), new SimpleDateFormat("yyyyMMdd").format(new Date()));
-		
+		_LogFilename = String.format("%1$s%2$s_%3$s.html", _LogPath, FileUtilities.getFilenameWithoutExtension(jobFilename), new SimpleDateFormat("yyyyMMdd").format(new Date()));
+
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _DefinitionPath + jobFilename;
 			if (FileUtilities.isValidFile(sAdjustedDefinitionFilename))
@@ -90,17 +95,53 @@ public class SessionManager {
 	public Element getJobDefinition() {
 		return _Job;
 	}
-	
+
 	public String getStagingPath() {
 		return _StagingPath;
 	}
-	
+
 	public int getMemoryLimit() {
 		return _MemoryLimit;
 	}
 
 	public String getAttribute(Element ele, String name) {
-		return _Tokenizer.getAttribute(ele, name);
+		return getAttribute(ele, name, "");
+	}
+
+	public String getAttribute(Element ele, String name, String defaultValue) {
+		String value = ele.getAttribute(name);
+
+		if (StringUtilities.isNullOrEmpty(value))
+			return defaultValue;
+
+		if ((value.indexOf("@") == -1) || (value.indexOf("~") == -1))
+			return value;
+
+		int iTokenSplit = 0;
+		int iTokenEnd = 0;
+		String[] aTokens = value.split("@");
+
+		for (int i = 0; i < aTokens.length; i++) {
+			iTokenSplit = aTokens[i].indexOf('.');
+			iTokenEnd = aTokens[i].indexOf('~');
+			if ((iTokenSplit == -1) || (iTokenEnd == -1))
+				continue;
+
+			String sFullToken = "@" + aTokens[i].substring(0, iTokenEnd + 1);
+			String sGroup = aTokens[i].substring(0, iTokenSplit);
+			String sKey = aTokens[i].substring(iTokenSplit + 1, iTokenEnd);
+
+			// Skip everything but DataSet tokens - others are resolved in
+			// Tokenizer.
+			if (!sGroup.equals("DataSet")) {
+				continue;
+			} else if (!_DataSets.containsKey(sKey)) {
+				throw new RuntimeException(String.format("Could not find any DataSet object named %s", sKey));
+			} else {
+				value = value.replace(sFullToken, _DataSets.get(sKey).getFilename());
+			}
+		}
+		return _Tokenizer.resolveTokens(value);
 	}
 
 	public void addLogMessage(String logGroup, String event, String description) {
@@ -118,7 +159,7 @@ public class SessionManager {
 	public Element getConnection(String connectionID) {
 		if (StringUtilities.isNullOrEmpty(connectionID))
 			return null;
-		
+
 		Node nodeConnection = XmlUtilities.selectSingleNode(_Settings, String.format("..//Connections/Connection[@ID='%s']", connectionID));
 		if (nodeConnection == null)
 			return null;
@@ -144,5 +185,19 @@ public class SessionManager {
 	public void addLogMessagePreserveLayout(String logGroup, String event, String description) {
 		_Log.addMessagePreserveLayout(logGroup, event, description);
 	}
-}
 
+	public void addDataSet(String id, DataStream ds) {
+		_DataSets.put(id, ds);
+	}
+
+	public DataStream getDataStream(String dataSetID) {
+		if (StringUtilities.isNullOrEmpty(dataSetID))
+			throw new RuntimeException("Missing required DataSetID value.");
+		addLogMessage("","DataSetID", dataSetID);
+		
+		if (!_DataSets.containsKey(dataSetID))
+			throw new RuntimeException(String.format("DataSetID %s was not found in the list of available data sets.",dataSetID));
+		
+		return _DataSets.get(dataSetID);
+	}
+}

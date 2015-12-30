@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.automation.SessionManager;
+import com.fanniemae.automation.common.DataStream;
 import com.fanniemae.automation.data.DataEngine;
 
 /**
@@ -25,7 +26,8 @@ public class DataSet extends Action {
 		NodeList nl = _Action.getElementsByTagName("DataSource");
 		int len = nl.getLength();
 		for (int i = 0; i < len; i++) {
-			de.getData((Element) (nl.item(i)));
+			DataStream ds = de.getData((Element) (nl.item(i)));
+			_Session.addDataSet(_ID,ds);
 		}
 		return null;
 	}

@@ -3,6 +3,9 @@ package com.fanniemae.automation;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.fanniemae.automation.actions.Action;
+import com.fanniemae.automation.actions.ExportDelimited;
+import com.fanniemae.automation.actions.LogComment;
 import com.fanniemae.automation.actions.DataSet;
 import com.fanniemae.automation.actions.LocalTokens;
 import com.fanniemae.automation.actions.RunCommand;
@@ -23,6 +26,7 @@ public class JobManager {
 	}
 
 	public String runJob() {
+		Action act;
 		try {
 			NodeList nlActions = XmlUtilities.selectNodes(_Session.getJobDefinition(), "*");
 			int iLen = nlActions.getLength();
@@ -31,22 +35,31 @@ public class JobManager {
 				switch (eleOperation.getNodeName()) {
 				case "RunCommand":
 					// Run external command or batch file
-					RunCommand rc = new RunCommand(_Session, eleOperation);
-					rc.execute();
+					act = new RunCommand(_Session, eleOperation);
+					act.execute();
 					break;
 				case "LocalTokens":
-					LocalTokens lc = new LocalTokens(_Session, eleOperation);
-					lc.execute();
+					act = new LocalTokens(_Session, eleOperation);
+					act.execute();
 					break;
 				case "DataSet":
 					// Pull data and process
-					DataSet ds = new DataSet(_Session, eleOperation);
-					ds.execute();
+					act = new DataSet(_Session, eleOperation);
+					act.execute();
+					break;
+				case "LogComment":
+					act = new LogComment(_Session, eleOperation);
+					act.execute();
+					break;
+				case "Export":
+					act = new ExportDelimited(_Session, eleOperation);
+					act.execute();
 					break;
 				default:
 					_Session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}
 			}
+			_Session.addLogMessage("Completed", "", "Processing completed successfully.");
 			return "";
 		} catch (Exception ex) {
 			_Session.addErrorMessage(ex);
