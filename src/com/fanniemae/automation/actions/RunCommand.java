@@ -35,6 +35,9 @@ public class RunCommand extends Action {
 	public RunCommand(SessionManager session, Element eleAction) {
 		super(session, eleAction);
 
+		if (!eleAction.getNodeName().equals("RunCommand"))
+			return;
+
 		String sWorkDirectory = _Session.getAttribute(eleAction, "WorkDirectory");
 		String sCmdLine = _Session.getAttribute(eleAction, "CommandLine");
 		String sWaitForExit = _Session.getAttribute(eleAction, "WaitForExit");
