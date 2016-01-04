@@ -2,7 +2,6 @@ package com.fanniemae.automation.actions;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -118,10 +117,9 @@ public class SvnCheckout extends RunCommand {
 		
 		for (Entry<String, String> kvp : _DirectoryURLs.entrySet()) {
 			sCurrentPath = _WorkDirectory + File.separator + kvp.getKey();
-			_Arguments = new String[] { "svn", "--quiet", "checkout", StringUtilities.wrapValue(kvp.getValue()), StringUtilities.wrapValue(sCurrentPath) };
+			_Arguments = new String[] { "svn", "checkout", StringUtilities.wrapValue(kvp.getValue()), StringUtilities.wrapValue(sCurrentPath) };
 			_Session.addLogMessage("", "Command Line", createCommandLine(_Arguments));
 			super.execute();
-			break;
 		}
 		return "";
 	}

@@ -184,6 +184,11 @@ public class LogManager {
 		} else {
 			description = StringEscapeUtils.escapeHtml3(description).replace("\n", "<br />");
 		}
+		
+		if (cargo.startsWith("file://")) {
+			// add html link line to view the file.
+			description = String.format("<a href=\"%2$s\">%1$s</a>",description, cargo.substring(7));
+		}
 
 		try (RandomAccessFile raf = new RandomAccessFile(_LogFilename, "rw")) {
 			raf.seek(raf.length() - _Backup);

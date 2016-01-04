@@ -46,12 +46,16 @@ public class FileUtilities {
 	}
 
 	public static String getRandomFilename(String filePath) {
+		return getRandomFilename(filePath, "tmp");
+	}
+	
+	public static String getRandomFilename(String filePath, String extension) {
 		String sRandomGuid = UUID.randomUUID().toString().replace("-", "");
 		String sDirectory = filePath;
 		if (!sDirectory.endsWith(File.separator)) {
 			sDirectory += File.separator;
 		}
-		return String.format("%s%s.tmp", sDirectory, sRandomGuid);
+		return String.format("%s%s.%s", sDirectory, sRandomGuid, extension);
 	}
 
 	public static String getDataFilename(String filepath, Element eleDataset, Element eleConnection) {

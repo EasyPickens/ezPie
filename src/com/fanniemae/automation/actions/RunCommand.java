@@ -1,7 +1,9 @@
 package com.fanniemae.automation.actions;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,6 +15,7 @@ import java.util.TimerTask;
 import org.w3c.dom.Element;
 
 import com.fanniemae.automation.SessionManager;
+import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.StringUtilities;
 
 /**
@@ -65,6 +68,7 @@ public class RunCommand extends Action {
 
 	@Override
 	public String execute() {
+		String sConsoleFilename = FileUtilities.getRandomFilename(_Session.getLogPath(), "txt");
 		Timer commandTimer = null;
 		ProcessBuilder pb = new ProcessBuilder(_Arguments);
 		pb.directory(new File(_WorkDirectory));
@@ -77,20 +81,21 @@ public class RunCommand extends Action {
 				commandTimer = new Timer();
 				commandTimer.schedule(killer, _Timeout * 1000);
 			}
-			try (InputStream is = p.getInputStream(); InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr);) {
-				StringBuilder sb = new StringBuilder();
+			try (InputStream is = p.getInputStream(); InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr); FileWriter fw = new FileWriter(sConsoleFilename); BufferedWriter bw = new BufferedWriter(fw);) {
 				String line = "";
 				boolean bAddLineBreak = false;
+				int iLines = 0;
 				while ((line = br.readLine()) != null) {
 					if (bAddLineBreak)
-						sb.append("\n");
-					sb.append(line);
+						bw.append(System.lineSeparator());
+					bw.append(line);
 					bAddLineBreak = true;
+					iLines++;
 				}
 				if (_WaitForExit)
 					p.waitFor();
 
-				_Session.addLogMessagePreserveLayout("", "Console Output", sb.toString());
+				_Session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
 			} catch (InterruptedException ex) {
 				_Session.addErrorMessage(ex);
 				throw new RuntimeException("Error while running external command.", ex);
@@ -105,7 +110,7 @@ public class RunCommand extends Action {
 			_Session.addErrorMessage(ex);
 			throw new RuntimeException("Error while running external command.", ex);
 		}
-		_Session.addLogMessage("", "Operation", "Completed");
+		_Session.addLogMessage("", "Command", "Completed");
 		return null;
 	}
 

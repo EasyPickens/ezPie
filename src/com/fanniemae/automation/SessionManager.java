@@ -99,6 +99,10 @@ public class SessionManager {
 	public String getStagingPath() {
 		return _StagingPath;
 	}
+	
+	public String getLogPath() {
+		return _LogPath;
+	}
 
 	public int getMemoryLimit() {
 		return _MemoryLimit;
