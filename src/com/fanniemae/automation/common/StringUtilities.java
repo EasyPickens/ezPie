@@ -164,4 +164,10 @@ public class StringUtilities {
 			return null;
 		}
 	}
+
+	public static String wrapValue(String value) {
+		if ((value == null) || (value.indexOf(' ') == -1))
+			return value;
+		return String.format("\"%s\"", value);
+	}
 }

@@ -83,8 +83,7 @@ public class ExportDelimited extends Action {
 			_Session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
 			_Session.addLogMessage("", "Completed", String.format("Data saved to %s",_OutputFilename));
 		} catch (Exception e) {
-			RuntimeException ex = new RuntimeException("Could not export data to CSV. Reason: "+e.getMessage(), e);
-			//_Session.addErrorMessage(ex);
+			RuntimeException ex = new RuntimeException("Error while trying to export the data into a delimited file.", e);
 			throw ex;
 		}
 

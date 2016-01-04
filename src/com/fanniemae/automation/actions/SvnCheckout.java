@@ -2,6 +2,7 @@ package com.fanniemae.automation.actions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,12 +35,12 @@ public class SvnCheckout extends RunCommand {
 		if (StringUtilities.isNullOrEmpty(sAppName))
 			throw new RuntimeException("No ApplicationName value specified.");
 		if (StringUtilities.isNullOrEmpty(sAppVersion))
-			throw new RuntimeException("No ApplicationVersion value specified.");		
+			throw new RuntimeException("No ApplicationVersion value specified.");
 		if (StringUtilities.isNullOrEmpty(sWorkDirectory))
 			throw new RuntimeException("No WorkDirectory value specified.");
 		if (FileUtilities.isInvalidDirectory(sWorkDirectory))
-			throw new RuntimeException(String.format("WorkDirectory (%s) does not exist.",sWorkDirectory));
-		
+			throw new RuntimeException(String.format("WorkDirectory (%s) does not exist.", sWorkDirectory));
+
 		sWorkDirectory = String.format("%1$s%2$s%3$s%2$sv%4$s", sWorkDirectory, File.separator, sAppName, sAppVersion);
 
 		// Read the branches
@@ -57,26 +58,34 @@ public class SvnCheckout extends RunCommand {
 			if (StringUtilities.isNullOrEmpty(sDirName)) {
 				int iPos = sUrl.lastIndexOf('/');
 				if ((iPos > -1) && (iPos < sUrl.length() - 1)) {
-					sDirName = sUrl.substring(iPos+1);
+					sDirName = sUrl.substring(iPos + 1);
 				} else {
 					throw new RuntimeException("Could not parse URL for directory name.");
 				}
 			}
 			_DirectoryURLs.put(sDirName, sUrl);
 		}
-		
+
 		// Create application directory
 		String sCurrentPath = sWorkDirectory;
 		try {
+			_Session.addLogMessage("", "Work Directory", sCurrentPath);
 			new File(sCurrentPath).mkdirs();
-			// Create each module directory
-			for(Entry<String,String> kvp : _DirectoryURLs.entrySet()) {
-				sCurrentPath = sWorkDirectory+File.separator+kvp.getKey();
+			// Create each module directory - delete the old if found.
+			Boolean bAddNewLine = false;
+			StringBuilder sb = new StringBuilder();
+			for (Entry<String, String> kvp : _DirectoryURLs.entrySet()) {
+				sCurrentPath = sWorkDirectory + File.separator + kvp.getKey();
 				if (FileUtilities.isValidDirectory(sCurrentPath)) {
 					FileUtils.deleteDirectory(new File(sCurrentPath));
 				}
+				if (bAddNewLine)
+					sb.append(System.lineSeparator());
+				sb.append(sCurrentPath);
 				new File(sCurrentPath).mkdirs();
+				bAddNewLine = true;
 			}
+			_Session.addLogMessage("", "Branch Directories", sb.toString());
 		} catch (SecurityException ex) {
 			_Session.addErrorMessage(ex);
 			throw new RuntimeException(String.format("Could not create SVN DestinationPath (%s).", sWorkDirectory));
@@ -84,8 +93,6 @@ public class SvnCheckout extends RunCommand {
 			_Session.addErrorMessage(e);
 			throw new RuntimeException(String.format("Could not delete or create SVN DestinationPath (%s).", sWorkDirectory));
 		}
-
-
 
 		if (StringUtilities.isNullOrEmpty(sCmdLine))
 			throw new RuntimeException("No CommandLine value specified.");
@@ -95,8 +102,8 @@ public class SvnCheckout extends RunCommand {
 		_WaitForExit = true;
 		_Timeout = parseTimeout(sTimeout);
 
-		_Session.addLogMessage("", "Work Directory", _WorkDirectory);
-		_Session.addLogMessage("", "Command Line", _CommandLine);
+		// _Session.addLogMessage("", "Work Directory", _WorkDirectory);
+		// _Session.addLogMessage("", "Command Line", _CommandLine);
 		if (StringUtilities.isNotNullOrEmpty(sWaitForExit))
 			_Session.addLogMessage("", "Wait For Exit", _WaitForExit.toString());
 		if (StringUtilities.isNotNullOrEmpty(sTimeout))
@@ -105,9 +112,31 @@ public class SvnCheckout extends RunCommand {
 		_Arguments = parseCommandLine(_CommandLine);
 	}
 
-	// @Override
-	// public String execute() {
-	//
-	// return "";
-	// }
+	@Override
+	public String execute() {
+		String sCurrentPath;
+		
+		for (Entry<String, String> kvp : _DirectoryURLs.entrySet()) {
+			sCurrentPath = _WorkDirectory + File.separator + kvp.getKey();
+			_Arguments = new String[] { "svn", "--quiet", "checkout", StringUtilities.wrapValue(kvp.getValue()), StringUtilities.wrapValue(sCurrentPath) };
+			_Session.addLogMessage("", "Command Line", createCommandLine(_Arguments));
+			super.execute();
+			break;
+		}
+		return "";
+	}
+
+	protected String createCommandLine(String[] arguments) {
+		if ((arguments == null) || (arguments.length == 0))
+			return "";
+
+		StringBuilder sb = new StringBuilder();
+		int iLen = arguments.length;
+		for (int i = 0; i < iLen; i++) {
+			if (i > 0)
+				sb.append(' ');
+			sb.append(arguments[i]);
+		}
+		return sb.toString();
+	}
 }
