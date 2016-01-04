@@ -9,6 +9,7 @@ import com.fanniemae.automation.actions.LogComment;
 import com.fanniemae.automation.actions.DataSet;
 import com.fanniemae.automation.actions.LocalTokens;
 import com.fanniemae.automation.actions.RunCommand;
+import com.fanniemae.automation.actions.SvnCheckout;
 import com.fanniemae.automation.common.XmlUtilities;
 
 /**
@@ -53,6 +54,10 @@ public class JobManager {
 					break;
 				case "Export":
 					act = new ExportDelimited(_Session, eleOperation);
+					act.execute();
+					break;
+				case "SvnCheckout":
+					act = new SvnCheckout(_Session, eleOperation);
 					act.execute();
 					break;
 				default:

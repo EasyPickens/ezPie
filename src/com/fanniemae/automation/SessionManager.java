@@ -103,9 +103,17 @@ public class SessionManager {
 	public int getMemoryLimit() {
 		return _MemoryLimit;
 	}
+	
+	public String getAttribute(Node ele, String name) {
+		return getAttribute(ele, name, "");
+	}
 
 	public String getAttribute(Element ele, String name) {
 		return getAttribute(ele, name, "");
+	}
+	
+	public String getAttribute(Node ele, String name, String defaultValue) {
+		return getAttribute((Element)ele, name, defaultValue);
 	}
 
 	public String getAttribute(Element ele, String name, String defaultValue) {

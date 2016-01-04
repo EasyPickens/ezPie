@@ -17,6 +17,7 @@ public abstract class Action {
 
 	protected String _ID;
 	protected String _ActionName;
+	protected static String _IDOptional = "|LogComment|LocalTokens|Export.Delimited|SvnCheckout|";
 
 	public Action(SessionManager session, Element eleAction) {
 		_Session = session;
@@ -26,7 +27,7 @@ public abstract class Action {
 
 		String nodeName = "|" + _ActionName + "|";
 		if (StringUtilities.isNullOrEmpty(_ID)) {
-			if ("|LogComment|LocalTokens|Export.Delimited|".indexOf(nodeName) == -1) {
+			if (_IDOptional.indexOf(nodeName) == -1) {
 				throw new RuntimeException(String.format("%s is missing a required ID value.", _Action.getNodeName()));
 			} else {
 				_Session.addLogMessage(_ActionName, "Process", String.format("Starting to process the %s operation.", _ActionName));

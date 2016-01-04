@@ -67,7 +67,7 @@ public class LogManager {
 	public void addMessage(String logGroup, String event, String description) {
 		addMessage(logGroup, event, description, "");
 	}
-	
+
 	public void addMessagePreserveLayout(String logGroup, String event, String description) {
 		updateLog(false, logGroup, event, description, "", true);
 	}
@@ -77,9 +77,19 @@ public class LogManager {
 	}
 
 	public void addErrorMessage(Exception ex) {
-		updateLog(true, "** ERROR **", "Exception Type", ex.getClass().toString());
-		if (StringUtilities.isNotNullOrEmpty(ex.getMessage()))
-			updateLog(true, "", "Message", ex.getMessage());
+		addErrorMessage(ex, false);
+	}
+
+	public void addErrorMessage(Throwable ex, Boolean isInner) {
+		String sLogGroup = isInner ? "" : "** ERROR **";
+		String sInner = isInner ? "Inner " : "";
+
+		String sMessage = ex.getMessage();
+		if (StringUtilities.isNullOrEmpty(sMessage))
+			sMessage = "See stack trace for error details.";
+		updateLog(true, sLogGroup, sInner + "Message", sMessage);
+		if (!ex.getClass().getName().equals("java.lang.RuntimeException"))
+			updateLog(true, "", sInner + "Exception Type", ex.getClass().getName().toString());
 
 		StringBuilder sbStack = new StringBuilder();
 		boolean bAddLinebreak = false;
@@ -89,7 +99,10 @@ public class LogManager {
 			sbStack.append(ele.toString());
 			bAddLinebreak = true;
 		}
-		updateLog(true, "", "Details", sbStack.toString());
+		updateLog(true, "", sInner + "Details", sbStack.toString());
+		Throwable inner = ex.getCause();
+		if (inner != null)
+			addErrorMessage(inner, true);
 	}
 
 	protected void initializeLog() {
@@ -167,7 +180,7 @@ public class LogManager {
 
 		// Encode the description line and preserve any CRLFs.
 		if (preserveLayout) {
-		description = StringEscapeUtils.escapeHtml3(description).replace(" ","&nbsp;").replace("\n", "<br />");
+			description = StringEscapeUtils.escapeHtml3(description).replace(" ", "&nbsp;").replace("\n", "<br />");
 		} else {
 			description = StringEscapeUtils.escapeHtml3(description).replace("\n", "<br />");
 		}

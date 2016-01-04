@@ -35,6 +35,7 @@ public class ExportDelimited extends Action {
 		_OutputFilename = _Session.getAttribute(eleAction, "Filename");
 		if (StringUtilities.isNullOrEmpty(_OutputFilename))
 			throw new RuntimeException("Missing required output filename.");
+		_Session.addLogMessage("", "OutputFilename", _OutputFilename);
 
 		_Delimiter = _Session.getAttribute(eleAction, "Delimiter", "|");
 		_Session.addLogMessage("", "Delimiter", _Delimiter);
@@ -79,10 +80,12 @@ public class ExportDelimited extends Action {
 			}
 			fw.close();
 			dr.close();
-			_Session.addLogMessage("", "Data", String.format("%,d rows of data written.",iRowCount));
-			_Session.addLogMessage("", "Export", "Completed");
+			_Session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
+			_Session.addLogMessage("", "Completed", String.format("Data saved to %s",_OutputFilename));
 		} catch (Exception e) {
-			_Session.addErrorMessage(e);
+			RuntimeException ex = new RuntimeException("Could not export data to CSV. Reason: "+e.getMessage(), e);
+			//_Session.addErrorMessage(ex);
+			throw ex;
 		}
 
 		return _OutputFilename;

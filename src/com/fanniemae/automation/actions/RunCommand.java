@@ -109,7 +109,7 @@ public class RunCommand extends Action {
 		return null;
 	}
 
-	private String[] parseCommandLine(String commandLine) {
+	protected String[] parseCommandLine(String commandLine) {
 		if (commandLine == null)
 			return null;
 
@@ -151,7 +151,7 @@ public class RunCommand extends Action {
 		return aArgs.toArray(new String[0]);
 	}
 
-	private int parseTimeout(String value) {
+	protected int parseTimeout(String value) {
 		if (StringUtilities.isNullOrEmpty(value))
 			return -1;
 
