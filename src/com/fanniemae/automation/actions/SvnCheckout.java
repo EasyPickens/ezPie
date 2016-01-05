@@ -26,8 +26,6 @@ public class SvnCheckout extends RunCommand {
 		String sAppName = _Session.getAttribute(_Action, "ApplicationName");
 		String sAppVersion = _Session.getAttribute(eleAction, "ApplicationVersion");
 		String sWorkDirectory = _Session.getAttribute(eleAction, "DestinationPath");
-
-		String sCmdLine = "svn";
 		String sWaitForExit = _Session.getAttribute(eleAction, "WaitForExit");
 		String sTimeout = _Session.getAttribute(eleAction, "Timeout");
 
@@ -46,8 +44,9 @@ public class SvnCheckout extends RunCommand {
 		NodeList nlBranches = XmlUtilities.selectNodes(_Action, "SvnDirectory");
 		int iLen = nlBranches.getLength();
 		if (iLen == 0) {
-			throw new RuntimeException("Missing SvnDirectory URL to checkout.");
+			throw new RuntimeException("No SvnDirectory URLs specified. Nothing to check out.");
 		}
+		
 		for (int i = 0; i < iLen; i++) {
 			String sUrl = _Session.getAttribute(nlBranches.item(i), "URL");
 			String sDirName = _Session.getAttribute(nlBranches.item(i), "DirectoryName");
@@ -59,13 +58,13 @@ public class SvnCheckout extends RunCommand {
 				if ((iPos > -1) && (iPos < sUrl.length() - 1)) {
 					sDirName = sUrl.substring(iPos + 1);
 				} else {
-					throw new RuntimeException("Could not parse URL for directory name.");
+					throw new RuntimeException(String.format("Could not parse URL (%s) for directory name.", sUrl));
 				}
 			}
 			_DirectoryURLs.put(sDirName, sUrl);
 		}
 
-		// Create application directory
+		// Create application directory structure
 		String sCurrentPath = sWorkDirectory;
 		try {
 			_Session.addLogMessage("", "Work Directory", sCurrentPath);
@@ -79,7 +78,7 @@ public class SvnCheckout extends RunCommand {
 					FileUtils.deleteDirectory(new File(sCurrentPath));
 				}
 				if (bAddNewLine)
-					sb.append(System.lineSeparator());
+					sb.append(_Session.getLineSeparator());
 				sb.append(sCurrentPath);
 				new File(sCurrentPath).mkdirs();
 				bAddNewLine = true;
@@ -93,22 +92,14 @@ public class SvnCheckout extends RunCommand {
 			throw new RuntimeException(String.format("Could not delete or create SVN DestinationPath (%s).", sWorkDirectory));
 		}
 
-		if (StringUtilities.isNullOrEmpty(sCmdLine))
-			throw new RuntimeException("No CommandLine value specified.");
-
 		_WorkDirectory = sWorkDirectory;
-		_CommandLine = sCmdLine;
-		_WaitForExit = true;
+		_WaitForExit = StringUtilities.toBoolean(sWaitForExit,true);
 		_Timeout = parseTimeout(sTimeout);
 
-		// _Session.addLogMessage("", "Work Directory", _WorkDirectory);
-		// _Session.addLogMessage("", "Command Line", _CommandLine);
 		if (StringUtilities.isNotNullOrEmpty(sWaitForExit))
 			_Session.addLogMessage("", "Wait For Exit", _WaitForExit.toString());
 		if (StringUtilities.isNotNullOrEmpty(sTimeout))
 			_Session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _Timeout));
-
-		_Arguments = parseCommandLine(_CommandLine);
 	}
 
 	@Override

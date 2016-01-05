@@ -108,6 +108,10 @@ public class SessionManager {
 		return _MemoryLimit;
 	}
 	
+	public String getLineSeparator() {
+		return System.lineSeparator();
+	}
+	
 	public String getAttribute(Node ele, String name) {
 		return getAttribute(ele, name, "");
 	}
