@@ -15,6 +15,12 @@ import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-04
+ * 
+ */
 public class SvnCheckout extends RunCommand {
 
 	public Map<String, String> _DirectoryURLs = new HashMap<String, String>();

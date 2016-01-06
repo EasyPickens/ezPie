@@ -14,6 +14,12 @@ import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.datafiles.DataReader;
 import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2015-01-31
+ * 
+ */
 public class ExportDelimited extends Action {
 
 	protected String _OutputFilename;

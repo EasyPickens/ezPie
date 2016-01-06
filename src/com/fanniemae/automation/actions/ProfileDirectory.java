@@ -14,6 +14,12 @@ import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.ReportBuilder;
 import com.fanniemae.automation.common.StringUtilities;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-04
+ * 
+ */
 public class ProfileDirectory extends Action {
 
 	protected String _Path;

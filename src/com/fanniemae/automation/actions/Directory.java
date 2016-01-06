@@ -7,9 +7,14 @@ import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Element;
 
 import com.fanniemae.automation.SessionManager;
-import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.StringUtilities;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-05
+ * 
+ */
 public class Directory extends Action {
 	protected String _Path;
 	protected String _DestinationPath;

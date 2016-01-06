@@ -1,12 +1,8 @@
 package com.fanniemae.automation;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-//import javax.xml.parsers.DocumentBuilder;
-//import javax.xml.bind.annotation.XmlElement;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
