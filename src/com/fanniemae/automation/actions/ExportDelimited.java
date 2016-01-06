@@ -30,8 +30,8 @@ public class ExportDelimited extends Action {
 	protected Boolean _IncludeColumnNames = true;
 
 	public ExportDelimited(SessionManager session, Element eleAction) {
-		super(session, eleAction);
-
+		super(session, eleAction, false);
+		
 		_OutputFilename = _Session.getAttribute(eleAction, "Filename");
 		if (StringUtilities.isNullOrEmpty(_OutputFilename))
 			throw new RuntimeException("Missing required output filename.");

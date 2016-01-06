@@ -7,7 +7,7 @@ import com.fanniemae.automation.SessionManager;
 public class LogComment extends Action {
 	
 	public LogComment(SessionManager session, Element eleAction) {
-		super(session, eleAction);
+		super(session, eleAction, false);
 	}
 
 	@Override

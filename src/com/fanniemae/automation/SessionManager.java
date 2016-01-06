@@ -62,7 +62,8 @@ public class SessionManager {
 		_LogPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _AppPath), "LogPath");
 		_DefinitionPath = FileUtilities.formatPath(eleConfig.getAttribute("DefinitionPath"), String.format("%1$s_Definitions", _AppPath), "DefinitionPath");
 		_TemplatePath = FileUtilities.formatPath(eleConfig.getAttribute("TemplatePath"), String.format("%1$s_Templates", _AppPath), "TemplatePath");
-		_LogFilename = String.format("%1$s%2$s_%3$s.html", _LogPath, FileUtilities.getFilenameWithoutExtension(jobFilename), new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		//_LogFilename = String.format("%1$s%2$s_%3$s.html", _LogPath, FileUtilities.getFilenameWithoutExtension(jobFilename), new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		_LogFilename = FileUtilities.getRandomFilename(_LogPath, "html");
 
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _DefinitionPath + jobFilename;

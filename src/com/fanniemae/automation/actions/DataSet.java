@@ -17,7 +17,6 @@ public class DataSet extends Action {
 
 	public DataSet(SessionManager session, Element eleAction) {
 		super(session, eleAction);
-
 	}
 
 	@Override

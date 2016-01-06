@@ -21,7 +21,7 @@ public class SvnCheckout extends RunCommand {
 	public String _AppVersion;
 
 	public SvnCheckout(SessionManager session, Element eleAction) {
-		super(session, eleAction);
+		super(session, eleAction, false);
 
 		String sAppName = _Session.getAttribute(_Action, "ApplicationName");
 		String sAppVersion = _Session.getAttribute(eleAction, "ApplicationVersion");
@@ -35,10 +35,10 @@ public class SvnCheckout extends RunCommand {
 			throw new RuntimeException("No ApplicationVersion value specified.");
 		if (StringUtilities.isNullOrEmpty(sWorkDirectory))
 			throw new RuntimeException("No WorkDirectory value specified.");
-		if (FileUtilities.isInvalidDirectory(sWorkDirectory))
-			throw new RuntimeException(String.format("WorkDirectory (%s) does not exist.", sWorkDirectory));
+//		if (FileUtilities.isInvalidDirectory(sWorkDirectory))
+//			throw new RuntimeException(String.format("WorkDirectory (%s) does not exist.", sWorkDirectory));
 
-		sWorkDirectory = String.format("%1$s%2$s%3$s%2$sv%4$s", sWorkDirectory, File.separator, sAppName, sAppVersion);
+		//sWorkDirectory = String.format("%1$s%2$s%3$s%2$sv%4$s", sWorkDirectory, File.separator, sAppName, sAppVersion);
 
 		// Read the branches
 		NodeList nlBranches = XmlUtilities.selectNodes(_Action, "SvnDirectory");
@@ -50,9 +50,12 @@ public class SvnCheckout extends RunCommand {
 		for (int i = 0; i < iLen; i++) {
 			String sUrl = _Session.getAttribute(nlBranches.item(i), "URL");
 			String sDirName = _Session.getAttribute(nlBranches.item(i), "DirectoryName");
+			String sRevision = _Session.getAttribute(nlBranches.item(i), "Revision");
+			
 			if (StringUtilities.isNullOrEmpty(sUrl)) {
 				continue;
 			}
+			
 			if (StringUtilities.isNullOrEmpty(sDirName)) {
 				int iPos = sUrl.lastIndexOf('/');
 				if ((iPos > -1) && (iPos < sUrl.length() - 1)) {
@@ -61,6 +64,12 @@ public class SvnCheckout extends RunCommand {
 					throw new RuntimeException(String.format("Could not parse URL (%s) for directory name.", sUrl));
 				}
 			}
+			
+			if (StringUtilities.isNotNullOrEmpty(sRevision)) {
+				if (!sUrl.endsWith("/")) sUrl += "/";
+				sUrl += "@"+sRevision;
+			}
+			
 			_DirectoryURLs.put(sDirName, sUrl);
 		}
 

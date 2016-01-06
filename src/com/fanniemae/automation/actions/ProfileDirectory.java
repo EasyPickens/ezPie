@@ -40,7 +40,7 @@ public class ProfileDirectory extends Action {
 	protected Map<String, Boolean> _ComponentExtensions = new HashMap<String, Boolean>();
 
 	public ProfileDirectory(SessionManager session, Element eleAction) {
-		super(session, eleAction);
+		super(session, eleAction, false);
 
 		_ComponentExtensions.put("jar", true);
 		_ComponentExtensions.put("dll", true);
@@ -175,8 +175,8 @@ public class ProfileDirectory extends Action {
 
 		@Override
 		public int compareTo(FileExtensionCount o) {
-			// return this._Count - o._Count;
-			return this._Extension.compareTo(o._Extension);
+			return o._Count - this._Count;
+			//return this._Extension.compareTo(o._Extension);
 		}
 	}
 

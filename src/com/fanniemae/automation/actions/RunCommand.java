@@ -34,9 +34,13 @@ public class RunCommand extends Action {
 
 	protected int _Timeout = 0;
 	protected int _ExitCode = 0;
-
+	
 	public RunCommand(SessionManager session, Element eleAction) {
-		super(session, eleAction);
+		this(session, eleAction, false);
+	}
+
+	public RunCommand(SessionManager session, Element eleAction, Boolean bIDRequired) {
+		super(session, eleAction, bIDRequired);
 
 		if (!eleAction.getNodeName().equals("RunCommand"))
 			return;

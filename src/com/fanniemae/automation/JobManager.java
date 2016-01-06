@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.automation.actions.Action;
+import com.fanniemae.automation.actions.Directory;
 import com.fanniemae.automation.actions.ExportDelimited;
 import com.fanniemae.automation.actions.LogComment;
 import com.fanniemae.automation.actions.DataSet;
@@ -63,6 +64,10 @@ public class JobManager {
 					break;
 				case "ProfileDirectory":
 					act = new ProfileDirectory(_Session, eleOperation);
+					act.execute();
+					break;
+				case "Directory" :
+					act = new Directory(_Session, eleOperation);
 					act.execute();
 					break;
 				default:
