@@ -26,14 +26,14 @@ public class SvnCheckout extends RunCommand {
 	public Map<String, String> _DirectoryURLs = new HashMap<String, String>();
 	public String _AppVersion;
 
-	public SvnCheckout(SessionManager session, Element eleAction) {
-		super(session, eleAction, false);
+	public SvnCheckout(SessionManager session, Element action) {
+		super(session, action, false);
 
 		String sAppName = _Session.getAttribute(_Action, "ApplicationName");
-		String sAppVersion = _Session.getAttribute(eleAction, "ApplicationVersion");
-		String sWorkDirectory = _Session.getAttribute(eleAction, "DestinationPath");
-		String sWaitForExit = _Session.getAttribute(eleAction, "WaitForExit");
-		String sTimeout = _Session.getAttribute(eleAction, "Timeout");
+		String sAppVersion = _Session.getAttribute(action, "ApplicationVersion");
+		String sWorkDirectory = _Session.getAttribute(action, "DestinationPath");
+		String sWaitForExit = _Session.getAttribute(action, "WaitForExit");
+		String sTimeout = _Session.getAttribute(action, "Timeout");
 
 		if (StringUtilities.isNullOrEmpty(sAppName))
 			throw new RuntimeException("No ApplicationName value specified.");

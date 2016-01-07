@@ -15,8 +15,8 @@ import com.fanniemae.automation.data.DataEngine;
  */
 public class DataSet extends Action {
 
-	public DataSet(SessionManager session, Element eleAction) {
-		super(session, eleAction);
+	public DataSet(SessionManager session, Element action) {
+		super(session, action);
 	}
 
 	@Override

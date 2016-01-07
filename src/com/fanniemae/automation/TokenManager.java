@@ -90,22 +90,39 @@ public class TokenManager {
 	}
 
 	protected void loadTokenValues(String sTokenType, Node xNode) {
-		HashMap<String, String> aKeyValues = new HashMap<String, String>();
-		if (_aTokens.containsKey(sTokenType))
+		HashMap<String, String> aKeyValues;
+		if (_aTokens.containsKey(sTokenType)) {
 			aKeyValues = _aTokens.get(sTokenType);
+		} else {
+			aKeyValues = new HashMap<String, String>();
+		}
+		
+		int startCount = aKeyValues.size();
 
 		StringBuilder sb = new StringBuilder();
 		NamedNodeMap aAttributes = xNode.getAttributes();
+		
+		int iUpdateCount = 0;
 		int iLen = aAttributes.getLength();
 		for (int i = 0; i < iLen; i++) {
 			Node xA = aAttributes.item(i);
 			String sName = xA.getNodeName();
 			String sValue = xA.getNodeValue();
 			if (sName.equals("ID")) continue;
+			iUpdateCount++;
 			aKeyValues.put(sName, sValue);
 			sb.append(String.format("%s = %s \n", sName, sValue));
 		}
 		_aTokens.put(sTokenType, aKeyValues);
-		_Log.addMessage("", "@" + sTokenType, String.format("%s\n%,d tokens defined.", sb.toString(), aKeyValues.size()));
+		
+		String sLogMessage = "Adding tokens to log manager.";
+		if (startCount == 0) {
+			sLogMessage = String.format("%,d %s token(s) defined.\n%s", aKeyValues.size(), sTokenType, sb.toString());
+		} else if (startCount == aKeyValues.size()) {
+			sLogMessage = String.format("%,d %s token value(s) updated.\n%s", iUpdateCount, sTokenType, sb.toString());
+		} else if (startCount < aKeyValues.size()) {
+			sLogMessage = String.format("%,d %s token value(s) added/updated.\n%s", aKeyValues.size()-startCount, sTokenType, sb.toString());
+		}
+		_Log.addMessage("", "@" + sTokenType, sLogMessage);
 	}
 }

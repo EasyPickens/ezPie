@@ -22,14 +22,14 @@ public abstract class Action {
 	
 	protected Boolean _IDRequired = true;
 
-	public Action(SessionManager session, Element eleAction) {
-		this(session, eleAction, true);
+	public Action(SessionManager session, Element action) {
+		this(session, action, true);
 	}
 	
-	public Action(SessionManager session, Element eleAction, Boolean bIDRequired) {
+	public Action(SessionManager session, Element action, Boolean idRequired) {
 		_Session = session;
-		_Action = eleAction;
-		_IDRequired = bIDRequired;
+		_Action = action;
+		_IDRequired = idRequired;
 
 		_ID = _Session.getAttribute(_Action, "ID");
 		_ActionType = _Action.getAttribute("Type");

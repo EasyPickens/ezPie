@@ -35,20 +35,20 @@ public class ExportDelimited extends Action {
 
 	protected Boolean _IncludeColumnNames = true;
 
-	public ExportDelimited(SessionManager session, Element eleAction) {
-		super(session, eleAction, false);
+	public ExportDelimited(SessionManager session, Element action) {
+		super(session, action, false);
 		
-		_OutputFilename = _Session.getAttribute(eleAction, "Filename");
+		_OutputFilename = _Session.getAttribute(action, "Filename");
 		if (StringUtilities.isNullOrEmpty(_OutputFilename))
 			throw new RuntimeException("Missing required output filename.");
 		_Session.addLogMessage("", "OutputFilename", _OutputFilename);
 
-		_Delimiter = _Session.getAttribute(eleAction, "Delimiter", "|");
+		_Delimiter = _Session.getAttribute(action, "Delimiter", "|");
 		_Session.addLogMessage("", "Delimiter", _Delimiter);
 
-		_DataSetID = _Session.getAttribute(eleAction, "DataSetID");
+		_DataSetID = _Session.getAttribute(action, "DataSetID");
 		_DataStream = _Session.getDataStream(_DataSetID);
-		_IncludeColumnNames = StringUtilities.toBoolean(_Session.getAttribute(eleAction, "IncludeColumnNames"), true);
+		_IncludeColumnNames = StringUtilities.toBoolean(_Session.getAttribute(action, "IncludeColumnNames"), true);
 	}
 
 	@Override

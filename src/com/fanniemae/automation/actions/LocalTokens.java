@@ -12,8 +12,8 @@ import com.fanniemae.automation.SessionManager;
 */
 public class LocalTokens extends Action {
 
-	public LocalTokens(SessionManager session, Element eleAction) {
-		super(session, eleAction, false);
+	public LocalTokens(SessionManager session, Element action) {
+		super(session, action, false);
 	}
 
 	@Override

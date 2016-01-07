@@ -35,20 +35,20 @@ public class RunCommand extends Action {
 	protected int _Timeout = 0;
 	protected int _ExitCode = 0;
 	
-	public RunCommand(SessionManager session, Element eleAction) {
-		this(session, eleAction, false);
+	public RunCommand(SessionManager session, Element action) {
+		this(session, action, false);
 	}
 
-	public RunCommand(SessionManager session, Element eleAction, Boolean bIDRequired) {
-		super(session, eleAction, bIDRequired);
+	public RunCommand(SessionManager session, Element action, Boolean bIDRequired) {
+		super(session, action, bIDRequired);
 
-		if (!eleAction.getNodeName().equals("RunCommand"))
+		if (!action.getNodeName().equals("RunCommand"))
 			return;
 
-		String sWorkDirectory = _Session.getAttribute(eleAction, "WorkDirectory");
-		String sCmdLine = _Session.getAttribute(eleAction, "CommandLine");
-		String sWaitForExit = _Session.getAttribute(eleAction, "WaitForExit");
-		String sTimeout = _Session.getAttribute(eleAction, "Timeout");
+		String sWorkDirectory = _Session.getAttribute(action, "WorkDirectory");
+		String sCmdLine = _Session.getAttribute(action, "CommandLine");
+		String sWaitForExit = _Session.getAttribute(action, "WaitForExit");
+		String sTimeout = _Session.getAttribute(action, "Timeout");
 
 		if (StringUtilities.isNullOrEmpty(sWorkDirectory))
 			throw new RuntimeException("No WorkDirectory value specified.");

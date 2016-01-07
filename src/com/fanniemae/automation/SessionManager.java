@@ -72,6 +72,7 @@ public class SessionManager {
 
 		// Create Debug page.
 		_Log = new LogManager(_TemplatePath, _LogFilename);
+		try {
 		_Log.addFileDetails(_JobFilename, "Definition Details");
 		_Log.addMessage("Setup Token Dictionary", "Load Tokens", "Read value from settings file.");
 		_Tokenizer = new TokenManager(_Settings, _Log);
@@ -83,6 +84,10 @@ public class SessionManager {
 		_Job = xJob.getDocumentElement();
 		_Log.addMessage("", "Prepare Definition", "Complete");
 		_Log.addMessage("", "Adjusted Size", String.format("%,d bytes", XmlUtilities.getOuterXml(_Job).length()));
+		} catch (Exception ex) {
+			_Log.addErrorMessage(ex);
+			throw ex;
+		}
 	}
 
 	public TokenManager getTokenizer() {

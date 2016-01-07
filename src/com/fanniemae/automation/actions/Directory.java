@@ -56,11 +56,11 @@ public class Directory extends Action {
 	protected Map<String, Boolean> _SkipExtensions = new HashMap<String, Boolean>();
 	protected Map<String, Boolean> _SkipDirectories = new HashMap<String, Boolean>();
 
-	public Directory(SessionManager session, Element eleAction) {
-		super(session, eleAction, false);
+	public Directory(SessionManager session, Element action) {
+		super(session, action, false);
 
-		_Path = RemoveFinalSlash(_Session.getAttribute(_Action, "Path"));
-		_DestinationPath = RemoveFinalSlash(_Session.getAttribute(_Action, "DestinationPath"));
+		_Path = removeFinalSlash(_Session.getAttribute(_Action, "Path"));
+		_DestinationPath = removeFinalSlash(_Session.getAttribute(_Action, "DestinationPath"));
 		_NewName = _Session.getAttribute(_Action, "NewName");
 
 		if (StringUtilities.isNullOrEmpty(_Path)) {
@@ -91,7 +91,7 @@ public class Directory extends Action {
 		}
 	}
 
-	protected String RemoveFinalSlash(String path) {
+	protected String removeFinalSlash(String path) {
 		if (StringUtilities.isNotNullOrEmpty(path) && (path.endsWith(File.separator))) {
 			path = path.substring(0, path.length() - 1);
 		}
