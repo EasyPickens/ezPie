@@ -16,6 +16,7 @@ public class TimePeriodColumn extends DataTransform {
 
 	protected int _DayOfWeekShift = 0;
 	protected Calendar _FiscalStart = Calendar.getInstance();
+	protected Calendar _Calendar = Calendar.getInstance();
 
 	// Notes: (Will JAVA after testing.)
 	// Arrays added to improve performance. Data processing time dropped from
@@ -252,7 +253,8 @@ public class TimePeriodColumn extends DataTransform {
 
 		@Override
 		public Object FormatValue(Date dateValue) {
-			return dateValue.getDate();
+			_Calendar.setTime(dateValue);
+			return _Calendar.get(Calendar.DATE);
 		}
 	}
 
