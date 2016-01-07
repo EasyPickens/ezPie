@@ -18,7 +18,6 @@ public abstract class Action {
 	protected String _ID;
 	protected String _ActionType;
 	protected String _ActionName;
-	protected static String _IDOptional = "|LogComment|LocalTokens|Export.Delimited|SvnCheckout|";
 	
 	protected Boolean _IDRequired = true;
 
