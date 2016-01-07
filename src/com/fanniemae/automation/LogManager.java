@@ -31,12 +31,12 @@ public class LogManager {
 
 	protected byte[] _aHtmlFooter;
 
-	protected int _Backup;
+	protected int _FooterLength;
 
 	protected long _StartTime = System.currentTimeMillis();
 
 	public LogManager(String templatePath, String logFilename) {
-		_Backup = _HtmlFooter.length();
+		_FooterLength = _HtmlFooter.length();
 		_LogFilename = logFilename;
 		_TemplatePath = templatePath;
 		_aHtmlFooter = _HtmlFooter.getBytes();
@@ -52,7 +52,7 @@ public class LogManager {
 		Date dtModified = new Date(lastModified);
 
 		try (RandomAccessFile raf = new RandomAccessFile(_LogFilename, "rw")) {
-			raf.seek(raf.length() - _Backup);
+			raf.seek(raf.length() - _FooterLength);
 			raf.write(String.format(_BasicLine, logGroup, "File Name", fi.getName(), elapsedTime()).getBytes());
 			raf.write(String.format(_BasicLine, "", "Full Path", filename, elapsedTime()).getBytes());
 			raf.write(String.format(_BasicLine, "", "Last Modified Date", dtModified.toString(), elapsedTime()).getBytes());
@@ -135,6 +135,7 @@ public class LogManager {
 			throw new RuntimeException(String.format("Error trying to create log file. %s", _LogFilename));
 		}
 
+		// Easy way to list all the available system properties.
 		// Properties props = System.getProperties();
 		// Enumeration e = props.propertyNames();
 		//
@@ -191,7 +192,7 @@ public class LogManager {
 		}
 
 		try (RandomAccessFile raf = new RandomAccessFile(_LogFilename, "rw")) {
-			raf.seek(raf.length() - _Backup);
+			raf.seek(raf.length() - _FooterLength);
 			if (isError)
 				raf.write(String.format(_ExceptionRow, logGroup, event, description, elapsedTime()).getBytes());
 			else

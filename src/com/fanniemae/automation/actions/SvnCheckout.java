@@ -41,11 +41,7 @@ public class SvnCheckout extends RunCommand {
 			throw new RuntimeException("No ApplicationVersion value specified.");
 		if (StringUtilities.isNullOrEmpty(sWorkDirectory))
 			throw new RuntimeException("No WorkDirectory value specified.");
-//		if (FileUtilities.isInvalidDirectory(sWorkDirectory))
-//			throw new RuntimeException(String.format("WorkDirectory (%s) does not exist.", sWorkDirectory));
-
-		//sWorkDirectory = String.format("%1$s%2$s%3$s%2$sv%4$s", sWorkDirectory, File.separator, sAppName, sAppVersion);
-
+		
 		// Read the branches
 		NodeList nlBranches = XmlUtilities.selectNodes(_Action, "SvnDirectory");
 		int iLen = nlBranches.getLength();

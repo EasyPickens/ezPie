@@ -9,7 +9,6 @@ import com.fanniemae.automation.actions.ExportDelimited;
 import com.fanniemae.automation.actions.LogComment;
 import com.fanniemae.automation.actions.DataSet;
 import com.fanniemae.automation.actions.LocalTokens;
-import com.fanniemae.automation.actions.ProfileDirectory;
 import com.fanniemae.automation.actions.RunCommand;
 import com.fanniemae.automation.actions.SvnCheckout;
 import com.fanniemae.automation.common.XmlUtilities;
@@ -60,10 +59,6 @@ public class JobManager {
 					break;
 				case "SvnCheckout":
 					act = new SvnCheckout(_Session, eleOperation);
-					act.execute();
-					break;
-				case "ProfileDirectory":
-					act = new ProfileDirectory(_Session, eleOperation);
 					act.execute();
 					break;
 				case "Directory" :
