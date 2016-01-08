@@ -21,7 +21,8 @@ public class ArrayUtilities {
 	            return -1;
 	        }
 
-	        int nLength = aItems[nDimension].length;
+	        //int nLength = aItems[nDimension].length;
+	        int nLength = aItems.length;
 	        if (nLength == 0) {
 	            return -1;
 	        }

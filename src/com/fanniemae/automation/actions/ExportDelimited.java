@@ -1,7 +1,10 @@
 package com.fanniemae.automation.actions;
 
 import java.io.FileWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -67,6 +70,7 @@ public class ExportDelimited extends Action {
 				}
 			}
 
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
 			int iRowCount = 0;
 			// Write the data
 			while (!dr.eof()) {
@@ -76,7 +80,9 @@ public class ExportDelimited extends Action {
 					if (i > 0)
 						fw.append(',');
 
-					if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.StringData) {
+					if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.DateData) {
+						fw.append(df.format((Date)values[_OutputColumnIndexes[i]]));
+					} else if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.StringData) {
 						fw.append(wrapString(values[_OutputColumnIndexes[i]].toString()));
 					} else {
 						fw.append(values[_OutputColumnIndexes[i]].toString());

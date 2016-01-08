@@ -15,6 +15,12 @@ import com.fanniemae.automation.datafiles.DataReader;
 import com.fanniemae.automation.datafiles.DataWriter;
 import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-07
+ * 
+ */
 public abstract class DataTransform {
 	protected SessionManager _Session;
 	protected Element _Transform;
@@ -24,9 +30,10 @@ public abstract class DataTransform {
 	protected String _ExceptionID;
 	protected String _ExceptionFilename;
 	protected String _DataColumn;
-	protected String _ColumnType;
-	
-	protected int _OutDataColumn;
+	protected String _ColumnType = "java.lang.String";
+
+	protected int _OutColumnIndex;
+	protected int _SourceColumnIndex;
 	protected int _RowsProcessed;
 	protected int _RowsRemaining;
 	protected int _RowsReturned;
@@ -35,8 +42,6 @@ public abstract class DataTransform {
 	protected Boolean _IDRequired = true;
 	protected Boolean _NewColumn;
 	protected Boolean _AddedNewColumn;
-	
-
 
 	public DataTransform(SessionManager session, Element operation) {
 		this(session, operation, true);
@@ -89,91 +94,102 @@ public abstract class DataTransform {
 		return outputStream;
 	}
 
-	public abstract boolean isTableLevel(); 
+	public abstract boolean isTableLevel();
+
 	public abstract Object[] processDataRow(Object[] dataRow);
-	
-    public String[][] UpdateSchema(String[][] aSchema) {
-        _OutDataColumn = ArrayUtilities.indexOf(aSchema, _ID, true);
 
-        if (_OutDataColumn != -1) {
-            aSchema[_OutDataColumn][1] = "Int32";
-            return aSchema;
-        } else {
-            int nLength = aSchema.length;
-            String[][] aNewSchema = new String[nLength + 1][2];
-            for (int i = 0; i < nLength; i++) {
-                aNewSchema[i][0] = aSchema[i][0];
-                aNewSchema[i][1] = aSchema[i][1];
-            }
-            _NewColumn = true;
-            _OutDataColumn = nLength;
-            aNewSchema[nLength][0] = _ID;
-            aNewSchema[nLength][1] = _ColumnType;
-            return aNewSchema;
-        }
-    }
+	public String[][] UpdateSchema(String[][] aSchema) {
+		_OutColumnIndex = ArrayUtilities.indexOf(aSchema, _ID, true);
+		
+		if (StringUtilities.isNotNullOrEmpty(_DataColumn)) {
+			_SourceColumnIndex = ArrayUtilities.indexOf(aSchema, _DataColumn, true);
+		}
 
-    protected String[] ResizeColumnArray(String[] aColumnNames) {
-        return ResizeColumnArray(aColumnNames, 1);
-    }
+		if (_OutColumnIndex != -1) {
+			aSchema[_OutColumnIndex][1] = _ColumnType;
+			return aSchema;
+		} else {
+			int nLength = aSchema.length;
+			String[][] aNewSchema = new String[nLength + 1][2];
+			for (int i = 0; i < nLength; i++) {
+				aNewSchema[i][0] = aSchema[i][0];
+				aNewSchema[i][1] = aSchema[i][1];
+			}
+			_NewColumn = true;
+			_OutColumnIndex = nLength;
+			aNewSchema[nLength][0] = _ID;
+			aNewSchema[nLength][1] = _ColumnType;
+			return aNewSchema;
+		}
+	}
 
-    protected String[] ResizeColumnArray(String[] aColumnNames, int nNewColumnCount) {
-        _AddedNewColumn = true;
-        String[] aNewColumnArray = new String[aColumnNames.length + nNewColumnCount];
+	protected Object[] AddDataColumn(Object[] dataRow) {
+		Object[] aNewDataRow = new Object[dataRow.length + 1];
+		System.arraycopy(dataRow, 0, aNewDataRow, 0, dataRow.length);
+		return aNewDataRow;
+	}
 
-        System.arraycopy(aColumnNames, 0, aNewColumnArray, 0, aColumnNames.length);
-        return aNewColumnArray;
-    }
+	protected String[] ResizeColumnArray(String[] aColumnNames) {
+		return ResizeColumnArray(aColumnNames, 1);
+	}
 
-    protected DataType[] ResizeDataTypeArray(DataType[] aDataTypes) {
-        return ResizeDataTypeArray(aDataTypes, 1);
-    }
+	protected String[] ResizeColumnArray(String[] aColumnNames, int nNewColumnCount) {
+		_AddedNewColumn = true;
+		String[] aNewColumnArray = new String[aColumnNames.length + nNewColumnCount];
 
-    protected DataType[] ResizeDataTypeArray(DataType[] aDataTypes, int nNewColumnCount) {
-        DataType[] aNewDataTypeArray = new DataType[aDataTypes.length + nNewColumnCount];
+		System.arraycopy(aColumnNames, 0, aNewColumnArray, 0, aColumnNames.length);
+		return aNewColumnArray;
+	}
 
-        System.arraycopy(aDataTypes, 0, aNewDataTypeArray, 0, aDataTypes.length);
-        return aNewDataTypeArray;
-    }
+	protected DataType[] ResizeDataTypeArray(DataType[] aDataTypes) {
+		return ResizeDataTypeArray(aDataTypes, 1);
+	}
 
-    public int getRowsProcessed() {
-        return _RowsProcessed;
-    }
+	protected DataType[] ResizeDataTypeArray(DataType[] aDataTypes, int nNewColumnCount) {
+		DataType[] aNewDataTypeArray = new DataType[aDataTypes.length + nNewColumnCount];
 
-    public int getRowsRemaining() {
-        return _RowsRemaining;
-    }
+		System.arraycopy(aDataTypes, 0, aNewDataTypeArray, 0, aDataTypes.length);
+		return aNewDataTypeArray;
+	}
 
-    public int getRowsRemoved() {
-        return _RowsRemoved;
-    }
+	public int getRowsProcessed() {
+		return _RowsProcessed;
+	}
 
-    public String getID() {
-        return _ID;
-    }
+	public int getRowsRemaining() {
+		return _RowsRemaining;
+	}
 
-    public String getDataColumn() {
-        return _DataColumn;
-    }
+	public int getRowsRemoved() {
+		return _RowsRemoved;
+	}
 
-    public boolean isGlobalValue() {
-        return false;
-    }
+	public String getID() {
+		return _ID;
+	}
 
-    public boolean isColumnProfile() {
-        return false;
-    }
+	public String getDataColumn() {
+		return _DataColumn;
+	}
 
-    public String getGlobalValue() {
-        return "";
-    }
+	public boolean isGlobalValue() {
+		return false;
+	}
 
-    public String getGlobalValueType() {
-        return "";
-    }
+	public boolean isColumnProfile() {
+		return false;
+	}
 
-    public List<String[]> getColumnProfile() {
-        return new ArrayList<>();
-    }
+	public String getGlobalValue() {
+		return "";
+	}
+
+	public String getGlobalValueType() {
+		return "";
+	}
+
+	public List<String[]> getColumnProfile() {
+		return new ArrayList<>();
+	}
 
 }

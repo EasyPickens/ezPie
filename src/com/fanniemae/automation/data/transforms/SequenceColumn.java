@@ -9,6 +9,12 @@ public class SequenceColumn extends DataTransform {
 	protected int _SequenceNumber = 1;
 	protected int _Increment = 1;
 
+	/**
+	 * 
+	 * @author Richard Monson
+	 * @since 2016-01-07
+	 * 
+	 */
 	public SequenceColumn(SessionManager session, Element operation) {
 		super(session, operation);
 
@@ -35,7 +41,7 @@ public class SequenceColumn extends DataTransform {
 			return dataRow;
 		}
 
-		dataRow[_OutDataColumn] = _SequenceNumber;
+		dataRow[_OutColumnIndex] = _SequenceNumber;
 		_SequenceNumber += _Increment;
 		_RowsProcessed++;
 		return dataRow;
