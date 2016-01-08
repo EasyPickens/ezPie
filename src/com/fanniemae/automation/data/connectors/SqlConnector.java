@@ -158,7 +158,7 @@ public class SqlConnector extends DataConnector {
 				sbFields.append(String.format("%s (%s)", sName, rsmd.getColumnClassName(i + 1)));
 				nFieldNumber++;
 			}
-			_Session.addLogMessage("", "Query Returns", sbFields.toString());
+			_Session.addLogMessage("", "Query Returned", sbFields.toString());
 		} catch (NumberFormatException | SQLException ex) {
 			throw new RuntimeException("Error while trying to open and run the query. " + ex.getMessage(), ex);
 		}

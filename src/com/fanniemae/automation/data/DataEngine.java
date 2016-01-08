@@ -16,7 +16,7 @@ import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.data.connectors.DataConnector;
 import com.fanniemae.automation.data.connectors.SqlConnector;
 import com.fanniemae.automation.data.transforms.DataTransform;
-import com.fanniemae.automation.data.transforms.TimePeriodColumn;
+import com.fanniemae.automation.data.transforms.TimespanColumn;
 import com.fanniemae.automation.datafiles.DataWriter;
 import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums;
 
@@ -133,8 +133,8 @@ public class DataEngine {
 			Element eleTransform = (Element) nlTransforms.item(i);
 			String sName = eleTransform.getNodeName();
 			switch (sName) {
-			case "TimePeriodColumn":
-				aCurrentGroup.put(aCurrentGroup.size(), new TimePeriodColumn(_Session, eleTransform));
+			case "TimespanColumn":
+				aCurrentGroup.put(aCurrentGroup.size(), new TimespanColumn(_Session, eleTransform));
 				break;
 			}
 		}

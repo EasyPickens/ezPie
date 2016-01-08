@@ -16,7 +16,7 @@ import com.fanniemae.automation.common.StringUtilities;
  * @since 2016-01-07
  * 
  */
-public class TimePeriodColumn extends DataTransform {
+public class TimespanColumn extends DataTransform {
 
 	protected FormatDateValue _FormatDateValue;
 
@@ -40,11 +40,11 @@ public class TimePeriodColumn extends DataTransform {
 	protected int[] _QuarterLastMonth = new int[] { 4, 7, 10, 1 };
 	protected int[] _FiscalQuarterLastMonth = new int[] { 4, 7, 10, 1 };
 
-	public TimePeriodColumn(SessionManager session, Element operation) {
+	public TimespanColumn(SessionManager session, Element operation) {
 		this(session, operation, null);
 	}
 
-	public TimePeriodColumn(SessionManager session, Element operation, Calendar fiscalYearStart) {
+	public TimespanColumn(SessionManager session, Element operation, Calendar fiscalYearStart) {
 		super(session, operation, false);
 		if (fiscalYearStart == null) {
 			_FiscalStart.set(Calendar.MONTH, 0);
