@@ -123,17 +123,17 @@ public abstract class DataTransform {
 		}
 	}
 
-	protected Object[] AddDataColumn(Object[] dataRow) {
+	protected Object[] addDataColumn(Object[] dataRow) {
 		Object[] aNewDataRow = new Object[dataRow.length + 1];
 		System.arraycopy(dataRow, 0, aNewDataRow, 0, dataRow.length);
 		return aNewDataRow;
 	}
 
-	protected String[] ResizeColumnArray(String[] aColumnNames) {
-		return ResizeColumnArray(aColumnNames, 1);
+	protected String[] resizeColumnArray(String[] aColumnNames) {
+		return resizeColumnArray(aColumnNames, 1);
 	}
 
-	protected String[] ResizeColumnArray(String[] aColumnNames, int nNewColumnCount) {
+	protected String[] resizeColumnArray(String[] aColumnNames, int nNewColumnCount) {
 		_AddedNewColumn = true;
 		String[] aNewColumnArray = new String[aColumnNames.length + nNewColumnCount];
 
@@ -141,11 +141,11 @@ public abstract class DataTransform {
 		return aNewColumnArray;
 	}
 
-	protected DataType[] ResizeDataTypeArray(DataType[] aDataTypes) {
-		return ResizeDataTypeArray(aDataTypes, 1);
+	protected DataType[] resizeDataTypeArray(DataType[] aDataTypes) {
+		return resizeDataTypeArray(aDataTypes, 1);
 	}
 
-	protected DataType[] ResizeDataTypeArray(DataType[] aDataTypes, int nNewColumnCount) {
+	protected DataType[] resizeDataTypeArray(DataType[] aDataTypes, int nNewColumnCount) {
 		DataType[] aNewDataTypeArray = new DataType[aDataTypes.length + nNewColumnCount];
 
 		System.arraycopy(aDataTypes, 0, aNewDataTypeArray, 0, aDataTypes.length);
