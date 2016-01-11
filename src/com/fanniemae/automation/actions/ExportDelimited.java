@@ -70,7 +70,7 @@ public class ExportDelimited extends Action {
 				}
 			}
 
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			int iRowCount = 0;
 			// Write the data
 			while (!dr.eof()) {

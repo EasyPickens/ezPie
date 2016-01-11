@@ -18,14 +18,15 @@ import com.fanniemae.automation.common.StringUtilities;
  */
 public class TimespanColumn extends DataTransform {
 
-	protected FormatDateValue _FormatDateValue;
+	protected TransformDateValue _FormatDateValue;
 
 	protected int _DayOfWeekShift = 0;
 	protected Calendar _FiscalStart = Calendar.getInstance();
 
 	// Notes: (after testing.)
 	// Arrays added to improve performance. Data processing time dropped from
-	// 23.5 seconds down to 7.7 seconds on 1 million rows x 26 Date operations.
+	// 23.5 seconds down to 7.7 seconds on 1 million rows x 30 Date operations
+	// on test machine.
 	protected String[] _DayAbbreviations = new String[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	protected String[] _DayNames = new String[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 	protected String[] _MonthAbbreviations = new String[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -83,7 +84,7 @@ public class TimespanColumn extends DataTransform {
 
 		dataRow = addDataColumn(dataRow);
 
-		dataRow[_OutColumnIndex] = _FormatDateValue.formatDate((Date) dataRow[_SourceColumnIndex]);
+		dataRow[_OutColumnIndex] = _FormatDateValue.transform((Date) dataRow[_SourceColumnIndex]);
 		_RowsProcessed++;
 		return dataRow;
 	}
@@ -122,7 +123,7 @@ public class TimespanColumn extends DataTransform {
 	}
 
 	protected void initializeFiscalYearArrays() {
-		// In JAVA returns 0 for Jan
+		// In JAVA returns 0 for January
 		if (_FiscalStart.get(Calendar.MONTH) != 0) {
 			int iStartMonth = _FiscalStart.get(Calendar.MONTH) + 1;
 			// Shift fiscal arrays based on fiscal year start
@@ -154,102 +155,102 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected FormatDateValue instantiateFormatMethod(String sTimePeriod) {
+	protected TransformDateValue instantiateFormatMethod(String sTimePeriod) {
 		_ColumnType = "java.util.Date";
 		switch (sTimePeriod.toLowerCase()) {
 		case "date":
-			return new GetDateOnly();
+			return new DateOnly();
 		case "day":
-			return new GetDateOnly();
+			return new DateOnly();
 		case "dayofmonth":
 			_ColumnType = "java.lang.Integer";
-			return new GetDayOfMonth();
+			return new DayOfMonth();
 		case "dayofweek":
 			_ColumnType = "java.lang.Integer";
-			return new GetDayOfWeek(_DayOfWeekShift);
+			return new DayOfWeek(_DayOfWeekShift);
 		case "dayofweekabbreviation":
 			_ColumnType = "java.lang.String";
-			return new GetDayOfWeekAbbreviation(_DayAbbreviations);
+			return new DayOfWeekAbbreviation(_DayAbbreviations);
 		case "dayofweekname":
 			_ColumnType = "java.lang.String";
-			return new GetDayOfWeekName(_DayNames);
+			return new DayOfWeekName(_DayNames);
 		case "dayofyear":
 			_ColumnType = "java.lang.Integer";
-			return new GetDayOfYear();
+			return new DayOfYear();
 		case "firstdayoffiscalquarter":
 			initializeFiscalYearArrays();
-			return new GetFiscalQuarterFirstDay(_FiscalQuarters, _FiscalQuarterFirstMonth);
+			return new FiscalQuarterFirstDay(_FiscalQuarters, _FiscalQuarterFirstMonth);
 		case "firstdayofmonth":
-			return new GetFirstDayOfMonth();
+			return new FirstDayOfMonth();
 		case "firstdayofquarter":
-			return new GetFirstDayOfQuarter();
+			return new FirstDayOfQuarter();
 		case "firstdayofweek":
-			return new GetFirstDayOfWeek(_DayOfWeekShift);
+			return new FirstDayOfWeek(_DayOfWeekShift);
 		case "firstdayofyear":
-			return new GetFirstDayOfYear();
+			return new FirstDayOfYear();
 		case "firsthourofday":
-			return new GetFirstHourOfDay();
+			return new FirstHourOfDay();
 		case "firstminuteofhour":
-			return new GetFirstMinuteOfHour();
+			return new FirstMinuteOfHour();
 		case "firstsecondofminute":
-			return new GetFirstSecondOfMinute();
+			return new FirstSecondOfMinute();
 		case "fiscalquarter":
 			_ColumnType = "java.lang.Integer";
 			initializeFiscalYearArrays();
-			return new GetFiscalQuarter(_FiscalQuarters);
+			return new FiscalQuarter(_FiscalQuarters);
 		case "hour":
 			_ColumnType = "java.lang.Integer";
-			return new GetHour();
+			return new JustHour();
 		case "lastdayoffiscalquarter":
 			initializeFiscalYearArrays();
-			return new GetFiscalQuarterLastDay(_FiscalQuarters, _FiscalQuarterLastMonth);
+			return new FiscalQuarterLastDay(_FiscalQuarters, _FiscalQuarterLastMonth);
 		case "lastdayofmonth":
-			return new GetLastDayOfMonth();
+			return new LastDayOfMonth();
 		case "lastdayofquarter":
-			return new GetLastDayOfQuarter(_Quarters, _QuarterLastMonth);
+			return new LastDayOfQuarter(_Quarters, _QuarterLastMonth);
 		case "lastdayofweek":
-			return new GetLastDayOfWeek(_DayOfWeekShift);
+			return new LastDayOfWeek(_DayOfWeekShift);
 		case "lastdayofyear":
-			return new GetLastDayOfYear();
+			return new LastDayOfYear();
 		case "minute":
 			_ColumnType = "java.lang.Integer";
-			return new GetMinute();
+			return new JustMinute();
 		case "month":
 			_ColumnType = "java.lang.Integer";
-			return new GetMonthNumber();
+			return new MonthNumber();
 		case "monthabbreviation":
 			_ColumnType = "java.lang.String";
-			return new GetMonthAbbrevation(_MonthAbbreviations);
+			return new MonthAbbrevation(_MonthAbbreviations);
 		case "monthname":
 			_ColumnType = "java.lang.String";
-			return new GetMonthName(_MonthNames);
+			return new MonthName(_MonthNames);
 		case "quarter":
 			_ColumnType = "java.lang.Integer";
-			return new GetQuarter(_Quarters);
+			return new QuarterNumber(_Quarters);
 		case "second":
 			_ColumnType = "java.lang.Integer";
-			return new GetSecond();
+			return new JustSecond();
 		case "week":
 			_ColumnType = "java.lang.Integer";
-			return new GetWeek();
+			return new WeekOfYear();
 		case "year":
 			_ColumnType = "java.lang.Integer";
-			return new GetYear();
+			return new JustYear();
 		default:
 			throw new RuntimeException("Invalid TimePeriod attribute for a TimePeriodColumn: " + sTimePeriod);
 		}
 	}
 
-	protected abstract class FormatDateValue {
+	protected abstract class TransformDateValue {
 		protected Calendar _Calendar = Calendar.getInstance();
 
-		public abstract Object formatDate(Date dateValue);
+		public abstract Object transform(Date dateValue);
 	}
 
-	protected class GetDateOnly extends FormatDateValue {
+	protected class DateOnly extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			_Calendar.set(Calendar.HOUR_OF_DAY, 0);
 			_Calendar.set(Calendar.MINUTE, 0);
@@ -259,42 +260,42 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected class GetDayOfMonth extends FormatDateValue {
+	protected class DayOfMonth extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _Calendar.get(Calendar.DATE);
 		}
 	}
 
-	protected class GetFirstDayOfQuarter extends FormatDateValue {
+	protected class FirstDayOfQuarter extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
-			_Calendar.set(Calendar.MONTH, _QuarterFirstMonth[_Quarters[_Calendar.get(Calendar.MONTH)] - 1]);
+			_Calendar.set(Calendar.MONTH, _QuarterFirstMonth[_Quarters[_Calendar.get(Calendar.MONTH)] - 1] - 1);
 			_Calendar.set(Calendar.DATE, 1);
-			_Calendar.clear(Calendar.HOUR_OF_DAY);
-			_Calendar.clear(Calendar.AM_PM);
-			_Calendar.clear(Calendar.MINUTE);
-			_Calendar.clear(Calendar.SECOND);
-			_Calendar.clear(Calendar.MILLISECOND);
+			_Calendar.set(Calendar.HOUR, 0);
+			_Calendar.set(Calendar.HOUR_OF_DAY, 0);
+			_Calendar.set(Calendar.MINUTE, 0);
+			_Calendar.set(Calendar.SECOND, 0);
+			_Calendar.set(Calendar.MILLISECOND, 0);
 			return _Calendar.getTime();
 		}
 	}
 
-	protected class GetDayOfWeek extends FormatDateValue {
+	protected class DayOfWeek extends TransformDateValue {
 
 		protected int _nDayOfWeekShift = 0;
 
-		public GetDayOfWeek(int DayOfWeekShift) {
+		public DayOfWeek(int DayOfWeekShift) {
 			super();
 			_nDayOfWeekShift = DayOfWeekShift;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			// Reading the Globalization setting for
 			// FirstDayOfWeek.
 			_Calendar.setTime(dateValue);
@@ -306,50 +307,50 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected class GetDayOfWeekAbbreviation extends FormatDateValue {
+	protected class DayOfWeekAbbreviation extends TransformDateValue {
 
 		protected String[] _aDayAbbreviations = new String[7];
 
-		public GetDayOfWeekAbbreviation(String[] aAbbreviations) {
+		public DayOfWeekAbbreviation(String[] aAbbreviations) {
 			super();
 			_aDayAbbreviations = aAbbreviations;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
-			return _aDayAbbreviations[_Calendar.get(Calendar.DAY_OF_WEEK)];
+			return _aDayAbbreviations[_Calendar.get(Calendar.DAY_OF_WEEK) - 1];
 		}
 	}
 
-	protected class GetDayOfWeekName extends FormatDateValue {
+	protected class DayOfWeekName extends TransformDateValue {
 
 		protected String[] _aDayNames = new String[7];
 
-		public GetDayOfWeekName(String[] aDayNames) {
+		public DayOfWeekName(String[] aDayNames) {
 			_aDayNames = aDayNames;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
-			return _aDayNames[_Calendar.get(Calendar.DAY_OF_WEEK)];
+			return _aDayNames[_Calendar.get(Calendar.DAY_OF_WEEK) - 1];
 		}
 	}
 
-	protected class GetDayOfYear extends FormatDateValue {
+	protected class DayOfYear extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _Calendar.get(Calendar.DAY_OF_YEAR);
 		}
 	}
 
-	protected class GetFirstDayOfMonth extends FormatDateValue {
+	protected class FirstDayOfMonth extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			_Calendar.set(Calendar.DAY_OF_MONTH, 1);
 			_Calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -360,37 +361,31 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected class GetFirstDayOfWeek extends FormatDateValue {
+	protected class FirstDayOfWeek extends TransformDateValue {
 
 		protected int _nDayOfWeekShift = 0;
 
-		public GetFirstDayOfWeek(int DayOfWeekShift) {
+		public FirstDayOfWeek(int DayOfWeekShift) {
 			super();
 			_nDayOfWeekShift = DayOfWeekShift;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
-			// Reading the Globalization setting for FirstDayOfWeek.
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
-			int nDayOfWeek = _Calendar.get(Calendar.DAY_OF_WEEK) - _nDayOfWeekShift;
-			if (nDayOfWeek < 0) {
-				nDayOfWeek = nDayOfWeek + 7;
-			}
-
 			_Calendar.set(Calendar.HOUR_OF_DAY, 0);
 			_Calendar.set(Calendar.MINUTE, 0);
 			_Calendar.set(Calendar.SECOND, 0);
 			_Calendar.set(Calendar.MILLISECOND, 0);
-			_Calendar.set(Calendar.DAY_OF_WEEK, nDayOfWeek);
+			_Calendar.set(Calendar.DAY_OF_WEEK, 1);
 			return _Calendar.getTime();
 		}
 	}
 
-	protected class GetFirstDayOfYear extends FormatDateValue {
+	protected class FirstDayOfYear extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			_Calendar.set(Calendar.MONTH, 0);
 			_Calendar.set(Calendar.DAY_OF_MONTH, 1);
@@ -402,10 +397,10 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected class GetFirstHourOfDay extends FormatDateValue {
+	protected class FirstHourOfDay extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			_Calendar.set(Calendar.HOUR_OF_DAY, 0);
 			_Calendar.set(Calendar.MINUTE, 0);
@@ -416,10 +411,10 @@ public class TimespanColumn extends DataTransform {
 
 	}
 
-	protected class GetFirstMinuteOfHour extends FormatDateValue {
+	protected class FirstMinuteOfHour extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			_Calendar.set(Calendar.MINUTE, 0);
 			_Calendar.set(Calendar.SECOND, 0);
@@ -428,64 +423,75 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected class GetFiscalQuarter extends FormatDateValue {
+	protected class FiscalQuarter extends TransformDateValue {
 
 		protected int[] _aFiscalQuarters = new int[12];
 
-		public GetFiscalQuarter(int[] aFiscalQuarters) {
+		public FiscalQuarter(int[] aFiscalQuarters) {
 			super();
 			_aFiscalQuarters = aFiscalQuarters;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _aFiscalQuarters[_Calendar.get(Calendar.MONTH)];
 		}
 	}
 
-	protected class GetFiscalQuarterFirstDay extends FormatDateValue {
+	protected class FiscalQuarterFirstDay extends TransformDateValue {
 
 		protected int[] _aFiscalQuarters;
 		protected int[] _aFiscalQuarterFirstMonth;
 
-		public GetFiscalQuarterFirstDay(int[] aFiscalQuarters, int[] aFiscalQuarterFirstMonth) {
+		protected Calendar _CurrentValue = Calendar.getInstance();
+
+		public FiscalQuarterFirstDay(int[] aFiscalQuarters, int[] aFiscalQuarterFirstMonth) {
 			super();
 			_aFiscalQuarters = aFiscalQuarters;
 			_aFiscalQuarterFirstMonth = aFiscalQuarterFirstMonth;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
-			_Calendar.set(Calendar.MONTH, _aFiscalQuarterFirstMonth[_aFiscalQuarters[_Calendar.get(Calendar.MONTH)] - 1]);
+			_Calendar.set(Calendar.MONTH, _aFiscalQuarterFirstMonth[_aFiscalQuarters[_Calendar.get(Calendar.MONTH)] - 1] - 1);
 			_Calendar.set(Calendar.DATE, 1);
 			_Calendar.clear(Calendar.HOUR_OF_DAY);
+			_Calendar.clear(Calendar.HOUR);
 			_Calendar.clear(Calendar.AM_PM);
 			_Calendar.clear(Calendar.MINUTE);
 			_Calendar.clear(Calendar.SECOND);
 			_Calendar.clear(Calendar.MILLISECOND);
+
+			_CurrentValue.setTime(dateValue);
+
+			if (_Calendar.compareTo(_CurrentValue) > 0) {
+				_Calendar.add(Calendar.YEAR, -1);
+			}
+
 			return _Calendar.getTime();
 		}
 	}
 
-	protected class GetFiscalQuarterLastDay extends FormatDateValue {
+	protected class FiscalQuarterLastDay extends TransformDateValue {
 
 		protected int[] _aFiscalQuarters;
 		protected int[] _aFiscalQuarterLastMonth;
 
-		public GetFiscalQuarterLastDay(int[] aFiscalQuarters, int[] aFiscalQuarterLastMonth) {
+		public FiscalQuarterLastDay(int[] aFiscalQuarters, int[] aFiscalQuarterLastMonth) {
 			super();
 			_aFiscalQuarters = aFiscalQuarters;
 			_aFiscalQuarterLastMonth = aFiscalQuarterLastMonth;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
-			_Calendar.set(Calendar.MONTH, _aFiscalQuarterLastMonth[_aFiscalQuarters[_Calendar.get(Calendar.MONTH)] - 1]);
+			_Calendar.set(Calendar.MONTH, _aFiscalQuarterLastMonth[_aFiscalQuarters[_Calendar.get(Calendar.MONTH)] - 1] - 1);
 			_Calendar.set(Calendar.DAY_OF_MONTH, 1);
 			_Calendar.set(Calendar.HOUR_OF_DAY, 0);
+			_Calendar.set(Calendar.HOUR, 0);
 			_Calendar.set(Calendar.MINUTE, 0);
 			_Calendar.set(Calendar.SECOND, 0);
 			_Calendar.set(Calendar.MILLISECOND, 0);
@@ -494,24 +500,25 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected class GetHour extends FormatDateValue {
+	protected class JustHour extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _Calendar.get(Calendar.HOUR_OF_DAY);
 		}
 	}
 
-	protected class GetLastDayOfMonth extends FormatDateValue {
+	protected class LastDayOfMonth extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			_Calendar.set(Calendar.DAY_OF_MONTH, 1);
 			_Calendar.add(Calendar.MONTH, 1);
 			_Calendar.add(Calendar.DATE, -1);
 			_Calendar.set(Calendar.HOUR_OF_DAY, 0);
+			_Calendar.set(Calendar.HOUR, 0);
 			_Calendar.set(Calendar.MINUTE, 0);
 			_Calendar.set(Calendar.SECOND, 0);
 			_Calendar.set(Calendar.MILLISECOND, 0);
@@ -519,23 +526,25 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected class GetLastDayOfQuarter extends FormatDateValue {
+	protected class LastDayOfQuarter extends TransformDateValue {
 
 		protected int[] _aQuarters;
 		protected int[] _aQuarterLastMonth;
 
-		public GetLastDayOfQuarter(int[] aQuarters, int[] aQuarterLastMonth) {
+		public LastDayOfQuarter(int[] aQuarters, int[] aQuarterLastMonth) {
 			_aQuarters = aQuarters;
 			_aQuarterLastMonth = aQuarterLastMonth;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			{
 				_Calendar.setTime(dateValue);
-				_Calendar.set(Calendar.MONTH, _aQuarterLastMonth[_aQuarters[_Calendar.get(Calendar.MONTH)] - 1]);
+				_Calendar.set(Calendar.DAY_OF_MONTH, 1);
+				_Calendar.set(Calendar.MONTH, _aQuarterLastMonth[_aQuarters[_Calendar.get(Calendar.MONTH)] - 1] - 1);
 				_Calendar.add(Calendar.DATE, -1);
 				_Calendar.set(Calendar.HOUR_OF_DAY, 0);
+				_Calendar.set(Calendar.HOUR, 0);
 				_Calendar.set(Calendar.MINUTE, 0);
 				_Calendar.set(Calendar.SECOND, 0);
 				_Calendar.set(Calendar.MILLISECOND, 0);
@@ -544,150 +553,151 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected class GetLastDayOfWeek extends FormatDateValue {
+	protected class LastDayOfWeek extends TransformDateValue {
 
 		protected int _iDayOfWeekShift = 0;
 
-		public GetLastDayOfWeek(int iDayOfWeekShift) {
+		public LastDayOfWeek(int iDayOfWeekShift) {
 			_iDayOfWeekShift = iDayOfWeekShift;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
-			_Calendar.add(Calendar.DATE, (6 - _Calendar.get(Calendar.DAY_OF_WEEK)) + _iDayOfWeekShift);
+			_Calendar.set(Calendar.HOUR_OF_DAY, 0);
+			_Calendar.set(Calendar.MINUTE, 0);
+			_Calendar.set(Calendar.SECOND, 0);
+			_Calendar.set(Calendar.MILLISECOND, 0);
+			_Calendar.set(Calendar.DAY_OF_WEEK, 7);
+
+			return _Calendar.getTime();
+		}
+
+	}
+
+	protected class LastDayOfYear extends TransformDateValue {
+
+		@Override
+		public Object transform(Date dateValue) {
+			_Calendar.setTime(dateValue);
+			_Calendar.set(Calendar.MONTH, 11);
+			_Calendar.set(Calendar.DAY_OF_MONTH, 31);
 			_Calendar.set(Calendar.HOUR_OF_DAY, 0);
 			_Calendar.set(Calendar.MINUTE, 0);
 			_Calendar.set(Calendar.SECOND, 0);
 			_Calendar.set(Calendar.MILLISECOND, 0);
 			return _Calendar.getTime();
 		}
-
 	}
 
-	protected class GetLastDayOfYear extends FormatDateValue {
+	protected class LastHourOfDay extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
-			_Calendar.set(Calendar.MONTH, 11);
-			_Calendar.set(Calendar.DAY_OF_MONTH, 31);
 			_Calendar.set(Calendar.HOUR_OF_DAY, 23);
-			_Calendar.set(Calendar.MINUTE, 59);
-			_Calendar.set(Calendar.SECOND, 59);
-			_Calendar.set(Calendar.MILLISECOND, 999);
+			_Calendar.set(Calendar.MINUTE, 0);
+			_Calendar.set(Calendar.SECOND, 0);
+			_Calendar.set(Calendar.MILLISECOND, 0);
 			return _Calendar.getTime();
 		}
 	}
 
-	protected class GetLastHourOfDay extends FormatDateValue {
+	protected class JustMinute extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
-			_Calendar.setTime(dateValue);
-			_Calendar.set(Calendar.HOUR_OF_DAY, 23);
-			_Calendar.set(Calendar.MINUTE, 59);
-			_Calendar.set(Calendar.SECOND, 59);
-			_Calendar.set(Calendar.MILLISECOND, 999);
-			return _Calendar.getTime();
-		}
-	}
-
-	protected class GetMinute extends FormatDateValue {
-
-		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _Calendar.get(Calendar.MINUTE);
 		}
 	}
 
-	protected class GetMonthAbbrevation extends FormatDateValue {
+	protected class MonthAbbrevation extends TransformDateValue {
 
 		protected String[] _aMonthAbbreviations;
 
-		public GetMonthAbbrevation(String[] aMonthAbbreviations) {
+		public MonthAbbrevation(String[] aMonthAbbreviations) {
 			_aMonthAbbreviations = aMonthAbbreviations;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _aMonthAbbreviations[_Calendar.get(Calendar.MONTH)];
 		}
 	}
 
-	protected class GetMonthName extends FormatDateValue {
+	protected class MonthName extends TransformDateValue {
 
 		protected String[] _aMonthNames;
 
-		public GetMonthName(String[] aMonthNames) {
+		public MonthName(String[] aMonthNames) {
 			_aMonthNames = aMonthNames;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _aMonthNames[_Calendar.get(Calendar.MONTH)];
 		}
 	}
 
-	protected class GetMonthNumber extends FormatDateValue {
+	protected class MonthNumber extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _Calendar.get(Calendar.MONTH) + 1;
 		}
 	}
 
-	protected class GetQuarter extends FormatDateValue {
+	protected class QuarterNumber extends TransformDateValue {
 
 		protected int[] _aQuarters;
 
-		public GetQuarter(int[] aQuarters) {
+		public QuarterNumber(int[] aQuarters) {
 			_aQuarters = aQuarters;
 		}
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _aQuarters[_Calendar.get(Calendar.MONTH)];
 		}
 	}
 
-	protected class GetSecond extends FormatDateValue {
+	protected class JustSecond extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _Calendar.get(Calendar.SECOND);
 		}
 	}
 
-	protected class GetFirstSecondOfMinute extends FormatDateValue {
+	protected class FirstSecondOfMinute extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			_Calendar.set(Calendar.SECOND, 0);
 			return _Calendar.getTime();
 		}
 	}
 
-	protected class GetWeek extends FormatDateValue {
+	protected class WeekOfYear extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _Calendar.get(Calendar.WEEK_OF_YEAR);
 		}
 	}
 
-	protected class GetYear extends FormatDateValue {
+	protected class JustYear extends TransformDateValue {
 
 		@Override
-		public Object formatDate(Date dateValue) {
+		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
 			return _Calendar.get(Calendar.YEAR);
 		}
