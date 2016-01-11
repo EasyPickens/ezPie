@@ -81,9 +81,7 @@ public class TimespanColumn extends DataTransform {
 		if (dataRow == null) {
 			return dataRow;
 		}
-
 		dataRow = addDataColumn(dataRow);
-
 		dataRow[_OutColumnIndex] = _FormatDateValue.transform((Date) dataRow[_SourceColumnIndex]);
 		_RowsProcessed++;
 		return dataRow;
