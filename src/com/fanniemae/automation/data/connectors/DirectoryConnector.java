@@ -20,15 +20,17 @@ public class DirectoryConnector extends DataConnector {
 
 	protected String _Path;
 	protected String _SkippedExtensions;
-	protected String _SkippedDirectories;
+	protected String _SkippedFolders;
 	protected String _IncludedExtensions;
-	protected String _IncludedDirectories;
+	protected String _IncludedFolders;
 
-	protected Boolean _DeepScan = true;
-	protected Boolean _CheckSkipList = false;
-	protected Boolean _CheckIncludeList = false;
-	protected Boolean _ListFiles = true;
-	protected Boolean _ListDirectories = false;
+	protected Boolean _doFullScan = true;
+	protected Boolean _hasSkipExtensions = false;
+	protected Boolean _hasSkipFolders = false;
+	protected Boolean _hasIncludeExtensions = false;
+	protected Boolean _hasIncludeFolders = false;
+	protected Boolean _outputFiles = true;
+	protected Boolean _outputFolders = false;
 
 	protected Object[] _DataRow = new Object[8];
 	protected static String[] _ColumnNames = new String[] { "Name", "Type", "Size", "Modified", "FullPath", "BaseName", "Extension", "PathOnly" };
@@ -39,9 +41,9 @@ public class DirectoryConnector extends DataConnector {
 	protected DataReader _dr;
 
 	protected Map<String, Boolean> _SkipExtensions = new HashMap<String, Boolean>();
-	protected Map<String, Boolean> _SkipDirectories = new HashMap<String, Boolean>();
+	protected Map<String, Boolean> _SkipFolders = new HashMap<String, Boolean>();
 	protected Map<String, Boolean> _IncludeExtensions = new HashMap<String, Boolean>();
-	protected Map<String, Boolean> _IncludeDirectories = new HashMap<String, Boolean>();
+	protected Map<String, Boolean> _IncludeFolders = new HashMap<String, Boolean>();
 
 	public DirectoryConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
@@ -54,35 +56,39 @@ public class DirectoryConnector extends DataConnector {
 		}
 		_Session.addLogMessagePreserveLayout("", "Path", _Path);
 
-		String sDeep = _Session.getAttribute(_DataSource, "Deep");
-		if (StringUtilities.isNotNullOrEmpty(sDeep)) {
-			_Session.addLogMessage("", "Deep", sDeep);
-			_DeepScan = StringUtilities.toBoolean(sDeep, true);
+		String sFullScan = _Session.getAttribute(_DataSource, "FullScan");
+		if (StringUtilities.isNotNullOrEmpty(sFullScan)) {
+			_Session.addLogMessage("", "Full Scan", sFullScan);
+			_doFullScan = StringUtilities.toBoolean(sFullScan, true);
 		}
 		
 		String sListFiles = _Session.getAttribute(_DataSource, "ListFiles");
 		if (StringUtilities.isNotNullOrEmpty(sListFiles)) {
 			_Session.addLogMessage("", "List Files", sListFiles);
-			_ListFiles = StringUtilities.toBoolean(sListFiles, true);
+			_outputFiles = StringUtilities.toBoolean(sListFiles, true);
 		}
 		
-		String sListDirectories = _Session.getAttribute(_DataSource, "ListDirectories");
-		if (StringUtilities.isNotNullOrEmpty(sListDirectories)) {
-			_Session.addLogMessage("", "List Directories", sListDirectories);
-			_ListDirectories = StringUtilities.toBoolean(sListDirectories, false);
+		String sListFolders = _Session.getAttribute(_DataSource, "ListFolders");
+		if (StringUtilities.isNotNullOrEmpty(sListFolders)) {
+			_Session.addLogMessage("", "List Directories", sListFolders);
+			_outputFolders = StringUtilities.toBoolean(sListFolders, false);
 		}
 
 		_SkippedExtensions = _Session.getAttribute(_DataSource, "SkipExtensions");
 		_SkipExtensions = toHashMap(_SkippedExtensions, "Skip Extensions", true);
+		_hasSkipExtensions = (_SkipExtensions.size() > 0) ? true : false;
 
-		_SkippedDirectories = _Session.getAttribute(_DataSource, "SkipDirectories");
-		_SkipDirectories = toHashMap(_SkippedDirectories, "Skip Directories", true);
+		_SkippedFolders = _Session.getAttribute(_DataSource, "SkipFolders");
+		_SkipFolders = toHashMap(_SkippedFolders, "Skip Directories", true);
+		_hasSkipFolders = (_SkipFolders.size() > 0) ? true : false;
 
 		_IncludedExtensions = _Session.getAttribute(_DataSource, "IncludeExtensions");
-		_IncludeExtensions = toHashMap(_IncludedExtensions, "Skip Extensions", true);
+		_IncludeExtensions = toHashMap(_IncludedExtensions, "Include Extensions", false);
+		_hasIncludeExtensions = (_IncludeExtensions.size() > 0) ? true : false;
 
-		_IncludedDirectories = _Session.getAttribute(_DataSource, "IncludeDirectories");
-		_IncludeDirectories = toHashMap(_IncludedDirectories, "Include Directories", false);
+		_IncludedFolders = _Session.getAttribute(_DataSource, "IncludeFolders");
+		_IncludeFolders = toHashMap(_IncludedFolders, "Include Directories", false);
+		_hasIncludeExtensions = (_IncludeExtensions.size() > 0) ? true : false;
 
 		_DataSchema = new String[_ColumnNames.length][2];
 		for (int i = 0; i < _ColumnNames.length; i++) {
@@ -139,11 +145,6 @@ public class DirectoryConnector extends DataConnector {
 			if (aSkipExtensions.length > 0) {
 				for (int i = 0; i < aSkipExtensions.length; i++) {
 					aResult.put(aSkipExtensions[i], true);
-					if (skipList) {
-						_CheckSkipList = true;
-					} else {
-						_CheckIncludeList = true;
-					}
 				}
 			}
 		}
@@ -172,27 +173,27 @@ public class DirectoryConnector extends DataConnector {
 
 			if (currentEntry.isDirectory()) {
 				String subFolder = currentEntry.getAbsolutePath();
-				subFolder = subFolder.substring(subFolder.lastIndexOf(File.separatorChar)).toLowerCase();
-				if (_CheckSkipList && _SkipDirectories.containsKey(subFolder)) {
+				subFolder = subFolder.substring(subFolder.lastIndexOf(File.separatorChar)+1).toLowerCase();
+				if (_hasSkipFolders && _SkipFolders.containsKey(subFolder)) {
 					continue;
-				} else if (_CheckIncludeList && !_IncludeDirectories.containsKey(subFolder)) {
+				} else if (_hasIncludeFolders && !_IncludeFolders.containsKey(subFolder)) {
 					continue;
 				}
-				if (_ListDirectories) {
+				if (_outputFolders) {
 					saveRowValues(currentEntry);
 				}
-				if (_DeepScan) {
+				if (_doFullScan) {
 					scanDirectory(currentEntry.getAbsolutePath());
 				}
 				continue;
 			}
 
 			String sExtension = FilenameUtils.getExtension(currentEntry.getName()).toLowerCase();
-			if (_CheckSkipList && _SkipExtensions.containsKey(sExtension)) {
+			if (_hasSkipExtensions && _SkipExtensions.containsKey(sExtension)) {
 				continue;
-			} else if (_CheckIncludeList && !_IncludeExtensions.containsKey(sExtension)) {
+			} else if (_hasIncludeExtensions && !_IncludeExtensions.containsKey(sExtension)) {
 				continue;
-			} else if (_ListFiles) {
+			} else if (_outputFiles) {
 				saveRowValues(currentEntry);
 			}
 		}
