@@ -92,20 +92,20 @@ abstract public class DataFormat implements AutoCloseable {
         _aIndex = new ArrayList<>();
     }
 
-    public void DefineDataColumn(int nIndex, String ColumnName, DataType ColumnDataType) {
-        _DataRow.DefineColumn(nIndex, ColumnName, ColumnDataType);
+    public void DefineDataColumn(int index, String columnName, DataType columnDataType) {
+        _DataRow.DefineColumn(index, columnName, columnDataType);
     }
 
-    public void DefineDataColumn(int nIndex, String ColumnName, String DotNetDataType) {
-        DefineDataColumn(nIndex, ColumnName, DotNetDataType, ColumnTypes.DataValue, "");
+    public void DefineDataColumn(int index, String columnName, String javaDataType) {
+        DefineDataColumn(index, columnName, javaDataType, ColumnTypes.DataValue, "");
     }
 
-    public void AddGlobalValueColumn(int nIndex, String ColumnName, String DotNetDataType, String SetValue) {
-        DefineDataColumn(nIndex, ColumnName, DotNetDataType, ColumnTypes.GlobalValue, SetValue);
+    public void AddGlobalValueColumn(int index, String columnName, String javaDataType, String globalValue) {
+        DefineDataColumn(index, columnName, javaDataType, ColumnTypes.GlobalValue, globalValue);
     }
 
-    protected void DefineDataColumn(int nIndex, String ColumnName, String DotNetDataType, ColumnTypes ColumnType, String SetValue) {
-        _DataRow.DefineColumn(nIndex, ColumnName, ColumnType, DotNetDataType, null);
+    protected void DefineDataColumn(int index, String columnName, String javaDataType, ColumnTypes columnType, String globalValue) {
+        _DataRow.DefineColumn(index, columnName, columnType, javaDataType, null);
     }
 
     protected void PopulateHeaderInformation() {

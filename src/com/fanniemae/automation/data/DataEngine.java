@@ -14,6 +14,7 @@ import com.fanniemae.automation.common.DataStream;
 import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.data.connectors.DataConnector;
+import com.fanniemae.automation.data.connectors.DirectoryConnector;
 import com.fanniemae.automation.data.connectors.SqlConnector;
 import com.fanniemae.automation.data.transforms.DataTransform;
 import com.fanniemae.automation.data.transforms.TimespanColumn;
@@ -75,18 +76,22 @@ public class DataEngine {
 		try (DataConnector dc = CreateConnector(); DataWriter dw = new DataWriter(sDataFilename, 0, false)) {
 			dc.open();
 			String[][] aSchema = dc.getDataSourceSchema();
-			// Update the schema based on the operations within this group.
-			for(int i=0;i<_ProcessingGroups.get(0).size();i++) {
-				aSchema = _ProcessingGroups.get(0).get(i).UpdateSchema(aSchema);
+			if (_ProcessingGroups.size() > 0) {
+				// Update the schema based on the operations within this group.
+				for (int i = 0; i < _ProcessingGroups.get(0).size(); i++) {
+					aSchema = _ProcessingGroups.get(0).get(i).UpdateSchema(aSchema);
+				}
 			}
 			dw.SetupDataColumns(aSchema);
 			long lRowCount = 0;
 			while (!dc.eof()) {
 				Object[] aValues = dc.getDataRow();
-				for(int i=0;i<_ProcessingGroups.get(0).size();i++) {
-					aValues = _ProcessingGroups.get(0).get(i).processDataRow(aValues);
+				if (_ProcessingGroups.size() > 0) {
+					for (int i = 0; i < _ProcessingGroups.get(0).size(); i++) {
+						aValues = _ProcessingGroups.get(0).get(i).processDataRow(aValues);
+					}
 				}
-				
+
 				dw.WriteDataRow(aValues);
 				lRowCount++;
 			}
@@ -118,6 +123,8 @@ public class DataEngine {
 		switch (sType) {
 		case "sql":
 			return new SqlConnector(_Session, _DataSource, false);
+		case "directory":
+			return new DirectoryConnector(_Session, _DataSource, false);
 		}
 		return null;
 	}
