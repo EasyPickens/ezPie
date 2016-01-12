@@ -48,7 +48,7 @@ public class DirectoryConnector extends DataConnector {
 
 		_Path = _Session.getAttribute(dataSource, "Path");
 		if (StringUtilities.isNullOrEmpty(_Path)) {
-			throw new RuntimeException("FileSystemConnector requires a Path to a directory.");
+			throw new RuntimeException("DataSource.Directory requires a valid Path.");
 		} else if (FileUtilities.isInvalidDirectory(_Path)) {
 			throw new RuntimeException(String.format("Directory (%s) not found.", _Path));
 		}
@@ -57,20 +57,20 @@ public class DirectoryConnector extends DataConnector {
 		String sDeep = _Session.getAttribute(_DataSource, "Deep");
 		if (StringUtilities.isNotNullOrEmpty(sDeep)) {
 			_Session.addLogMessage("", "Deep", sDeep);
+			_DeepScan = StringUtilities.toBoolean(sDeep, true);
 		}
-		_DeepScan = StringUtilities.toBoolean(sDeep, true);
 		
 		String sListFiles = _Session.getAttribute(_DataSource, "ListFiles");
 		if (StringUtilities.isNotNullOrEmpty(sListFiles)) {
 			_Session.addLogMessage("", "List Files", sListFiles);
+			_ListFiles = StringUtilities.toBoolean(sListFiles, true);
 		}
-		_ListFiles = StringUtilities.toBoolean(sListFiles, true);
 		
 		String sListDirectories = _Session.getAttribute(_DataSource, "ListDirectories");
 		if (StringUtilities.isNotNullOrEmpty(sListDirectories)) {
 			_Session.addLogMessage("", "List Directories", sListDirectories);
+			_ListDirectories = StringUtilities.toBoolean(sListDirectories, false);
 		}
-		_ListDirectories = StringUtilities.toBoolean(sListDirectories, false);
 
 		_SkippedExtensions = _Session.getAttribute(_DataSource, "SkipExtensions");
 		_SkipExtensions = toHashMap(_SkippedExtensions, "Skip Extensions", true);
