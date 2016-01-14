@@ -254,23 +254,43 @@ public class StringUtilities {
 		return String.format("\"%s\"", value);
 	}
 
-	public static DataTypeRank getDataType(String value, int previousRank) {
-		if ((previousRank <= 1) && isBoolean(value)) {
-			return new DataTypeRank(1, "BooleanData");
-		} else if ((previousRank <= 2) && isDate(value)) {
-			return new DataTypeRank(2, "DateTimeData");
-		} else if ((previousRank <= 3) && isInteger(value)) {
-			return new DataTypeRank(3, "IntegerData");
-		} else if ((previousRank <= 4) && isLong(value)) {
-			return new DataTypeRank(4, "LongData");
-		} else if ((previousRank <= 5) && isDouble(value)) {
-			return new DataTypeRank(5, "DoubleData");
-		} else if ((previousRank <= 6) && isBigDecimal(value)) {
-			return new DataTypeRank(6, "BigDecimal");
-		} else if ((previousRank == 0) && isNullOrEmpty(value)) {
-			return new DataTypeRank(0, "StringData");
+	public static String getDataType(String value, String previousType) {
+		if (isNullOrEmpty(value)) {
+			return previousType;
+		} else if (isNullOrEmpty(previousType)) {
+			if (isBoolean(value)) {
+				return "BooleanData";
+			} else if (isDate(value)) {
+				return "DateTimeData";
+			} else if (isInteger(value)) {
+				return "IntegerData";
+			} else if (isLong(value)) {
+				return "LongData";
+			} else if (isDouble(value)) {
+				return "DoubleData";
+			} else if (isBigDecimal(value)) {
+				return "BigDecimal";
+			} else {
+				return "StringData";
+			}
+		} else if (previousType.equals("StringData")) {
+			return previousType;
+		} else if (previousType.equals("BooleanData")) {
+			return isBoolean(value) ? "BooleanData" : "StringData";
+		} else if (previousType.equals("DateTimeData")) {
+			return isDate(value) ? previousType : "StringData";
+		} else if (previousType.equals("IntegerData") && isInteger(value)) {
+			return previousType;
+		} else if ((previousType.equals("IntegerData") || previousType.equals("LongData")) && isLong(value)) {
+			return "LongData";
+		} else if (("|IntegerData|LongData|DoubleData|".indexOf("|" + previousType + "|") > -1) && isDouble(value)) {
+			return "DoubleData";
+		} else if ("|IntegerData|LongData|DoubleData|BigDecimalData".indexOf("|" + previousType + "|") > -1) {
+			return isBigDecimal(value) ? "BigDecimalData" : "StringData";
+		} else if (isNotNullOrEmpty(previousType)) {
+			return "StringData";
 		} else {
-			return new DataTypeRank(7, "StringData");
+			throw new RuntimeException("Unable to detect delimited file schema format.");
 		}
 	}
 }

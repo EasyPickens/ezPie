@@ -7,7 +7,6 @@ import java.io.IOException;
 import org.w3c.dom.Element;
 
 import com.fanniemae.automation.SessionManager;
-import com.fanniemae.automation.common.DataTypeRank;
 import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.StringUtilities;
 import com.opencsv.CSVReader;
@@ -113,12 +112,11 @@ public class DelimitedConnector extends DataConnector {
 			String[] dataRow = rdr.readNext();
 
 			// Read/create column names and pre-populate the column type.
-			int[] columnTypeRank = new int[dataRow.length];
+			boolean[] skipSchemaCheck = new boolean[dataRow.length];
 			_DataSchema = new String[dataRow.length][2];
 			for (int i = 0; i < dataRow.length; i++) {
 				_DataSchema[i][0] = _IncludesColumnNames ? dataRow[i] : String.format("Column%d", i);
-				_DataSchema[i][1] = "StringData";
-				columnTypeRank[i] = 0;
+				skipSchemaCheck[i] = false;
 			}
 
 			if (_IncludesColumnNames) {
@@ -127,15 +125,15 @@ public class DelimitedConnector extends DataConnector {
 
 			while (dataRow != null) {
 				for (int i = 0; i < dataRow.length; i++) {
-					if (StringUtilities.isNotNullOrEmpty(dataRow[i])) {
-						DataTypeRank oType = StringUtilities.getDataType(dataRow[i], columnTypeRank[i]);
-						_DataSchema[i][1] = oType.getTypeName();
-						columnTypeRank[i] = oType.getRank();
+					if (!skipSchemaCheck[i] && StringUtilities.isNotNullOrEmpty(dataRow[i])) {
+						_DataSchema[i][1] = StringUtilities.getDataType(dataRow[i], _DataSchema[i][1]);
+						if (StringUtilities.isNotNullOrEmpty(_DataSchema[i][1]) && _DataSchema[i][1].equals("StringData")) {
+							skipSchemaCheck[i] = true;
+						}
 					}
 				}
 				dataRow = rdr.readNext();
 			}
-			String sss = "";
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(String.format("%s file not found.", _Filename), e);
 		} catch (IOException e) {
