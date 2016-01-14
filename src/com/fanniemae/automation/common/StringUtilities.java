@@ -3,6 +3,9 @@ package com.fanniemae.automation.common;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.time.DateUtils;
 
 /**
  * 
@@ -11,6 +14,46 @@ import java.util.UUID;
  * 
  */
 public class StringUtilities {
+
+	// @formatter:off
+	// Source: http://docs.oracle.com/javase/6/docs/api/java/lang/Double.html#valueOf%28java.lang.String%29
+	protected static String _DoubleRegex = "[\\x00-\\x20]*[+-]?(NaN|Infinity|((((\\p{Digit}+)(\\.)?((\\p{Digit}+)?)([eE][+-]?(\\p{Digit}+))?)|(\\.((\\p{Digit}+))([eE][+-]?(\\p{Digit}+))?)|(((0[xX](\\p{XDigit}+)(\\.)?)|(0[xX](\\p{XDigit}+)?(\\.)(\\p{XDigit}+)))[pP][+-]?(\\p{Digit}+)))[fFdD]?))[\\x00-\\x20]*";
+	
+	protected static String _BooleanValues = "|true|false|t|f|0|1|yes|no|on|off|y|n|";
+	
+	protected static String[] _SupportedDateFormats = new String[] { "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "yyyy/MM/dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss", 
+                                                            "yyyy/MM/dd HH:mm:ss", "MM-dd-yyyy HH:mm:ss", "MM/dd/yyyy HH:mm:ss", "dd-MM-yyyy HH:mm:ss",
+                                                            "dd/MM/yyyy HH:mm:ss", "MM-yyyy HH:mm:ss", "MM/yyyy HH:mm:ss", "yyyy-MM-dd'T'HH:mm", 
+                                                            "yyyy-MM-dd HH:mm", "yyyy/MM/dd HH:mm", "yyyy-MM-dd HH:mm", "yyyy/MM/dd HH:mm", "MM-dd-yyyy HH:mm",
+                                                            "MM/dd/yyyy HH:mm", "dd-MM-yyyy HH:mm", "dd/MM/yyyy HH:mm", "MM-yyyy HH:mm", "MM/yyyy HH:mm",
+                                                            "yyyy-MM-dd'T'HH", "yyyy-MM-dd HH", "yyyy/MM/dd HH", "yyyy-MM-dd HH", "yyyy/MM/dd HH", 
+                                                            "MM-dd-yyyy HH", "MM/dd/yyyy HH", "dd-MM-yyyy HH", "dd/MM/yyyy HH", "MM-yyyy HH", "MM/yyyy HH",
+                                                            "yyyy-MM-dd", "yyyy/MM/dd", "MM-dd-yyyy", "MM/dd/yyyy", "dd-MM-yyyy", "dd/MM/yyyy", "MM-yyyy",
+                                                            "MM/yyyy", "yyyy-M-dd'T'HH:M:ss", "yyyy-M-dd HH:M:ss", "yyyy/M/dd HH:M:ss", "yyyy-M-dd HH:M:ss", 
+                                                            "yyyy/M/dd HH:M:ss", "M-dd-yyyy HH:M:ss", "M/dd/yyyy HH:M:ss", "dd-M-yyyy HH:M:ss", "dd/M/yyyy HH:M:ss",
+                                                            "M-yyyy HH:M:ss", "M/yyyy HH:M:ss", "yyyy-M-dd'T'HH:M", "yyyy-M-dd HH:M", "yyyy/M/dd HH:M", 
+                                                            "yyyy-M-dd HH:M", "yyyy/M/dd HH:M", "M-dd-yyyy HH:M", "M/dd/yyyy HH:M", "dd-M-yyyy HH:M",
+                                                            "dd/M/yyyy HH:M", "M-yyyy HH:M", "M/yyyy HH:M", "yyyy-M-dd'T'HH", "yyyy-M-dd HH", "yyyy/M/dd HH", 
+                                                            "yyyy-M-dd HH", "yyyy/M/dd HH", "M-dd-yyyy HH", "M/dd/yyyy HH", "dd-M-yyyy HH", "dd/M/yyyy HH",
+                                                            "M-yyyy HH", "M/yyyy HH", "yyyy-M-dd", "yyyy/M/dd", "M-dd-yyyy", "M/dd/yyyy", "dd-M-yyyy",
+                                                            "dd/M/yyyy", "M-yyyy", "M/yyyy", "yyyy-M-d'T'HH:M:ss", "yyyy-M-d HH:M:ss", "yyyy/M/d HH:M:ss", 
+                                                            "yyyy-M-d HH:M:ss", "yyyy/M/d HH:M:ss", "M-d-yyyy HH:M:ss", "M/d/yyyy HH:M:ss", "d-M-yyyy HH:M:ss",
+                                                            "d/M/yyyy HH:M:ss", "M-yyyy HH:M:ss", "M/yyyy HH:M:ss", "yyyy-M-d'T'HH:M", "yyyy-M-d HH:M", 
+                                                            "yyyy/M/d HH:M", "yyyy-M-d HH:M", "yyyy/M/d HH:M", "M-d-yyyy HH:M", "M/d/yyyy HH:M", "d-M-yyyy HH:M",
+		                                                    "d/M/yyyy HH:M", "M-yyyy HH:M", "M/yyyy HH:M", "yyyy-M-d'T'HH", "yyyy-M-d HH", "yyyy/M/d HH", 
+                                                            "yyyy-M-d HH", "yyyy/M/d HH", "M-d-yyyy HH", "M/d/yyyy HH", "d-M-yyyy HH", "d/M/yyyy HH", "M-yyyy HH",
+                                                            "M/yyyy HH", "yyyy-M-d", "yyyy/M/d", "M-d-yyyy", "M/d/yyyy", "d-M-yyyy", "d/M/yyyy", "M-yyyy",
+                                                            "M/yyyy", "yyyy-MM-d'T'HH:mm:ss", "yyyy-MM-d HH:mm:ss", "yyyy/MM/d HH:mm:ss", "yyyy-MM-d HH:mm:ss", 
+                                                            "yyyy/MM/d HH:mm:ss", "MM-d-yyyy HH:mm:ss", "MM/d/yyyy HH:mm:ss", "d-MM-yyyy HH:mm:ss",
+                                                            "d/MM/yyyy HH:mm:ss", "MM-yyyy HH:mm:ss", "MM/yyyy HH:mm:ss", "yyyy-MM-d'T'HH:mm", "yyyy-MM-d HH:mm", 
+                                                            "yyyy/MM/d HH:mm", "yyyy-MM-d HH:mm", "yyyy/MM/d HH:mm", "MM-d-yyyy HH:mm", "MM/d/yyyy HH:mm",
+                                                            "d-MM-yyyy HH:mm", "d/MM/yyyy HH:mm", "MM-yyyy HH:mm", "MM/yyyy HH:mm", "yyyy-MM-d'T'HH", 
+                                                            "yyyy-MM-d HH", "yyyy/MM/d HH", "yyyy-MM-d HH", "yyyy/MM/d HH", "MM-d-yyyy HH", "MM/d/yyyy HH",
+                                                            "d-MM-yyyy HH", "d/MM/yyyy HH", "MM-yyyy HH", "MM/yyyy HH", "yyyy-MM-d", "yyyy/MM/d", "MM-d-yyyy",
+                                                            "MM/d/yyyy", "d-MM-yyyy", "d/MM/yyyy", "MM-yyyy", "MM/yyyy", "EEE, d MMM yyyy HH:mm:ss",
+                                                            "d MMM yyyy HH:mm:ss", "d MMM yyyy", "MMM d, yyyy", "MMM dd, yyyy", "yyyy/MM", "yyyy/M",
+                                                            "yyyy-MM", "yyyy-M"};
+	// @formatter:on
 
 	public static boolean isNotNullOrEmpty(String value) {
 		return !isNullOrEmpty(value);
@@ -22,11 +65,36 @@ public class StringUtilities {
 
 	public static boolean isFormattedDate(String value) {
 		// Check for ISO 8601 Date Format (yyyy-MM-ddTHH:mm:ss)
-		if (value.length() > 14) {
-			String sCheck = value.substring(4, 1) + value.substring(7, 1) + value.substring(10, 1) + value.substring(13, 1);
+		if (isNotNullOrEmpty(value) && (value.length() > 14)) {
+			String sCheck = value.substring(4, 5) + value.substring(7, 8) + value.substring(10, 11) + value.substring(13, 14);
 			return sCheck.equals("--T:");
 		}
 		return false;
+	}
+
+	public static boolean isDate(String value) {
+		try {
+			DateUtils.parseDateStrictly(value, _SupportedDateFormats);
+			return true;
+		} catch (Exception ex) {
+			return false;
+		}
+	}
+
+	public static boolean isLong(String value) {
+		return isNullOrEmpty(value) ? false : (Pattern.matches("^[+-]?\\d+$", value) && (value.length() <= 17));
+	}
+
+	public static boolean isInteger(String value) {
+		return isNullOrEmpty(value) ? false : (Pattern.matches("^[+-]?\\d+$", value) && (value.length() <= 8));
+	}
+
+	public static boolean isDouble(String value) {
+		return isNullOrEmpty(value) ? false : Pattern.matches(_DoubleRegex, value);
+	}
+
+	public static boolean isBigDecimal(String value) {
+		return isNullOrEmpty(value) ? false : Pattern.matches(_DoubleRegex, value);
 	}
 
 	public static boolean isFormula(String value) {
@@ -39,19 +107,22 @@ public class StringUtilities {
 		return false;
 	}
 
-	public static Boolean toBoolean(String value) {
+	public static boolean isBoolean(String value) {
+		return (isNullOrEmpty(value) || (_BooleanValues.indexOf("|" + value.toLowerCase() + "|") == -1)) ? false : true;
+	}
+
+	public static boolean toBoolean(String value) {
 		return toBoolean(value, false);
 	}
 
-	public static Boolean toBoolean(String value, Boolean defaultValue) {
+	public static boolean toBoolean(String value, Boolean defaultValue) {
 		if (isNullOrEmpty(value))
 			return defaultValue;
-		else if ("t|y|1".indexOf(value.toLowerCase().substring(1, 1)) > -1)
+		else if ("|true|t|y|1|on|yes|".indexOf("|" + value.toLowerCase() + "|") > -1)
 			return true;
-		else if (value.toCharArray().equals("on"))
-			return true;
-		else
+		else if ("|false|f|n|0|off|no|".indexOf("|" + value.toLowerCase() + "|") > -1)
 			return false;
+		return defaultValue;
 	}
 
 	public static int toInteger(String value) {
@@ -106,6 +177,18 @@ public class StringUtilities {
 		try {
 			return new BigDecimal(value);
 		} catch (NumberFormatException ex) {
+			return defaultValue;
+		}
+	}
+
+	public static Date toDate(String value) {
+		return toDate(value, null);
+	}
+
+	public static Date toDate(String value, Date defaultValue) {
+		try {
+			return DateUtils.parseDateStrictly(value, _SupportedDateFormats);
+		} catch (Exception ex) {
 			return defaultValue;
 		}
 	}
@@ -169,5 +252,25 @@ public class StringUtilities {
 		if ((value == null) || (value.indexOf(' ') == -1))
 			return value;
 		return String.format("\"%s\"", value);
+	}
+
+	public static DataTypeRank getDataType(String value, int previousRank) {
+		if ((previousRank <= 1) && isBoolean(value)) {
+			return new DataTypeRank(1, "BooleanData");
+		} else if ((previousRank <= 2) && isDate(value)) {
+			return new DataTypeRank(2, "DateTimeData");
+		} else if ((previousRank <= 3) && isInteger(value)) {
+			return new DataTypeRank(3, "IntegerData");
+		} else if ((previousRank <= 4) && isLong(value)) {
+			return new DataTypeRank(4, "LongData");
+		} else if ((previousRank <= 5) && isDouble(value)) {
+			return new DataTypeRank(5, "DoubleData");
+		} else if ((previousRank <= 6) && isBigDecimal(value)) {
+			return new DataTypeRank(6, "BigDecimal");
+		} else if ((previousRank == 0) && isNullOrEmpty(value)) {
+			return new DataTypeRank(0, "StringData");
+		} else {
+			return new DataTypeRank(7, "StringData");
+		}
 	}
 }

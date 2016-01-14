@@ -14,6 +14,7 @@ import com.fanniemae.automation.common.DataStream;
 import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.data.connectors.DataConnector;
+import com.fanniemae.automation.data.connectors.DelimitedConnector;
 import com.fanniemae.automation.data.connectors.DirectoryConnector;
 import com.fanniemae.automation.data.connectors.SqlConnector;
 import com.fanniemae.automation.data.transforms.DataTransform;
@@ -125,6 +126,8 @@ public class DataEngine {
 			return new SqlConnector(_Session, _DataSource, false);
 		case "directory":
 			return new DirectoryConnector(_Session, _DataSource, false);
+		case "delimited":
+			return new DelimitedConnector(_Session, _DataSource, false);
 		}
 		return null;
 	}
