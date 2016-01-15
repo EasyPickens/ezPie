@@ -12,6 +12,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.automation.SessionManager;
 import com.fanniemae.automation.common.DataStream;
+import com.fanniemae.automation.common.DateUtilities;
 import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.datafiles.DataReader;
@@ -70,7 +71,6 @@ public class ExportDelimited extends Action {
 				}
 			}
 
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			int iRowCount = 0;
 			// Write the data
 			while (!dr.eof()) {
@@ -81,9 +81,11 @@ public class ExportDelimited extends Action {
 						fw.append(',');
 
 					if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.DateData) {
-						fw.append(df.format((Date)values[_OutputColumnIndexes[i]]));
+						fw.append(DateUtilities.toIsoString((Date)values[_OutputColumnIndexes[i]]));
 					} else if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.StringData) {
 						fw.append(wrapString(values[_OutputColumnIndexes[i]].toString()));
+					} else if (values[_OutputColumnIndexes[i]] == null) {
+						fw.append("");
 					} else {
 						fw.append(values[_OutputColumnIndexes[i]].toString());
 					}
@@ -136,7 +138,9 @@ public class ExportDelimited extends Action {
 
 	protected String wrapString(String value) {
 		Boolean wrapDoubleQuotes = false;
-		if (value.contains("\"")) {
+		if (StringUtilities.isNullOrEmpty(value)) {
+			return "";
+		} else if (value.contains("\"")) {
 			value = value.replace("\"", "\"\"");
 			wrapDoubleQuotes = true;
 		}

@@ -7,8 +7,10 @@ import java.io.IOException;
 import org.w3c.dom.Element;
 
 import com.fanniemae.automation.SessionManager;
+import com.fanniemae.automation.common.DataUtilities;
 import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.StringUtilities;
+import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
 import com.opencsv.CSVReader;
 
 public class DelimitedConnector extends DataConnector {
@@ -20,6 +22,11 @@ public class DelimitedConnector extends DataConnector {
 	protected char _Delimiter = ',';
 
 	protected Boolean _IncludesColumnNames = true;
+
+	protected int _ColumnCount;
+	
+	protected Object[] _DataRow;
+	protected DataType[] _DataTypes;
 
 	public DelimitedConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
@@ -64,18 +71,7 @@ public class DelimitedConnector extends DataConnector {
 		try {
 			_reader = new CSVReader(new FileReader(_Filename), ',');
 			if (_IncludesColumnNames) {
-				String[] _ColumnNames = _reader.readNext();
-
-				_DataSchema = new String[_ColumnNames.length][2];
-				StringBuilder sb = new StringBuilder();
-				for (int i = 0; i < _ColumnNames.length; i++) {
-					if (i > 0)
-						sb.append(",\n");
-					sb.append(_ColumnNames[i]);
-					_DataSchema[i][0] = _ColumnNames[i];
-					_DataSchema[i][1] = "StringData";
-				}
-				_Session.addLogMessage("", "Column Names", sb.toString());
+				_reader.readNext();
 			}
 		} catch (FileNotFoundException ex) {
 			throw new RuntimeException("File not found.", ex);
@@ -88,12 +84,30 @@ public class DelimitedConnector extends DataConnector {
 
 	@Override
 	public Boolean eof() {
-		return true;
+		String[] dataRow;
+		try {
+			dataRow = _reader.readNext();
+			if (dataRow == null) {
+				return true;
+			}
+			int iLen = dataRow.length < _ColumnCount ? dataRow.length : _ColumnCount;
+			// null the previous row values before reading the next row.
+			for (int i= 0;i< _ColumnCount;i++) {
+				_DataRow[i] = null;
+			}
+			// strongly type the new row values.		
+			for (int i = 0; i < iLen; i++) {
+				_DataRow[i] = castValue(i, dataRow[i]);
+			}
+		} catch (IOException ex) {
+			throw new RuntimeException("Error while reading delimited data file.", ex);
+		}
+		return false;
 	}
 
 	@Override
 	public Object[] getDataRow() {
-		return null;
+		return _DataRow;
 	}
 
 	@Override
@@ -111,9 +125,11 @@ public class DelimitedConnector extends DataConnector {
 		try (CSVReader rdr = new CSVReader(new FileReader(_Filename), ',');) {
 			String[] dataRow = rdr.readNext();
 
-			// Read/create column names and pre-populate the column type.
-			boolean[] skipSchemaCheck = new boolean[dataRow.length];
+			// Read/create column names.
 			_DataSchema = new String[dataRow.length][2];
+			_DataRow = new Object[dataRow.length];
+			_DataTypes = new DataType[dataRow.length];
+			boolean[] skipSchemaCheck = new boolean[dataRow.length];
 			for (int i = 0; i < dataRow.length; i++) {
 				_DataSchema[i][0] = _IncludesColumnNames ? dataRow[i] : String.format("Column%d", i);
 				skipSchemaCheck[i] = false;
@@ -134,10 +150,49 @@ public class DelimitedConnector extends DataConnector {
 				}
 				dataRow = rdr.readNext();
 			}
+
+			// Load the data types for each column (faster conversion from
+			// string to whatever)
+			_ColumnCount = _DataSchema.length;
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < _ColumnCount; i++) {
+				_DataTypes[i] = DataUtilities.DataTypeToEnum(_DataSchema[i][1]);
+				if (i > 0) {
+					sb.append(",\n");
+				}
+				sb.append(String.format("%s {%s}",(Object[])_DataSchema[i]));
+			}
+			_Session.addLogMessage("", "Columns", sb.toString());
+			
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(String.format("%s file not found.", _Filename), e);
 		} catch (IOException e) {
 			throw new RuntimeException(String.format("Could not read schema for delimited file %s", _Filename), e);
+		}
+	}
+
+	protected Object castValue(int i, String value) {
+		if (StringUtilities.isNullOrEmpty(value)) {
+			return null;
+		}
+		
+		switch (_DataTypes[i]) {
+		case StringData:
+			return value;
+		case DateData:
+			return StringUtilities.toDate(value);
+		case IntegerData:
+			return StringUtilities.toInteger(value);
+		case LongData:
+			return StringUtilities.toLong(value);
+		case DoubleData:
+			return StringUtilities.toDouble(value);
+		case BigDecimalData:
+			return StringUtilities.toBigDecimal(value);
+		case BooleanData:
+			return StringUtilities.toBoolean(value);
+		default:
+			throw new RuntimeException(String.format("%s string conversion not currently available.", DataType.values()[i]));
 		}
 	}
 

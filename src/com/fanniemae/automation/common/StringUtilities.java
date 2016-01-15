@@ -261,7 +261,7 @@ public class StringUtilities {
 			if (isBoolean(value)) {
 				return "BooleanData";
 			} else if (isDate(value)) {
-				return "DateTimeData";
+				return "DateData";
 			} else if (isInteger(value)) {
 				return "IntegerData";
 			} else if (isLong(value)) {
@@ -277,7 +277,7 @@ public class StringUtilities {
 			return previousType;
 		} else if (previousType.equals("BooleanData")) {
 			return isBoolean(value) ? "BooleanData" : "StringData";
-		} else if (previousType.equals("DateTimeData")) {
+		} else if (previousType.equals("DateData")) {
 			return isDate(value) ? previousType : "StringData";
 		} else if (previousType.equals("IntegerData") && isInteger(value)) {
 			return previousType;
