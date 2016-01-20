@@ -48,7 +48,7 @@ public class DataReader extends DataFormat {
     private FieldReadWrite[] _ReadMethods;
     
     protected DataReader _drSourceData = null;
-    protected long _nEndOfData;
+    protected long _EndOfDataBlock;
 
     public DataReader(DataStream ds) throws IOException {
         if (ds.IsMemory()) {
@@ -56,17 +56,17 @@ public class DataReader extends DataFormat {
         } else {
             _bis = new BinaryInputStream(ds.getFilename());
         }
-        Initialize();
+        initialize();
     }
 
-    public DataReader(String sFilename) throws IOException {
-        _bis = new BinaryInputStream(sFilename);
-        Initialize();
+    public DataReader(String filename) throws IOException {
+        _bis = new BinaryInputStream(filename);
+        initialize();
     }
 
-    public DataReader(byte[] b) throws IOException {
-        _bis = new BinaryInputStream(b);
-        Initialize();
+    public DataReader(byte[] byteArrayMemoryStream) throws IOException {
+        _bis = new BinaryInputStream(byteArrayMemoryStream);
+        initialize();
     }
 
     @Override
@@ -81,37 +81,37 @@ public class DataReader extends DataFormat {
     }
 
     public boolean eof() throws IOException {
-        return _bis.getPosition() >= _nEndOfData;
+        return _bis.getPosition() >= _EndOfDataBlock;
     }
 
-    public DataRow ReadRowData(long OffSet) throws IOException {
-        _bis.seek(OffSet);
-        return ReadRowData();
+    public DataRow getDataRowAndSchemaAt(long offSet) throws IOException {
+        _bis.seek(offSet);
+        return getDataRowAndSchema();
     }
 
-    public DataRow ReadRowData() throws IOException {
-        _DataRow.setValues(getRowValues());
+    public DataRow getDataRowAndSchema() throws IOException {
+        _DataRow.setValues(getDataRow());
         if (_byteFileType == 0) {
             return _DataRow;
         }
-        return _drSourceData.ReadRowData((long) _DataRow.getValues()[0]);
+        return _drSourceData.getDataRowAndSchemaAt((long) _DataRow.getValues()[0]);
     }
 
-    public void MoveToRow(long lRowNumber) throws IOException {
-        lRowNumber = (lRowNumber <= 0L) ? 1L : lRowNumber;
+    public void moveToRow(long rowNumber) throws IOException {
+        rowNumber = (rowNumber <= 0L) ? 1L : rowNumber;
 
         _nCurrentRowNumber = _nFirstRow - 1L;
-        if ((lRowNumber > _nFullRowCount) || (lRowNumber > _nLastRow)) {
-            _bis.seek(_nEndOfData);
+        if ((rowNumber > _nFullRowCount) || (rowNumber > _nLastRow)) {
+            _bis.seek(_EndOfDataBlock);
             _nCurrentRowNumber = _nLastRow;
-        } else if (lRowNumber == 1L) {
+        } else if (rowNumber == 1L) {
             _bis.seek(_nStartOfData);
         } else if (_aIndex.size() > 0) {
             long lRowNum = _nFirstRow - 1L;
             long lPosition = _nStartOfData;
             int iLength = _aIndex.size();
             for (int i = 0; i < iLength; i++) {
-                if (_aIndex.get(i).RowNumber + _nFirstRow - 1L < lRowNumber) {
+                if (_aIndex.get(i).RowNumber + _nFirstRow - 1L < rowNumber) {
                     lRowNum = _aIndex.get(i).RowNumber + _nFirstRow - 1L;
                     lPosition = _aIndex.get(i).OffSet;
                 } else {
@@ -120,24 +120,24 @@ public class DataReader extends DataFormat {
             }
             _nCurrentRowNumber = lRowNum;
             _bis.seek(lPosition);
-            while (!eof() && (_nCurrentRowNumber < lRowNumber)) {
-                SkipDataRow();
+            while (!eof() && (_nCurrentRowNumber < rowNumber)) {
+                skipDataRow();
             }
         } else {
-            while (!eof() && (_nCurrentRowNumber < lRowNumber)) {
-                SkipDataRow();
+            while (!eof() && (_nCurrentRowNumber < rowNumber)) {
+                skipDataRow();
                 //getRowValues();
             }
         }
     }
 
-    public void SkipDataRow(long iNumberOfRows) throws IOException {
-        for (int i = 0; i < iNumberOfRows; i++) {
-            SkipDataRow();
+    public void skipDataRow(long numberOfRows) throws IOException {
+        for (int i = 0; i < numberOfRows; i++) {
+            skipDataRow();
         }
     }
 
-    public void SkipDataRow() throws IOException {
+    public void skipDataRow() throws IOException {
         // Just advancing the file pointer, no need to load the values.
         for (int i = 0; i < _DataRow.getColumnCount(); i++) {
             if (_DataRow.getColumnType(i) == ColumnTypes.DataValue) {
@@ -146,19 +146,24 @@ public class DataReader extends DataFormat {
         }
         _nCurrentRowNumber++;
     }
+    
+    public Object[] getDataRowAt(long position) throws IOException {
+        _bis.seek(position);
+        return getDataRow();
+    }
 
-    public Object[] getRowValues() throws IOException {
-    	int iLen = _DataRow.getColumnCount();
-        Object[] aValues = new Object[iLen];
-        for (int i = 0; i < iLen; i++) {
+    public Object[] getDataRow() throws IOException {
+    	int length = _DataRow.getColumnCount();
+        Object[] aData = new Object[length];
+        for (int i = 0; i < length; i++) {
             if (_DataRow.getColumnType(i) == ColumnTypes.GlobalValue) {
-                aValues[i] = _DataRow.getValue(i);
+                aData[i] = _DataRow.getValue(i);
             } else {
-                aValues[i] = _ReadMethods[i].Read();
+                aData[i] = _ReadMethods[i].Read();
             }
         }
         _nCurrentRowNumber++;
-        return aValues;
+        return aData;
     }
 
     public Object getHeaderInformation(DataFileEnums.BinaryFileInfo key) {
@@ -176,17 +181,21 @@ public class DataReader extends DataFormat {
     public DataType[] getDataTypes() {
         return _DataRow.getDataTypes();
     }
+    
+    public long getFilePosition() throws IOException {
+    	return _bis.getPosition();
+    }
 
-    protected void Initialize() throws IOException {
-        ReadHeader();
-        int iLen = _DataRow.getColumnCount();
-        _ReadMethods = new FieldReadWrite[iLen];
+    protected void initialize() throws IOException {
+        readHeader();
+        int length = _DataRow.getColumnCount();
+        _ReadMethods = new FieldReadWrite[length];
         for (int i = 0; i < _ReadMethods.length; i++) {
-            _ReadMethods[i] = GetReadMethod(_DataRow.getDataType(i));
+            _ReadMethods[i] = getReadMethod(_DataRow.getDataType(i));
         }
     }
 
-    protected void ReadHeader() throws IOException {
+    protected void readHeader() throws IOException {
         _byteFileType = _bis.readByte();
         _bEncrypted = _bis.readBoolean();
         _sFingerPrint = _bis.readUTF();
@@ -199,7 +208,7 @@ public class DataReader extends DataFormat {
         _nSchemaStart = _bis.readLong();
         _dtCreated = new Date(_bis.readLong());
         _dtExpires = new Date(_bis.readLong());
-        _nEndOfData = _nIndexStart;
+        _EndOfDataBlock = _nIndexStart;
         _nStartOfData = _bis.getPosition();
 
         // Jump to the Index
@@ -234,19 +243,19 @@ public class DataReader extends DataFormat {
 
             _DataRow = new DataRow(nodes.getLength());
             for (int i = 0; i < nodes.getLength(); i++) {
-                Element e = (Element) nodes.item(i);
+                Element elementColumn = (Element) nodes.item(i);
 
                 DataFileEnums.ColumnTypes eColType = DataFileEnums.ColumnTypes.DataValue;
 
-                String sName = e.getAttribute("Name");
-                String sDataType = e.getAttribute("DataType");
-                String sGlobalValue = e.getAttribute("GlobalValue");
-                Object oGlobalValue = null;
-                if (e.getAttribute("ColumnType").equalsIgnoreCase("GlobalValue")) {
+                String name = elementColumn.getAttribute("Name");
+                String dataType = elementColumn.getAttribute("DataType");
+                String sGlobalValue = elementColumn.getAttribute("GlobalValue");
+                Object globalValue = null;
+                if (elementColumn.getAttribute("ColumnType").equalsIgnoreCase("GlobalValue")) {
                     eColType = DataFileEnums.ColumnTypes.GlobalValue;
-                    oGlobalValue = StringUtilities.toObject(sDataType, sGlobalValue);
+                    globalValue = StringUtilities.toObject(dataType, sGlobalValue);
                 }
-                _DataRow.DefineColumn(i, sName, eColType, sDataType, oGlobalValue);
+                _DataRow.DefineColumn(i, name, eColType, dataType, globalValue);
             }
         } catch (XPathExpressionException | IOException ex) {
             throw new IOException("Error reading data file header. ", ex);
@@ -256,16 +265,16 @@ public class DataReader extends DataFormat {
         if (_byteFileType == 1) {
             File fd = new File(_sFilename);
             File dir = fd.getParentFile();
-            String sDataFilename = dir.getParent();
-            if (!sDataFilename.endsWith(java.io.File.separator)) {
-                sDataFilename += java.io.File.separator;
+            String dataFilename = dir.getParent();
+            if (!dataFilename.endsWith(java.io.File.separator)) {
+                dataFilename += java.io.File.separator;
             }
-            sDataFilename += _sSourceDataFilename;
-            if (FileUtilities.isInvalidFile(sDataFilename)) {
-                throw new IOException(String.format("Could not find the %s data file.", sDataFilename));
+            dataFilename += _sSourceDataFilename;
+            if (FileUtilities.isInvalidFile(dataFilename)) {
+                throw new IOException(String.format("Could not find the %s data file.", dataFilename));
             }
 
-            _drSourceData = new DataReader(sDataFilename);
+            _drSourceData = new DataReader(dataFilename);
             // Check to be sure the finger print still matches.
             if (!_sFingerPrint.equals(_drSourceData.getFingerPrint())) {
                 // This file must be recreated based on the new data.
@@ -274,9 +283,9 @@ public class DataReader extends DataFormat {
         _bis.seek(_nStartOfData);
     }
 
-    private FieldReadWrite GetReadMethod(DataType ColumnDataType) throws IOException {
+    private FieldReadWrite getReadMethod(DataType columnDataType) throws IOException {
         // Simplified code to convert some types into others. E.g. Byte, Int16, SByte ==> Int32
-        switch (ColumnDataType) {
+        switch (columnDataType) {
             case BooleanData:
                 return new FieldBoolean(_bis);
             case ByteData:
@@ -300,7 +309,7 @@ public class DataReader extends DataFormat {
                     return new FieldString(_bis);
                 }
             default:
-                throw new IOException("Data type " + ColumnDataType.toString() + " is not currently supported by the data engine.");
+                throw new IOException("Data type " + columnDataType.toString() + " is not currently supported by the data engine.");
         }
     }
 

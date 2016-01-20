@@ -79,7 +79,7 @@ public abstract class DataTransform {
 			// int nFinalColumnLength = aColumnNames.length;
 			bw.SetupDataColumns(aColumnNames, aDataTypes);
 			while (!br.eof()) {
-				Object[] aDataRow = processDataRow(br.getRowValues());
+				Object[] aDataRow = processDataRow(br.getDataRow());
 				if (aDataRow != null) {
 					bw.WriteDataRow(aDataRow);
 				}

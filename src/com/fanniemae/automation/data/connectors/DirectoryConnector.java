@@ -121,7 +121,7 @@ public class DirectoryConnector extends DataConnector {
 	@Override
 	public Object[] getDataRow() {
 		try {
-			return _dr.getRowValues();
+			return _dr.getDataRow();
 		} catch (IOException ex) {
 			throw new RuntimeException("Error reading data row values. " + ex.getMessage(), ex);
 		}
