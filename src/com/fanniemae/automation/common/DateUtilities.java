@@ -5,6 +5,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-07
+ * 
+ */
 public class DateUtilities {
 	
 	protected static DateFormat _df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");

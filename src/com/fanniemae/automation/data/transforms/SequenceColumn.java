@@ -5,6 +5,12 @@ import org.w3c.dom.Element;
 import com.fanniemae.automation.SessionManager;
 import com.fanniemae.automation.common.StringUtilities;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-20
+ * 
+ */
 public class SequenceColumn extends DataTransform {
 	protected int _SequenceNumber = 1;
 	protected int _Increment = 1;

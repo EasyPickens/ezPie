@@ -1,5 +1,11 @@
 package com.fanniemae.automation.common;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-14
+ * 
+ */
 public class ReportBuilder {
 
 	protected StringBuilder _sb = new StringBuilder();;

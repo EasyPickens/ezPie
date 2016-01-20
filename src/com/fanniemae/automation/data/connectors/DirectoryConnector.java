@@ -16,6 +16,12 @@ import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.datafiles.DataReader;
 import com.fanniemae.automation.datafiles.DataWriter;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-12
+ * 
+ */
 public class DirectoryConnector extends DataConnector {
 
 	protected String _Path;

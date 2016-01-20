@@ -11,6 +11,12 @@ import com.fanniemae.automation.data.transforms.DataTransform;
 import com.fanniemae.automation.data.transforms.SequenceColumn;
 import com.fanniemae.automation.data.transforms.TimespanColumn;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-20
+ * 
+ */
 public class ExecutionPlanner {
 
 	protected SessionManager _Session;

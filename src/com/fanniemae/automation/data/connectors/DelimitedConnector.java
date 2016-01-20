@@ -13,6 +13,12 @@ import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
 import com.opencsv.CSVReader;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-05
+ * 
+ */
 public class DelimitedConnector extends DataConnector {
 
 	protected CSVReader _reader;

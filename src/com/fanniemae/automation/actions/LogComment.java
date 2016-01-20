@@ -4,6 +4,12 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.automation.SessionManager;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2015-12-29
+ * 
+ */
 public class LogComment extends Action {
 	
 	public LogComment(SessionManager session, Element action) {

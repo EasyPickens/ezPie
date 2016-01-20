@@ -1,5 +1,11 @@
 package com.fanniemae.automation.common;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-01-05
+ * 
+ */
 public class ArrayUtilities {
 	 public static int indexOf(String[][] aItems, String sTarget) {
 	        return indexOf(aItems, sTarget, 0, false);

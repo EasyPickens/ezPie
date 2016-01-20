@@ -2,6 +2,12 @@ package com.fanniemae.automation.common;
 
 import java.io.File;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2015-12-29
+ * 
+ */
 public class DataStream {
     protected boolean _isMemory = true;
     protected byte[] _data;
