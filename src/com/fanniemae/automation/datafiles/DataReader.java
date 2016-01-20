@@ -71,9 +71,9 @@ public class DataReader extends DataFormat {
 
     @Override
     public void close() throws Exception {
-        if ((_bis != null) && (!_bDisposed)) {
+        if ((_bis != null) && (!_Disposed)) {
             _bis.close();
-            _bDisposed = true;
+            _Disposed = true;
         }
         if (_drSourceData != null) {
             _drSourceData.clone();
@@ -100,31 +100,31 @@ public class DataReader extends DataFormat {
     public void moveToRow(long rowNumber) throws IOException {
         rowNumber = (rowNumber <= 0L) ? 1L : rowNumber;
 
-        _nCurrentRowNumber = _nFirstRow - 1L;
-        if ((rowNumber > _nFullRowCount) || (rowNumber > _nLastRow)) {
+        _CurrentRowNumber = _FirstRow - 1L;
+        if ((rowNumber > _FullRowCount) || (rowNumber > _LastRow)) {
             _bis.seek(_EndOfDataBlock);
-            _nCurrentRowNumber = _nLastRow;
+            _CurrentRowNumber = _LastRow;
         } else if (rowNumber == 1L) {
-            _bis.seek(_nStartOfData);
-        } else if (_aIndex.size() > 0) {
-            long lRowNum = _nFirstRow - 1L;
-            long lPosition = _nStartOfData;
-            int iLength = _aIndex.size();
+            _bis.seek(_StartOfDataBlock);
+        } else if (_IndexBlock.size() > 0) {
+            long lRowNum = _FirstRow - 1L;
+            long lPosition = _StartOfDataBlock;
+            int iLength = _IndexBlock.size();
             for (int i = 0; i < iLength; i++) {
-                if (_aIndex.get(i).RowNumber + _nFirstRow - 1L < rowNumber) {
-                    lRowNum = _aIndex.get(i).RowNumber + _nFirstRow - 1L;
-                    lPosition = _aIndex.get(i).OffSet;
+                if (_IndexBlock.get(i).RowNumber + _FirstRow - 1L < rowNumber) {
+                    lRowNum = _IndexBlock.get(i).RowNumber + _FirstRow - 1L;
+                    lPosition = _IndexBlock.get(i).OffSet;
                 } else {
                     break;
                 }
             }
-            _nCurrentRowNumber = lRowNum;
+            _CurrentRowNumber = lRowNum;
             _bis.seek(lPosition);
-            while (!eof() && (_nCurrentRowNumber < rowNumber)) {
+            while (!eof() && (_CurrentRowNumber < rowNumber)) {
                 skipDataRow();
             }
         } else {
-            while (!eof() && (_nCurrentRowNumber < rowNumber)) {
+            while (!eof() && (_CurrentRowNumber < rowNumber)) {
                 skipDataRow();
                 //getRowValues();
             }
@@ -144,7 +144,7 @@ public class DataReader extends DataFormat {
                 _ReadMethods[i].Read();
             }
         }
-        _nCurrentRowNumber++;
+        _CurrentRowNumber++;
     }
     
     public Object[] getDataRowAt(long position) throws IOException {
@@ -162,16 +162,16 @@ public class DataReader extends DataFormat {
                 aData[i] = _ReadMethods[i].Read();
             }
         }
-        _nCurrentRowNumber++;
+        _CurrentRowNumber++;
         return aData;
     }
 
     public Object getHeaderInformation(DataFileEnums.BinaryFileInfo key) {
-        return _aHeaderInformation.get(key);
+        return _HeaderInformation.get(key);
     }
 
     public Map<DataFileEnums.BinaryFileInfo, Object> getHeader() {
-        return _aHeaderInformation;
+        return _HeaderInformation;
     }
 
     public String[] getColumnNames() {
@@ -197,41 +197,41 @@ public class DataReader extends DataFormat {
 
     protected void readHeader() throws IOException {
         _byteFileType = _bis.readByte();
-        _bEncrypted = _bis.readBoolean();
-        _sFingerPrint = _bis.readUTF();
-        _sSourceDataFilename = _bis.readUTF();
-        _bFullRowCountKnown = _bis.readBoolean();
-        _nFullRowCount = _bis.readLong();
-        _nFirstRow = _bis.readLong();
-        _nLastRow = _bis.readLong();
-        _nIndexStart = _bis.readLong();
-        _nSchemaStart = _bis.readLong();
-        _dtCreated = new Date(_bis.readLong());
-        _dtExpires = new Date(_bis.readLong());
-        _EndOfDataBlock = _nIndexStart;
-        _nStartOfData = _bis.getPosition();
+        _isEncrypted = _bis.readBoolean();
+        _FingerPrint = _bis.readUTF();
+        _SourceDataFilename = _bis.readUTF();
+        _FullRowCountKnown = _bis.readBoolean();
+        _FullRowCount = _bis.readLong();
+        _FirstRow = _bis.readLong();
+        _LastRow = _bis.readLong();
+        _IndexStart = _bis.readLong();
+        _SchemaStart = _bis.readLong();
+        _DateCreated = new Date(_bis.readLong());
+        _DateExpires = new Date(_bis.readLong());
+        _EndOfDataBlock = _IndexStart;
+        _StartOfDataBlock = _bis.getPosition();
 
         // Jump to the Index
-        _bis.seek(_nIndexStart);
-        _aIndex = new ArrayList<>();
-        while (_bis.getPosition() < _nSchemaStart) {
+        _bis.seek(_IndexStart);
+        _IndexBlock = new ArrayList<>();
+        while (_bis.getPosition() < _SchemaStart) {
             IndexEntry ie = new IndexEntry();
             ie.RowNumber = _bis.readLong();
             ie.OffSet = _bis.readLong();
-            _aIndex.add(ie);
+            _IndexBlock.add(ie);
         }
 
         // Jump to Schema and load it.
-        _bis.seek(_nSchemaStart);
-        _sSchemaXML = _bis.readUTF();
-        if (_bEncrypted) {
-            _sSchemaXML = CryptoUtilities.EncryptDecrypt(_sSchemaXML);
+        _bis.seek(_SchemaStart);
+        _SchemaXML = _bis.readUTF();
+        if (_isEncrypted) {
+            _SchemaXML = CryptoUtilities.EncryptDecrypt(_SchemaXML);
         }
 
-        PopulateHeaderInformation();
+        populateHeaderInformation();
 
         try {
-            Document doc = XmlUtilities.CreateXMLDocument(_sSchemaXML);
+            Document doc = XmlUtilities.CreateXMLDocument(_SchemaXML);
             XPathFactory xFactory = XPathFactory.newInstance();
             XPath xp = xFactory.newXPath();
             XPathExpression expr = xp.compile("FileInfo/DataInfo/DataColumn");
@@ -263,24 +263,24 @@ public class DataReader extends DataFormat {
 
         // If this is a view file, check for source data.
         if (_byteFileType == 1) {
-            File fd = new File(_sFilename);
+            File fd = new File(_Filename);
             File dir = fd.getParentFile();
             String dataFilename = dir.getParent();
             if (!dataFilename.endsWith(java.io.File.separator)) {
                 dataFilename += java.io.File.separator;
             }
-            dataFilename += _sSourceDataFilename;
+            dataFilename += _SourceDataFilename;
             if (FileUtilities.isInvalidFile(dataFilename)) {
                 throw new IOException(String.format("Could not find the %s data file.", dataFilename));
             }
 
             _drSourceData = new DataReader(dataFilename);
             // Check to be sure the finger print still matches.
-            if (!_sFingerPrint.equals(_drSourceData.getFingerPrint())) {
+            if (!_FingerPrint.equals(_drSourceData.getFingerPrint())) {
                 // This file must be recreated based on the new data.
             }
         }
-        _bis.seek(_nStartOfData);
+        _bis.seek(_StartOfDataBlock);
     }
 
     private FieldReadWrite getReadMethod(DataType columnDataType) throws IOException {
@@ -303,7 +303,7 @@ public class DataReader extends DataFormat {
             case LongData:
                 return new FieldLong(_bis);
             case StringData:
-                if (_bEncrypted) {
+                if (_isEncrypted) {
                     return new FieldStringEncrypted(_bis);
                 } else {
                     return new FieldString(_bis);

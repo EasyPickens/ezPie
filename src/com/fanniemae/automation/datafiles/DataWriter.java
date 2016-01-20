@@ -69,42 +69,42 @@ public class DataWriter extends DataFormat {
 	}
 
 	public DataWriter(String filename, int memoryLimitInMegabytes, String sourceDataFilename, UUID fingerPrint, boolean isDynamicSqlBuffer) throws IOException {
-		_sFilename = filename;
-		_sSourceDataFilename = sourceDataFilename;
+		_Filename = filename;
+		_SourceDataFilename = sourceDataFilename;
 		_byteFileType = 1;
 
 		if (isDynamicSqlBuffer) {
-			_nInterval = 500L; // Used by index to determine how often to add
+			_IndexInterval = 500L; // Used by index to determine how often to add
 								// entry.
-			_nNextBreak = 500L; // Next row count to add an index entry.
+			_NextBreak = 500L; // Next row count to add an index entry.
 		}
 
 		if (fingerPrint == null) {
 			_byteFileType = 0;
-			_sFingerPrint = UUID.randomUUID().toString();
+			_FingerPrint = UUID.randomUUID().toString();
 		} else {
-			_sFingerPrint = fingerPrint.toString();
+			_FingerPrint = fingerPrint.toString();
 		}
 
 		// If this is a View file, then get the data filename only.
-		if (StringUtilities.isNotNullOrEmpty(_sSourceDataFilename) && _sSourceDataFilename.contains(File.separator)) {
-			File oFile = new File(_sSourceDataFilename);
-			_sSourceDataFilename = oFile.getName();
+		if (StringUtilities.isNotNullOrEmpty(_SourceDataFilename) && _SourceDataFilename.contains(File.separator)) {
+			File oFile = new File(_SourceDataFilename);
+			_SourceDataFilename = oFile.getName();
 		}
 
-		_bos = new BinaryOutputStream(_sFilename, memoryLimitInMegabytes, _sFingerPrint);
+		_bos = new BinaryOutputStream(_Filename, memoryLimitInMegabytes, _FingerPrint);
 		writeInitialHeader(); // Place holder for final information.
 	}
 
 	@Override
 	public void close() throws IOException {
-		if ((_bos != null) && (!_bDisposed)) {
+		if ((_bos != null) && (!_Disposed)) {
 			try {
 				writeFooter();
 				writeFinalHeader();
 			} finally {
 				_bos.close();
-				_bDisposed = true;
+				_Disposed = true;
 			}
 		}
 	}
@@ -112,7 +112,7 @@ public class DataWriter extends DataFormat {
 	public void setDataColumns(String[] columnNames, DataType[] dataTypes) throws IOException {
 		_DataRow = new DataRow(columnNames.length);
 		for (int i = 0; i < columnNames.length; i++) {
-			DefineDataColumn(i, columnNames[i], dataTypes[i]);
+			defineDataColumn(i, columnNames[i], dataTypes[i]);
 		}
 		setupColumnWriters();
 	}
@@ -122,7 +122,7 @@ public class DataWriter extends DataFormat {
 		_DataRow = new DataRow(columnCount);
 
 		for (int i = 0; i < columnCount; i++) {
-			DefineDataColumn(i, columnNamesAndTypes[i][0], columnNamesAndTypes[i][1]);
+			defineDataColumn(i, columnNamesAndTypes[i][0], columnNamesAndTypes[i][1]);
 		}
 		setupColumnWriters();
 	}
@@ -136,12 +136,12 @@ public class DataWriter extends DataFormat {
 	}
 
 	public void writeDataRow(Object[] data) throws IOException {
-		if (_nCurrentRowNumber == _nNextBreak) {
+		if (_CurrentRowNumber == _NextBreak) {
 			IndexEntry ie = new IndexEntry();
-			ie.RowNumber = _nCurrentRowNumber;
+			ie.RowNumber = _CurrentRowNumber;
 			ie.OffSet = _bos.getPosition();
-			_aIndex.add(ie);
-			_nNextBreak += _nInterval;
+			_IndexBlock.add(ie);
+			_NextBreak += _IndexInterval;
 		}
 
 		for (int i = 0; i < _ColumnCount; i++) {
@@ -151,7 +151,7 @@ public class DataWriter extends DataFormat {
 			}
 			_WriteMethods[i].Write(data[i], isNull);
 		}
-		_nCurrentRowNumber++;
+		_CurrentRowNumber++;
 	}
 
 	public DataStream getDataStream() throws IOException {
@@ -161,7 +161,7 @@ public class DataWriter extends DataFormat {
 		}
 
 		if (_bos.IsFilestream()) {
-			return new DataStream(_sFilename);
+			return new DataStream(_Filename);
 		} else {
 			return new DataStream(_bos.getBuffer());
 		}
@@ -184,8 +184,8 @@ public class DataWriter extends DataFormat {
 	}
 
 	public Map<DataFileEnums.BinaryFileInfo, Object> getHeader() {
-		PopulateHeaderInformation();
-		return _aHeaderInformation;
+		populateHeaderInformation();
+		return _HeaderInformation;
 	}
 
 	protected void setupColumnWriters() throws IOException {
@@ -211,29 +211,29 @@ public class DataWriter extends DataFormat {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
 			dos.writeByte(_byteFileType); // (byte) Data file type 0=Data,
 											// 1=View
-			dos.writeBoolean(_bEncrypted); // (Boolean) Encrypted True/False
-			dos.writeUTF(_sFingerPrint); // (string) The internal UUID used to
+			dos.writeBoolean(_isEncrypted); // (Boolean) Encrypted True/False
+			dos.writeUTF(_FingerPrint); // (string) The internal UUID used to
 											// identify this file.
-			dos.writeUTF(_sSourceDataFilename); // (string) Write the name of
+			dos.writeUTF(_SourceDataFilename); // (string) Write the name of
 												// the source dat file. '' if
 												// this is a dat file.
-			dos.writeBoolean(_bFullRowCountKnown); // (boolean) Only used by
+			dos.writeBoolean(_FullRowCountKnown); // (boolean) Only used by
 													// ActiveSQL connections -
 													// may or may not know row
 													// count.
-			dos.writeLong(_nFullRowCount); // (long) Row count of full record
+			dos.writeLong(_FullRowCount); // (long) Row count of full record
 											// set
-			dos.writeLong(_nFirstRow); // (long) Row number of first data row in
+			dos.writeLong(_FirstRow); // (long) Row number of first data row in
 										// this file
-			dos.writeLong(_nLastRow); // (long) Row number of last data row in
+			dos.writeLong(_LastRow); // (long) Row number of last data row in
 										// this file
-			dos.writeLong(_nIndexStart); // (long) Offset to start of direct
+			dos.writeLong(_IndexStart); // (long) Offset to start of direct
 											// access index (Int64)
-			dos.writeLong(_nSchemaStart); // (long) Offset to start of
+			dos.writeLong(_SchemaStart); // (long) Offset to start of
 											// Information block (Xml format)
-			dos.writeLong(_dtCreated.getTime()); // (DateTime/long) Datetime
+			dos.writeLong(_DateCreated.getTime()); // (DateTime/long) Datetime
 													// file created
-			dos.writeLong(_dtExpires.getTime()); // (DateTime/long) Datetime
+			dos.writeLong(_DateExpires.getTime()); // (DateTime/long) Datetime
 													// file expires
 			baos.flush();
 			aHeader = baos.toByteArray();
@@ -243,8 +243,8 @@ public class DataWriter extends DataFormat {
 
 	protected void writeFooter() throws IOException {
 		// Write the index
-		_nIndexStart = _bos.getPosition();
-		for (IndexEntry indexEntry : _aIndex) {
+		_IndexStart = _bos.getPosition();
+		for (IndexEntry indexEntry : _IndexBlock) {
 			long lRowNum = indexEntry.RowNumber;
 			long lOffSet = indexEntry.OffSet;
 			_bos.writeLong(lRowNum);
@@ -252,7 +252,7 @@ public class DataWriter extends DataFormat {
 		}
 
 		// Write the InfoBlock
-		_nSchemaStart = _bos.getPosition();
+		_SchemaStart = _bos.getPosition();
 		Document xmlSchemaDoc = XmlUtilities.CreateXMLDocument("<FileInfo><DataInfo /></FileInfo>");
 		if ((_DataRow != null) && (_DataRow.getColumnNames() != null)) {
 			int columnCount = _DataRow.getColumnCount();
@@ -298,15 +298,15 @@ public class DataWriter extends DataFormat {
 				xmlSchemaDoc.getDocumentElement().getFirstChild().appendChild(eleCol); // .DocumentElement.FirstChild.AppendChild(eleCol);
 			}
 		}
-		_sSchemaXML = XmlUtilities.XMLDocumentToString(xmlSchemaDoc);
+		_SchemaXML = XmlUtilities.XMLDocumentToString(xmlSchemaDoc);
 
-		if (_bEncrypted) {
-			_bos.writeUTF(CryptoUtilities.EncryptDecrypt(_sSchemaXML));
+		if (_isEncrypted) {
+			_bos.writeUTF(CryptoUtilities.EncryptDecrypt(_SchemaXML));
 		} else {
-			_bos.writeUTF(_sSchemaXML);
+			_bos.writeUTF(_SchemaXML);
 		}
 
-		_dtCreated = new Date();
+		_DateCreated = new Date();
 	}
 
 	private DataType adjustedDataType(DataType ColumnDataType) {
@@ -355,7 +355,7 @@ public class DataWriter extends DataFormat {
 		case SqlTimestampData:
 			return new FieldSqlTimestamp(_bos);
 		case StringData:
-			if (_bEncrypted) {
+			if (_isEncrypted) {
 				return new FieldStringEncrypted(_bos);
 			} else {
 				return new FieldString(_bos);
