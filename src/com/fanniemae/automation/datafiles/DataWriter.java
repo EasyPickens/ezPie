@@ -46,62 +46,62 @@ import com.fanniemae.automation.datafiles.lowlevel.FieldUUID;
  */
 public class DataWriter extends DataFormat {
 	private final BinaryOutputStream _bos;
-	protected FieldReadWrite[] _aWriteMethods = null;
+	protected FieldReadWrite[] _WriteMethods = null;
 
-	protected int _iColumnCount = 0;
-	protected Map<String, String[]> _aGlobalValues = new HashMap<>();
-	protected Map<String, List<String[]>> _aColumProfiles = new HashMap<>();
+	protected int _ColumnCount = 0;
+	protected Map<String, String[]> _GlobalValues = new HashMap<>();
+	protected Map<String, List<String[]>> _ColumProfiles = new HashMap<>();
 
-	public DataWriter(String sFilename) throws IOException {
-		this(sFilename, 20, "", null, false);
+	public DataWriter(String filename) throws IOException {
+		this(filename, 20, "", null, false);
 	}
 
-	public DataWriter(String sFilename, boolean ActiveSqlBuffer) throws IOException {
-		this(sFilename, 0, "", null, ActiveSqlBuffer);
+	public DataWriter(String filename, boolean isDynamicSqlBuffer) throws IOException {
+		this(filename, 0, "", null, isDynamicSqlBuffer);
 	}
 
-	public DataWriter(String sFilename, int nMemoryLimitMegabytes) throws IOException {
-		this(sFilename, nMemoryLimitMegabytes, "", null, false);
+	public DataWriter(String filename, int memoryLimitInMegabytes) throws IOException {
+		this(filename, memoryLimitInMegabytes, "", null, false);
 	}
 
-	public DataWriter(String sFilename, int nMemoryLimitMegabytes, boolean ActiveSqlBuffer) throws IOException {
-		this(sFilename, nMemoryLimitMegabytes, "", null, ActiveSqlBuffer);
+	public DataWriter(String filename, int memoryLimitInMegabytes, boolean isDynamicSqlBuffer) throws IOException {
+		this(filename, memoryLimitInMegabytes, "", null, isDynamicSqlBuffer);
 	}
 
-	public DataWriter(String sFilename, int nMemoryLimitMegabytes, String SourceDataFilename, UUID FingerPrint, boolean ActiveSqlBuffer) throws IOException {
-		_sFilename = sFilename;
-		_sSourceDataFilename = SourceDataFilename;
+	public DataWriter(String filename, int memoryLimitInMegabytes, String sourceDataFilename, UUID fingerPrint, boolean isDynamicSqlBuffer) throws IOException {
+		_sFilename = filename;
+		_sSourceDataFilename = sourceDataFilename;
 		_byteFileType = 1;
 
-		if (ActiveSqlBuffer) {
+		if (isDynamicSqlBuffer) {
 			_nInterval = 500L; // Used by index to determine how often to add
 								// entry.
 			_nNextBreak = 500L; // Next row count to add an index entry.
 		}
 
-		if (FingerPrint == null) {
+		if (fingerPrint == null) {
 			_byteFileType = 0;
 			_sFingerPrint = UUID.randomUUID().toString();
 		} else {
-			_sFingerPrint = FingerPrint.toString();
+			_sFingerPrint = fingerPrint.toString();
 		}
 
-		// If this is a View file, then get the dat filename only.
+		// If this is a View file, then get the data filename only.
 		if (StringUtilities.isNotNullOrEmpty(_sSourceDataFilename) && _sSourceDataFilename.contains(File.separator)) {
 			File oFile = new File(_sSourceDataFilename);
 			_sSourceDataFilename = oFile.getName();
 		}
 
-		_bos = new BinaryOutputStream(_sFilename, nMemoryLimitMegabytes, _sFingerPrint);
-		WriteInitialHeader(); // Place holder for final information.
+		_bos = new BinaryOutputStream(_sFilename, memoryLimitInMegabytes, _sFingerPrint);
+		writeInitialHeader(); // Place holder for final information.
 	}
 
 	@Override
 	public void close() throws IOException {
 		if ((_bos != null) && (!_bDisposed)) {
 			try {
-				WriteFooter();
-				WriteFinalHeader();
+				writeFooter();
+				writeFinalHeader();
 			} finally {
 				_bos.close();
 				_bDisposed = true;
@@ -109,33 +109,33 @@ public class DataWriter extends DataFormat {
 		}
 	}
 
-	public void SetupDataColumns(String[] aColumnNames, DataType[] aDataTypes) throws IOException {
-		_DataRow = new DataRow(aColumnNames.length);
-		for (int i = 0; i < aColumnNames.length; i++) {
-			DefineDataColumn(i, aColumnNames[i], aDataTypes[i]);
+	public void setDataColumns(String[] columnNames, DataType[] dataTypes) throws IOException {
+		_DataRow = new DataRow(columnNames.length);
+		for (int i = 0; i < columnNames.length; i++) {
+			DefineDataColumn(i, columnNames[i], dataTypes[i]);
 		}
-		SetupColumnWriters();
+		setupColumnWriters();
 	}
 
-	public void SetupDataColumns(String[][] ColumnNames_Types) throws IOException {
-		int nColumnCount = ColumnNames_Types.length;
-		_DataRow = new DataRow(nColumnCount);
+	public void setDataColumns(String[][] columnNamesAndTypes) throws IOException {
+		int columnCount = columnNamesAndTypes.length;
+		_DataRow = new DataRow(columnCount);
 
-		for (int i = 0; i < nColumnCount; i++) {
-			DefineDataColumn(i, ColumnNames_Types[i][0], ColumnNames_Types[i][1]);
+		for (int i = 0; i < columnCount; i++) {
+			DefineDataColumn(i, columnNamesAndTypes[i][0], columnNamesAndTypes[i][1]);
 		}
-		SetupColumnWriters();
+		setupColumnWriters();
 	}
 
-	public void UpdateGlobalValue(String sColumnName, String sDataType, String sValue) {
-		_aGlobalValues.put(sColumnName, new String[] { sDataType, sValue });
+	public void setGlobalValue(String columnName, String dataType, String value) {
+		_GlobalValues.put(columnName, new String[] { dataType, value });
 	}
 
-	public void UpdateColumnProfile(String sColumnName, List<String[]> aProfile) {
-		_aColumProfiles.put(sColumnName, aProfile);
+	public void setColumnProfile(String columnName, List<String[]> profile) {
+		_ColumProfiles.put(columnName, profile);
 	}
 
-	public void WriteDataRow(Object[] aData) throws IOException {
+	public void writeDataRow(Object[] data) throws IOException {
 		if (_nCurrentRowNumber == _nNextBreak) {
 			IndexEntry ie = new IndexEntry();
 			ie.RowNumber = _nCurrentRowNumber;
@@ -144,12 +144,12 @@ public class DataWriter extends DataFormat {
 			_nNextBreak += _nInterval;
 		}
 
-		for (int iCol = 0; iCol < _iColumnCount; iCol++) {
-			Boolean bIsNull = false;
-			if (aData[iCol] == null) {
-				bIsNull = true;
+		for (int i = 0; i < _ColumnCount; i++) {
+			Boolean isNull = false;
+			if (data[i] == null) {
+				isNull = true;
 			}
-			_aWriteMethods[iCol].Write(aData[iCol], bIsNull);
+			_WriteMethods[i].Write(data[i], isNull);
 		}
 		_nCurrentRowNumber++;
 	}
@@ -179,7 +179,7 @@ public class DataWriter extends DataFormat {
 		return _bos.getBuffer();
 	}
 
-	public boolean IsFilestream() {
+	public boolean isFilestream() {
 		return _bos.IsFilestream();
 	}
 
@@ -188,25 +188,25 @@ public class DataWriter extends DataFormat {
 		return _aHeaderInformation;
 	}
 
-	protected void SetupColumnWriters() throws IOException {
+	protected void setupColumnWriters() throws IOException {
 		int iCnt = _DataRow.getColumnCount();
-		_aWriteMethods = new FieldReadWrite[iCnt];
+		_WriteMethods = new FieldReadWrite[iCnt];
 		for (int i = 0; i < iCnt; i++) {
-			_aWriteMethods[i] = GetWriteMethod(_DataRow.getDataType(i));
-			_DataRow.setDataType(i, AdjustedDataType(_DataRow.getDataType(i)));
+			_WriteMethods[i] = getWriteMethod(_DataRow.getDataType(i));
+			_DataRow.setDataType(i, adjustedDataType(_DataRow.getDataType(i)));
 		}
-		_iColumnCount = _DataRow.getColumnCount();
+		_ColumnCount = _DataRow.getColumnCount();
 	}
 
-	protected void WriteInitialHeader() throws IOException {
-		_bos.write(BuildHeader());
+	protected void writeInitialHeader() throws IOException {
+		_bos.write(buildHeader());
 	}
 
-	protected void WriteFinalHeader() throws IOException {
-		_bos.writeFinalHeader(BuildHeader());
+	protected void writeFinalHeader() throws IOException {
+		_bos.writeFinalHeader(buildHeader());
 	}
 
-	protected byte[] BuildHeader() throws IOException {
+	protected byte[] buildHeader() throws IOException {
 		byte[] aHeader;
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
 			dos.writeByte(_byteFileType); // (byte) Data file type 0=Data,
@@ -241,25 +241,25 @@ public class DataWriter extends DataFormat {
 		return aHeader;
 	}
 
-	protected void WriteFooter() throws IOException {
+	protected void writeFooter() throws IOException {
 		// Write the index
 		_nIndexStart = _bos.getPosition();
-		for (IndexEntry _aIndex1 : _aIndex) {
-			long lRowNum = _aIndex1.RowNumber;
-			long lOffSet = _aIndex1.OffSet;
+		for (IndexEntry indexEntry : _aIndex) {
+			long lRowNum = indexEntry.RowNumber;
+			long lOffSet = indexEntry.OffSet;
 			_bos.writeLong(lRowNum);
 			_bos.writeLong(lOffSet);
 		}
 
 		// Write the InfoBlock
 		_nSchemaStart = _bos.getPosition();
-		Document xDoc = XmlUtilities.CreateXMLDocument("<FileInfo><DataInfo /></FileInfo>");
+		Document xmlSchemaDoc = XmlUtilities.CreateXMLDocument("<FileInfo><DataInfo /></FileInfo>");
 		if ((_DataRow != null) && (_DataRow.getColumnNames() != null)) {
-			int iLen = _DataRow.getColumnCount();
-			for (int i = 0; i < iLen; i++) {
-				String sColumnName = _DataRow.getColumnName(i);
-				Element eleCol = xDoc.createElement("DataColumn");
-				eleCol.setAttribute("Name", sColumnName);
+			int columnCount = _DataRow.getColumnCount();
+			for (int i = 0; i < columnCount; i++) {
+				String columnName = _DataRow.getColumnName(i);
+				Element eleCol = xmlSchemaDoc.createElement("DataColumn");
+				eleCol.setAttribute("Name", columnName);
 				eleCol.setAttribute("DataType", _DataRow.getDataType(i).toString());
 				eleCol.setAttribute("ColumnType", _DataRow.getColumnType(i).toString());
 				// eleCol.SetAttribute("GlobalValue",
@@ -277,28 +277,28 @@ public class DataWriter extends DataFormat {
 				// eleCol.SetAttribute("Average",
 				// ComputeAverage(_aColumnDetails[i].Sum).ToString());
 
-				if (_aColumProfiles.containsKey(sColumnName)) {
-					List<String[]> aProfile = _aColumProfiles.get(sColumnName);
-					for (String[] aProfile1 : aProfile) {
-						Element eleProfile = xDoc.createElement(aProfile1[0]);
-						eleProfile.setAttribute("DataType", aProfile1[1]);
-						eleProfile.setAttribute("Value", aProfile1[2]);
+				if (_ColumProfiles.containsKey(columnName)) {
+					List<String[]> columnProfiles = _ColumProfiles.get(columnName);
+					for (String[] profile : columnProfiles) {
+						Element eleProfile = xmlSchemaDoc.createElement(profile[0]);
+						eleProfile.setAttribute("DataType", profile[1]);
+						eleProfile.setAttribute("Value", profile[2]);
 						eleCol.appendChild(eleProfile);
 					}
 				}
-				xDoc.getDocumentElement().getFirstChild().appendChild(eleCol); // .documentElement.FirstChild.AppendChild(eleCol);
+				xmlSchemaDoc.getDocumentElement().getFirstChild().appendChild(eleCol); // .documentElement.FirstChild.AppendChild(eleCol);
 			}
 
-			for (Map.Entry<String, String[]> kvp : _aGlobalValues.entrySet()) {
-				Element eleCol = xDoc.createElement("DataColumn");
+			for (Map.Entry<String, String[]> kvp : _GlobalValues.entrySet()) {
+				Element eleCol = xmlSchemaDoc.createElement("DataColumn");
 				eleCol.setAttribute("Name", kvp.getKey());
 				eleCol.setAttribute("DataType", kvp.getValue()[0]);
 				eleCol.setAttribute("ColumnType", "GlobalValue");
 				eleCol.setAttribute("GlobalValue", kvp.getValue()[1]);
-				xDoc.getDocumentElement().getFirstChild().appendChild(eleCol); // .DocumentElement.FirstChild.AppendChild(eleCol);
+				xmlSchemaDoc.getDocumentElement().getFirstChild().appendChild(eleCol); // .DocumentElement.FirstChild.AppendChild(eleCol);
 			}
 		}
-		_sSchemaXML = XmlUtilities.XMLDocumentToString(xDoc);
+		_sSchemaXML = XmlUtilities.XMLDocumentToString(xmlSchemaDoc);
 
 		if (_bEncrypted) {
 			_bos.writeUTF(CryptoUtilities.EncryptDecrypt(_sSchemaXML));
@@ -309,7 +309,7 @@ public class DataWriter extends DataFormat {
 		_dtCreated = new Date();
 	}
 
-	private DataType AdjustedDataType(DataType ColumnDataType) {
+	private DataType adjustedDataType(DataType ColumnDataType) {
 		// Simplified code to convert some types into others. E.g. Byte, Int16,
 		// SByte ==> Int32
 		switch (ColumnDataType) {
@@ -328,7 +328,7 @@ public class DataWriter extends DataFormat {
 		}
 	}
 
-	private FieldReadWrite GetWriteMethod(DataType ColumnDataType) throws IOException {
+	private FieldReadWrite getWriteMethod(DataType ColumnDataType) throws IOException {
 		// Simplified code to convert some types into others. E.g. Byte, Int16,
 		// SByte ==> Int32
 		switch (ColumnDataType) {

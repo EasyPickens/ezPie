@@ -83,7 +83,7 @@ public class DataEngine {
 					aSchema = _ProcessingGroups.get(0).get(i).UpdateSchema(aSchema);
 				}
 			}
-			dw.SetupDataColumns(aSchema);
+			dw.setDataColumns(aSchema);
 			long lRowCount = 0;
 			while (!dc.eof()) {
 				Object[] aValues = dc.getDataRow();
@@ -93,7 +93,7 @@ public class DataEngine {
 					}
 				}
 
-				dw.WriteDataRow(aValues);
+				dw.writeDataRow(aValues);
 				lRowCount++;
 			}
 			Date dtExpires = new Date();
@@ -105,7 +105,7 @@ public class DataEngine {
 			dw.setFullRowCountKnown(true); // dc.getFullRowCountKnown());
 			dw.close();
 			_aDataFileHeader = dw.getHeader();
-			if (dw.IsFilestream()) {
+			if (dw.isFilestream()) {
 				dataStream = new DataStream(sDataFilename);
 			} else {
 				dataStream = new DataStream(dw.getDataBuffer());

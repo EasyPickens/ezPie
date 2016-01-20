@@ -155,7 +155,7 @@ public class DirectoryConnector extends DataConnector {
 		String sTempFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
 		try (DataWriter dw = new DataWriter(sTempFilename, 10);) {
 			_dw = dw;
-			dw.SetupDataColumns(_DataSchema);
+			dw.setDataColumns(_DataSchema);
 			scanDirectory(_Path);
 			dw.close();
 			_DataStream = dw.getDataStream();
@@ -208,7 +208,7 @@ public class DirectoryConnector extends DataConnector {
 		_DataRow[5] = FilenameUtils.getBaseName(entry.getName());
 		_DataRow[6] = FilenameUtils.getExtension(entry.getName());
 		_DataRow[7] = entry.getParent();
-		_dw.WriteDataRow(_DataRow);
+		_dw.writeDataRow(_DataRow);
 	}
 
 }
