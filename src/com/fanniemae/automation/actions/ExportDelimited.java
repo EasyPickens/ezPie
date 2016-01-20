@@ -1,8 +1,6 @@
 package com.fanniemae.automation.actions;
 
 import java.io.FileWriter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -37,7 +35,7 @@ public class ExportDelimited extends Action {
 	protected int[] _OutputColumnIndexes;
 	protected DataType[] _OutputColumnDataTypes;
 
-	protected Boolean _IncludeColumnNames = true;
+	protected boolean  _WriteColumnNames = true;
 
 	public ExportDelimited(SessionManager session, Element action) {
 		super(session, action, false);
@@ -52,7 +50,7 @@ public class ExportDelimited extends Action {
 
 		_DataSetID = _Session.getAttribute(action, "DataSetID");
 		_DataStream = _Session.getDataStream(_DataSetID);
-		_IncludeColumnNames = StringUtilities.toBoolean(_Session.getAttribute(action, "IncludeColumnNames"), true);
+		_WriteColumnNames = StringUtilities.toBoolean(_Session.getAttribute(action, "IncludeColumnNames"), true);
 	}
 
 	@Override
@@ -62,7 +60,7 @@ public class ExportDelimited extends Action {
 			defineOutputColumns(dr.getColumnNames());
 			_OutputColumnDataTypes = dr.getDataTypes();
 
-			if (_IncludeColumnNames) {
+			if (_WriteColumnNames) {
 				// Write Column Headers
 				for (int i = 0; i < _OutputLength; i++) {
 					if (i > 0)
@@ -75,19 +73,19 @@ public class ExportDelimited extends Action {
 			// Write the data
 			while (!dr.eof()) {
 				fw.append(System.lineSeparator());
-				Object[] values = dr.getRowValues();
+				Object[] dataRow = dr.getRowValues();
 				for (int i = 0; i < _OutputLength; i++) {
 					if (i > 0)
 						fw.append(',');
 
 					if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.DateData) {
-						fw.append(DateUtilities.toIsoString((Date)values[_OutputColumnIndexes[i]]));
+						fw.append(DateUtilities.toIsoString((Date)dataRow[_OutputColumnIndexes[i]]));
 					} else if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.StringData) {
-						fw.append(wrapString(values[_OutputColumnIndexes[i]].toString()));
-					} else if (values[_OutputColumnIndexes[i]] == null) {
+						fw.append(wrapString(dataRow[_OutputColumnIndexes[i]].toString()));
+					} else if (dataRow[_OutputColumnIndexes[i]] == null) {
 						fw.append("");
 					} else {
-						fw.append(values[_OutputColumnIndexes[i]].toString());
+						fw.append(dataRow[_OutputColumnIndexes[i]].toString());
 					}
 				}
 				iRowCount++;
@@ -105,31 +103,31 @@ public class ExportDelimited extends Action {
 	}
 
 	protected void defineOutputColumns(String[] fileColumns) {
-		List<String> aFileColumns = Arrays.asList(fileColumns);
+		List<String> inputColumnNames = Arrays.asList(fileColumns);
 
-		NodeList nlOutputColumns = XmlUtilities.selectNodes(_Action, "Column");
-		int iLen = nlOutputColumns.getLength();
+		NodeList outputColumnNodes = XmlUtilities.selectNodes(_Action, "Column");
+		int numberOfOutputColumns = outputColumnNodes.getLength();
 
-		if (iLen > 0) {
-			_OutputColumnNames = new String[iLen];
-			_OutputColumnIndexes = new int[iLen];
+		if (numberOfOutputColumns > 0) {
+			_OutputColumnNames = new String[numberOfOutputColumns];
+			_OutputColumnIndexes = new int[numberOfOutputColumns];
 
-			for (int i = 0; i < iLen; i++) {
-				Element eleColumn = (Element) nlOutputColumns.item(i);
+			for (int i = 0; i < numberOfOutputColumns; i++) {
+				Element columnElement = (Element) outputColumnNodes.item(i);
 
-				String sName = _Session.getAttribute(eleColumn, "Name");
-				String sAlias = _Session.getAttribute(eleColumn, "Alias");
+				String inputName = _Session.getAttribute(columnElement, "Name");
+				String alais = _Session.getAttribute(columnElement, "Alias");
 
-				_OutputColumnNames[i] = StringUtilities.isNotNullOrEmpty(sAlias) ? sAlias : sName;
-				_OutputColumnIndexes[i] = aFileColumns.indexOf(sName);
+				_OutputColumnNames[i] = StringUtilities.isNotNullOrEmpty(alais) ? alais : inputName;
+				_OutputColumnIndexes[i] = inputColumnNames.indexOf(inputName);
 			}
 		} else {
-			iLen = aFileColumns.size();
-			_OutputColumnNames = new String[iLen];
-			_OutputColumnIndexes = new int[iLen];
+			numberOfOutputColumns = inputColumnNames.size();
+			_OutputColumnNames = new String[numberOfOutputColumns];
+			_OutputColumnIndexes = new int[numberOfOutputColumns];
 
-			for (int i = 0; i < iLen; i++) {
-				_OutputColumnNames[i] = aFileColumns.get(i);
+			for (int i = 0; i < numberOfOutputColumns; i++) {
+				_OutputColumnNames[i] = inputColumnNames.get(i);
 				_OutputColumnIndexes[i] = i;
 			}
 		}
