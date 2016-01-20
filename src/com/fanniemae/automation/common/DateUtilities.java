@@ -18,5 +18,10 @@ public class DateUtilities {
 	public static String toIsoString(Date value) {
 		return (value == null) ? "" : _df.format(value);
 	}
+	
+	public static String toIsoString(Calendar value) {
+		DateFormat dFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+		return dFormat.format(value.getTime());
+	}
 
 }

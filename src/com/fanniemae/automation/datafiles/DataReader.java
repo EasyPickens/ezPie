@@ -182,7 +182,7 @@ public class DataReader extends DataFormat {
         return _DataRow.getDataTypes();
     }
     
-    public long getFilePosition() throws IOException {
+    public long getPosition() throws IOException {
     	return _bis.getPosition();
     }
 

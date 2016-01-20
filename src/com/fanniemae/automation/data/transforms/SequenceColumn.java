@@ -17,7 +17,8 @@ public class SequenceColumn extends DataTransform {
 	 */
 	public SequenceColumn(SessionManager session, Element operation) {
 		super(session, operation);
-
+		_ColumnType = "java.lang.Integer";
+		
 		String sStartNumber = _Transform.getAttribute("StartNumber");
 		int iStartNumber = StringUtilities.toInteger(sStartNumber);
 		if (StringUtilities.isNotNullOrEmpty(sStartNumber) && (iStartNumber == Integer.MIN_VALUE)) {
@@ -25,6 +26,7 @@ public class SequenceColumn extends DataTransform {
 		} else if (StringUtilities.isNotNullOrEmpty(sStartNumber)) {
 			_SequenceNumber = iStartNumber;
 		}
+		_TransformInfo.appendFormatLine("StartNumber = %d", _SequenceNumber);
 
 		String sIncrement = _Transform.getAttribute("Increment");
 		int iIncrement = StringUtilities.toInteger(sIncrement);
@@ -33,6 +35,8 @@ public class SequenceColumn extends DataTransform {
 		} else if (StringUtilities.isNotNullOrEmpty(sIncrement)) {
 			_Increment = iIncrement;
 		}
+		_TransformInfo.appendFormat("Increment = %d", _Increment);
+		addTransformLogMessage();
 	}
 
 	@Override
@@ -40,11 +44,11 @@ public class SequenceColumn extends DataTransform {
 		if (dataRow == null) {
 			return dataRow;
 		}
-
+		dataRow = addDataColumn(dataRow);
 		dataRow[_OutColumnIndex] = _SequenceNumber;
 		_SequenceNumber += _Increment;
 		_RowsProcessed++;
-		return dataRow;
+		return dataRow;		
 	}
 
 	@Override

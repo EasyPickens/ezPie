@@ -18,7 +18,6 @@ import com.fanniemae.automation.data.connectors.DelimitedConnector;
 import com.fanniemae.automation.data.connectors.DirectoryConnector;
 import com.fanniemae.automation.data.connectors.SqlConnector;
 import com.fanniemae.automation.data.transforms.DataTransform;
-import com.fanniemae.automation.data.transforms.TimespanColumn;
 import com.fanniemae.automation.datafiles.DataWriter;
 import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums;
 
@@ -70,21 +69,21 @@ public class DataEngine {
 	}
 
 	public DataStream getData(Element dataSource) {
-		String sDataFilename = FileUtilities.getDataFilename(_StagingPath, dataSource, _Connection);
+		String dataFilename = FileUtilities.getDataFilename(_StagingPath, dataSource, _Connection);
 		DataStream dataStream = null;
 		_DataSource = dataSource;
-		DefineProcessingGroups();
-		try (DataConnector dc = CreateConnector(); DataWriter dw = new DataWriter(sDataFilename, 0, false)) {
+		defineProcessingGroups();
+		try (DataConnector dc = getConnector(); DataWriter dw = new DataWriter(dataFilename, 0, false)) {
 			dc.open();
-			String[][] aSchema = dc.getDataSourceSchema();
+			String[][] schema = dc.getDataSourceSchema();
 			if (_ProcessingGroups.size() > 0) {
 				// Update the schema based on the operations within this group.
 				for (int i = 0; i < _ProcessingGroups.get(0).size(); i++) {
-					aSchema = _ProcessingGroups.get(0).get(i).UpdateSchema(aSchema);
+					schema = _ProcessingGroups.get(0).get(i).UpdateSchema(schema);
 				}
 			}
-			dw.setDataColumns(aSchema);
-			long lRowCount = 0;
+			dw.setDataColumns(schema);
+			long rowCount = 0;
 			while (!dc.eof()) {
 				Object[] aValues = dc.getDataRow();
 				if (_ProcessingGroups.size() > 0) {
@@ -94,34 +93,34 @@ public class DataEngine {
 				}
 
 				dw.writeDataRow(aValues);
-				lRowCount++;
+				rowCount++;
 			}
-			Date dtExpires = new Date();
-			dtExpires = new Date(dtExpires.getTime() + (30 * ONE_MINUTE_IN_MILLIS));
-			dw.setFullRowCount(lRowCount); // dc.getFullRowCount(_lFullRowCount));
+			Date dateExpires = new Date();
+			dateExpires = new Date(dateExpires.getTime() + (30 * ONE_MINUTE_IN_MILLIS));
+			dw.setFullRowCount(rowCount); // dc.getFullRowCount(_lFullRowCount));
 			dw.setBufferFirstRow(1); // dc.getBufferFirstRow());
-			dw.setBufferLastRow(lRowCount); // dc.getBufferLastRow());
-			dw.setBufferExpires(dtExpires);
+			dw.setBufferLastRow(rowCount); // dc.getBufferLastRow());
+			dw.setBufferExpires(dateExpires);
 			dw.setFullRowCountKnown(true); // dc.getFullRowCountKnown());
 			dw.close();
 			_aDataFileHeader = dw.getHeader();
 			if (dw.isFilestream()) {
-				dataStream = new DataStream(sDataFilename);
+				dataStream = new DataStream(dataFilename);
 			} else {
 				dataStream = new DataStream(dw.getDataBuffer());
 			}
 			dc.close();
 			dw.close();
-			_Session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", lRowCount, dataStream.getSize(), dataStream.IsMemory() ? "memorystream" : "filestream"));
+			_Session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, dataStream.getSize(), dataStream.IsMemory() ? "memorystream" : "filestream"));
 		} catch (IOException e) {
 			_Session.addErrorMessage(e);
 		}
 		return dataStream;
 	}
 
-	protected DataConnector CreateConnector() {
-		String sType = _DataSource.getAttribute("Type").toLowerCase();
-		switch (sType) {
+	protected DataConnector getConnector() {
+		String connectorType = _DataSource.getAttribute("Type").toLowerCase();
+		switch (connectorType) {
 		case "sql":
 			return new SqlConnector(_Session, _DataSource, false);
 		case "directory":
@@ -132,23 +131,13 @@ public class DataEngine {
 		return null;
 	}
 
-	protected void DefineProcessingGroups() {
+	protected void defineProcessingGroups() {
 		NodeList nlTransforms = XmlUtilities.selectNodes(_DataSource, "*");
 		if (nlTransforms.getLength() == 0)
 			return;
 
-		Map<Integer, DataTransform> aCurrentGroup = new HashMap<Integer, DataTransform>();
-		int iLen = nlTransforms.getLength();
-		for (int i = 0; i < iLen; i++) {
-			Element eleTransform = (Element) nlTransforms.item(i);
-			String sName = eleTransform.getNodeName();
-			switch (sName) {
-			case "TimespanColumn":
-				aCurrentGroup.put(aCurrentGroup.size(), new TimespanColumn(_Session, eleTransform));
-				break;
-			}
-		}
-		_ProcessingGroups.put(_ProcessingGroups.size(), aCurrentGroup);
+		ExecutionPlanner planner = new ExecutionPlanner(_Session);
+		_ProcessingGroups = planner.getExecutionPlan(nlTransforms);
 	}
 
 }

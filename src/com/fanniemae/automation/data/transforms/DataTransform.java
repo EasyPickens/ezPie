@@ -9,6 +9,7 @@ import com.fanniemae.automation.SessionManager;
 import com.fanniemae.automation.common.ArrayUtilities;
 import com.fanniemae.automation.common.DataStream;
 import com.fanniemae.automation.common.FileUtilities;
+import com.fanniemae.automation.common.ReportBuilder;
 import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.datafiles.DataReader;
@@ -42,6 +43,8 @@ public abstract class DataTransform {
 	protected Boolean _IDRequired = true;
 	protected Boolean _NewColumn;
 	protected Boolean _AddedNewColumn;
+	
+	protected ReportBuilder _TransformInfo = new ReportBuilder();
 
 	public DataTransform(SessionManager session, Element operation) {
 		this(session, operation, true);
@@ -61,11 +64,18 @@ public abstract class DataTransform {
 
 		if (_IDRequired && StringUtilities.isNullOrEmpty(_ID)) {
 			throw new RuntimeException(String.format("{0} must have an ID value defined.", _TransformName));
+		} 
+		if (StringUtilities.isNotNullOrEmpty(_ID)) {
+			_TransformInfo.appendFormatLine("ID = %s", _ID);
 		}
 
 		_ExceptionID = _Transform.getAttribute("ExceptionDataID");
 		if (StringUtilities.isNotNullOrEmpty(_ExceptionID)) {
 			_ExceptionFilename = FileUtilities.getDataFilename(_Session.getStagingPath(), XmlUtilities.getOuterXml(_Transform), _ExceptionID);
+			_TransformInfo.appendFormatLine("ExceptionID = %s",_ExceptionID);
+			_TransformInfo.appendFormatLine("Exception Filename = %s", _ExceptionFilename);
+//			_Session.addLogMessage("", "ExceptionID", _ExceptionID);
+//			_Session.addLogMessage("", "Exception Filename", _ExceptionFilename);
 		}
 	}
 
@@ -100,7 +110,7 @@ public abstract class DataTransform {
 
 	public String[][] UpdateSchema(String[][] aSchema) {
 		_OutColumnIndex = ArrayUtilities.indexOf(aSchema, _ID, true);
-		
+
 		if (StringUtilities.isNotNullOrEmpty(_DataColumn)) {
 			_SourceColumnIndex = ArrayUtilities.indexOf(aSchema, _DataColumn, true);
 		}
@@ -150,6 +160,10 @@ public abstract class DataTransform {
 
 		System.arraycopy(aDataTypes, 0, aNewDataTypeArray, 0, aDataTypes.length);
 		return aNewDataTypeArray;
+	}
+	
+	protected void addTransformLogMessage() {
+		_Session.addLogMessage("", _TransformName, _TransformInfo.toString());
 	}
 
 	public int getRowsProcessed() {

@@ -8,6 +8,7 @@ import java.util.Locale;
 import org.w3c.dom.Element;
 
 import com.fanniemae.automation.SessionManager;
+import com.fanniemae.automation.common.DateUtilities;
 import com.fanniemae.automation.common.StringUtilities;
 
 /**
@@ -64,11 +65,20 @@ public class TimespanColumn extends DataTransform {
 		if (StringUtilities.isNullOrEmpty(sTimePeriod)) {
 			throw new RuntimeException("Missing a value in TimePeroid for the TimePeriodColumn.");
 		}
-
+		_TransformInfo.appendFormatLine("DataColumn = %s", _DataColumn);
+		if (StringUtilities.isNotNullOrEmpty(sCulture)) {
+			_TransformInfo.appendFormatLine("TimePeriodCulture = %s", sCulture);
+		}
+		if (fiscalYearStart != null) {
+			_TransformInfo.appendFormatLine("Fiscal Year Start = %s", DateUtilities.toIsoString(fiscalYearStart));
+		}
+		_TransformInfo.appendFormat("TimePeriod = %s", sTimePeriod);
+		addTransformLogMessage();
+		
 		// Populate the arrays with the correct day and month names.
 		populateNameArrays(sCulture);
 
-		_FormatDateValue = instantiateFormatMethod(sTimePeriod);
+		_FormatDateValue = inializeFormatClass(sTimePeriod);
 	}
 
 	@Override
@@ -153,7 +163,7 @@ public class TimespanColumn extends DataTransform {
 		}
 	}
 
-	protected TransformDateValue instantiateFormatMethod(String sTimePeriod) {
+	protected TransformDateValue inializeFormatClass(String sTimePeriod) {
 		_ColumnType = "java.util.Date";
 		switch (sTimePeriod.toLowerCase()) {
 		case "date":

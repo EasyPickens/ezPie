@@ -74,6 +74,7 @@ public class ExportDelimited extends Action {
 			while (!dr.eof()) {
 				fw.append(System.lineSeparator());
 				Object[] dataRow = dr.getDataRow();
+			
 				for (int i = 0; i < _OutputLength; i++) {
 					if (i > 0)
 						fw.append(',');
