@@ -9,6 +9,7 @@ import org.w3c.dom.NodeList;
 import com.fanniemae.automation.SessionManager;
 import com.fanniemae.automation.data.transforms.DataTransform;
 import com.fanniemae.automation.data.transforms.SequenceColumn;
+import com.fanniemae.automation.data.transforms.Sort;
 import com.fanniemae.automation.data.transforms.TimespanColumn;
 
 /**
@@ -43,6 +44,9 @@ public class ExecutionPlanner {
 				break;
 			case "SequenceColumn":
 				currentTransform = new SequenceColumn(_Session, eleTransform);
+				break;
+			case "Sort":
+				currentTransform = new Sort(_Session, eleTransform);
 				break;
 			default:
 				throw new RuntimeException(String.format("%s data transformation not currently supported.", nodeName));

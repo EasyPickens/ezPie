@@ -124,6 +124,9 @@ public class Sort extends DataTransform {
 					indexData = new ArrayList<SortDataRow>();
 				}
 			}
+			if (indexData.size() > 0) {
+				Arrays.sort(indexData.toArray());
+			}
 			br.close();
 		} catch (Exception ex) {
 			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _TransformName), ex);
