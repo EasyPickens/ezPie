@@ -81,7 +81,7 @@ public class SvnCheckout extends RunCommand {
 			_Session.addLogMessage("", "Work Directory", sCurrentPath);
 			new File(sCurrentPath).mkdirs();
 			// Create each module directory - delete the old if found.
-			Boolean bAddNewLine = false;
+			boolean bAddNewLine = false;
 			StringBuilder sb = new StringBuilder();
 			for (Entry<String, String> kvp : _DirectoryURLs.entrySet()) {
 				sCurrentPath = sWorkDirectory + File.separator + kvp.getKey();

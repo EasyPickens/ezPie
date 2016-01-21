@@ -19,7 +19,7 @@ public abstract class Action {
 	protected String _ActionType;
 	protected String _ActionName;
 	
-	protected Boolean _IDRequired = true;
+	protected boolean _IDRequired = true;
 
 	public Action(SessionManager session, Element action) {
 		this(session, action, true);

@@ -136,7 +136,7 @@ public class ExportDelimited extends Action {
 	}
 
 	protected String wrapString(String value) {
-		Boolean wrapDoubleQuotes = false;
+		boolean wrapDoubleQuotes = false;
 		if (StringUtilities.isNullOrEmpty(value)) {
 			return "";
 		} else if (value.contains("\"")) {

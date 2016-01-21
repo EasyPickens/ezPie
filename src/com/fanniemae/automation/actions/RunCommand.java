@@ -39,7 +39,7 @@ public class RunCommand extends Action {
 		this(session, action, false);
 	}
 
-	public RunCommand(SessionManager session, Element action, Boolean bIDRequired) {
+	public RunCommand(SessionManager session, Element action, boolean bIDRequired) {
 		super(session, action, bIDRequired);
 
 		if (!action.getNodeName().equals("RunCommand"))

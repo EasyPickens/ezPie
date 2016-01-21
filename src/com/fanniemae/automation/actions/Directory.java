@@ -34,12 +34,9 @@ public class Directory extends Action {
 	protected String _LongestFilename;
 	protected String _LargestFilename;
 
-	// protected String[] _ExcludeExtensions;
-	// protected String[] _ExcludeDirectories;
-
-	protected Boolean _DeepScan = true;
-	protected Boolean _SortByCount = true;
-	protected Boolean _CheckSkipList = false;
+	protected boolean _DeepScan = true;
+	protected boolean _SortByCount = true;
+	protected boolean _CheckSkipList = false;
 
 	protected int _TotalFileCount = 0;
 	protected int _TotalDirectoryCount = 0;
@@ -288,7 +285,7 @@ public class Directory extends Action {
 	}
 
 	protected class FileExtensionCount implements Comparable<FileExtensionCount> {
-		protected Boolean _SortByCount = true;
+		protected boolean _SortByCount = true;
 		protected String _Extension;
 		protected int _Count = 1;
 
@@ -296,7 +293,7 @@ public class Directory extends Action {
 			this(extension, true);
 		}
 
-		public FileExtensionCount(String extension, Boolean sortByCount) {
+		public FileExtensionCount(String extension, boolean sortByCount) {
 			if (extension == null)
 				extension = "";
 			_Extension = extension;

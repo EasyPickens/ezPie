@@ -74,8 +74,6 @@ public abstract class DataTransform {
 			_ExceptionFilename = FileUtilities.getDataFilename(_Session.getStagingPath(), XmlUtilities.getOuterXml(_Transform), _ExceptionID);
 			_TransformInfo.appendFormatLine("ExceptionID = %s",_ExceptionID);
 			_TransformInfo.appendFormatLine("Exception Filename = %s", _ExceptionFilename);
-//			_Session.addLogMessage("", "ExceptionID", _ExceptionID);
-//			_Session.addLogMessage("", "Exception Filename", _ExceptionFilename);
 		}
 	}
 
@@ -86,7 +84,6 @@ public abstract class DataTransform {
 			String[] aColumnNames = br.getColumnNames();
 			DataType[] aDataTypes = br.getDataTypes();
 
-			// int nFinalColumnLength = aColumnNames.length;
 			bw.setDataColumns(aColumnNames, aDataTypes);
 			while (!br.eof()) {
 				Object[] aDataRow = processDataRow(br.getDataRow());
