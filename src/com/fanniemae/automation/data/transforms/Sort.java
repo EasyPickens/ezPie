@@ -1,5 +1,6 @@
 package com.fanniemae.automation.data.transforms;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -127,10 +128,12 @@ public class Sort extends DataTransform {
 		}
 
 		if (_indexDataList.size() > 0) {
-			_indexData = new SortDataRow[_indexDataList.size()]; 
+			_indexData = new SortDataRow[_indexDataList.size()];
             _indexDataList.toArray(_indexData);
 			_indexDataList.clear();
+			saveIndexToFile(_indexData, "C:\\Developers\\Code\\TestDirectory\\_Exports\\BeforeSort.txt");
 			Arrays.sort(_indexData);
+			saveIndexToFile(_indexData, "C:\\Developers\\Code\\TestDirectory\\_Exports\\AfterSort.txt");
 		}
 		
 		if (_SortedFilenameBlocks.size() > 0) {
@@ -204,5 +207,25 @@ public class Sort extends DataTransform {
 			throw new RuntimeException("Error while trying to write final sorted file.", ex);
 		}
 		return outputStream;
+	}
+	
+	protected void saveIndexToFile(SortDataRow[] indexData, String outFilename) {
+		try (FileWriter fw = new FileWriter(outFilename)) {
+			for(int i=0; i < _columnNames.length;i++) {
+				if (i > 0) fw.append(", ");
+				fw.append(_columnNames[i]);
+			}
+			fw.append(_Session.getLineSeparator());
+			for (int i = 0; i < indexData.length; i++) {
+				//long offset = _indexData[i].getRowStart();
+				fw.append(_indexData[i].getSortValuesAsCSV());
+				fw.append(_Session.getLineSeparator());
+			}
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 }

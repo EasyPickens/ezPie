@@ -1,6 +1,8 @@
 package com.fanniemae.automation.data.transforms;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
@@ -120,6 +122,28 @@ class SortDataPoint implements Comparable<SortDataPoint> {
 			return _b;
 		case DateData:
 			return _dt;
+		default:
+			throw new RuntimeException("SortKey does not contain a value of the defined types.");
+		}
+	}
+	
+	public Object getValueAsString() {
+		switch (_DataType) {
+		case StringData:
+			return _s;
+		case IntegerData:
+			return String.format("%d",_i);
+		case LongData:
+			return String.format("%d",_l);
+		case DoubleData:
+			return String.format("%d",_d);
+		case BigDecimalData:
+			return _bd.toPlainString();
+		case BooleanData:
+			return _b ? "true" : "false";
+		case DateData:
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+			return (_dt == null) ? "" : df.format(_dt);
 		default:
 			throw new RuntimeException("SortKey does not contain a value of the defined types.");
 		}

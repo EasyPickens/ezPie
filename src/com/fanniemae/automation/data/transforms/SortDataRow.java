@@ -69,6 +69,19 @@ class SortDataRow implements Comparable<SortDataRow> {
 		}
 		return values;
 	}
+	
+	public String getSortValuesAsCSV() {
+		if (_dataRowKeys == null) {
+			return null;
+		}
+
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < _dataRowKeys.length; i++) {
+			if (i > 0) sb.append(", ");
+			sb.append(_dataRowKeys[i].getValueAsString());
+		}
+		return sb.toString();
+	}
 
 	@Override
 	public int compareTo(SortDataRow o) {
