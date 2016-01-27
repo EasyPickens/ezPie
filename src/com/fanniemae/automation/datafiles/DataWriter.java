@@ -161,9 +161,9 @@ public class DataWriter extends DataFormat {
 		}
 
 		if (_bos.IsFilestream()) {
-			return new DataStream(_Filename);
+			return new DataStream(_Filename, _HeaderInformation);
 		} else {
-			return new DataStream(_bos.getBuffer());
+			return new DataStream(_bos.getBuffer(),_HeaderInformation);
 		}
 	}
 

@@ -33,6 +33,12 @@ public class ExecutionPlanner {
 		_Session.addLogMessage("", "Processing Group #1", "");
 		Map<Integer, DataTransform> aCurrentGroup = new HashMap<Integer, DataTransform>();
 		int iLen = transforms.getLength();
+		if (iLen == 0) {
+			// No data transforms to apply, just read data. 
+			processingGroups.put(0, new HashMap<Integer, DataTransform>());
+			return processingGroups;
+		}
+		
 		for (int i = 0; i < iLen; i++) {
 			Element eleTransform = (Element) transforms.item(i);
 			String nodeName = eleTransform.getNodeName();

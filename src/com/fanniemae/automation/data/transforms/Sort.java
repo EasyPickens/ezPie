@@ -1,7 +1,9 @@
 package com.fanniemae.automation.data.transforms;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 
 import org.w3c.dom.Element;
 
@@ -32,6 +34,8 @@ public class Sort extends DataTransform {
 	protected boolean[] _isAscending;
 
 	protected ArrayList<String> _SortedFilenameBlocks = new ArrayList<String>();
+	protected ArrayList<SortDataRow> _indexDataList = new ArrayList<SortDataRow>();
+	protected SortDataRow[] _indexData;
 
 	public Sort(SessionManager session, Element operation) {
 		super(session, operation, false);
@@ -88,12 +92,11 @@ public class Sort extends DataTransform {
 	@Override
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
-		ArrayList<SortDataRow> indexData = new ArrayList<SortDataRow>();
 
 		try (DataReader br = new DataReader(inputStream);) {
 			String[] inputColumnNames = br.getColumnNames();
 			DataType[] inputColumnTypes = br.getDataTypes();
-			updateSortArrays(inputColumnNames, inputColumnTypes);
+			updateSortInstructions(inputColumnNames, inputColumnTypes);
 
 			int indexCount = 0;
 			while (!br.eof()) {
@@ -102,66 +105,104 @@ public class Sort extends DataTransform {
 
 				for (int i = 0; i < _numberOfKeys; i++) {
 					Object dataPoint = _inputColumnIndexes[i] == -1 ? null : dataRow[_inputColumnIndexes[i]];
-					DataType dataType = _inputColumnIndexes[i] == -1 ? DataType.StringData : _dataTypes[_inputColumnIndexes[i]];
+					DataType dataType = _inputColumnIndexes[i] == -1 ? DataType.StringData : inputColumnTypes[_inputColumnIndexes[i]];
 					rowKeys.setDataPoint(i, dataPoint, dataType, _isAscending[i]);
 				}
-				indexData.add(rowKeys);
+				_indexDataList.add(rowKeys);
 				indexCount++;
 				if (indexCount >= SORT_ARRAY_MAX_ITEMS) {
-					// Sort the array and then save to file
-					Arrays.sort(indexData.toArray());
-					String blockFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
-					try (DataWriter dw = new DataWriter(blockFilename);) {
-						dw.setDataColumns(_columnNames, _dataTypes);
-						for (SortDataRow keys : indexData) {
-							dw.writeDataRow(keys.getSortValues());
-						}
-						dw.close();
-					}
-					// Start new block of data.
-					_SortedFilenameBlocks.add(blockFilename);
+					// Sort the array
+					_indexData = new SortDataRow[_indexDataList.size()]; 
+		            _indexDataList.toArray(_indexData);
+					_indexDataList.clear();
+					Arrays.sort(_indexData);
+					// Write the sorted data to an index file
+					writeIndexFile();
 					indexCount = 0;
-					indexData = new ArrayList<SortDataRow>();
 				}
-			}
-			if (indexData.size() > 0) {
-				Arrays.sort(indexData.toArray());
 			}
 			br.close();
 		} catch (Exception ex) {
 			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _TransformName), ex);
 		}
 
-		// **** have to write the final sorted file!!!!
-		// Need to posiblly combine multiple sorted files.
-		String sortedFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
-		try (DataReader br = new DataReader(inputStream); DataWriter bw = new DataWriter(sortedFilename, memoryLimit)) {
-			String[] aColumnNames = br.getColumnNames();
-			DataType[] aDataTypes = br.getDataTypes();
-
-			bw.setDataColumns(aColumnNames, aDataTypes);
-			while (!br.eof()) {
-				Object[] aDataRow = processDataRow(br.getDataRow());
-				if (aDataRow != null) {
-					bw.writeDataRow(aDataRow);
-				}
-			}
-
-			bw.close();
-			outputStream = bw.getDataStream();
-		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _TransformName), ex);
+		if (_indexDataList.size() > 0) {
+			_indexData = new SortDataRow[_indexDataList.size()]; 
+            _indexDataList.toArray(_indexData);
+			_indexDataList.clear();
+			Arrays.sort(_indexData);
+		}
+		
+		if (_SortedFilenameBlocks.size() > 0) {
+			// Write final sorted index block
+			writeIndexFile();
+			// Combine sorted blocks to produce final sorted file.
+		} else {
+			// Sorted in memory, write sorted data file.
+			outputStream = writeSortedFile(inputStream);
 		}
 		return outputStream;
 	}
 
-	protected void updateSortArrays(String[] inputColumnNames, DataType[] inputColumnTypes) {
-		ArrayList<String> inputNames = (ArrayList<String>) Arrays.asList(inputColumnNames);
+	protected void updateSortInstructions(String[] inputColumnNames, DataType[] inputColumnTypes) {
+		ArrayList<String> inputNames = new ArrayList<String>(Arrays.asList(inputColumnNames));
 		for (int i = 0; i < _numberOfKeys; i++) {
 			_inputColumnIndexes[i] = inputNames.indexOf(_columnNames[i]);
 			_dataTypes[i] = _inputColumnIndexes[i] == -1 ? DataType.StringData : inputColumnTypes[_inputColumnIndexes[i]];
 		}
-
 	}
 
+	protected String writeIndexFile() {
+		String blockFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
+		try (DataWriter dw = new DataWriter(blockFilename);) {
+			dw.setDataColumns(_columnNames, _dataTypes);
+			for (SortDataRow keys : _indexDataList) {
+				dw.writeDataRow(keys.getSortValues());
+			}
+			dw.close();
+		} catch (IOException ex) {
+			throw new RuntimeException("Could not write index data stream.", ex);
+		}
+		_SortedFilenameBlocks.add(blockFilename);
+		_indexDataList = new ArrayList<SortDataRow>();
+		return blockFilename;
+	}
+
+	protected DataStream writeSortedFile(DataStream inputStream) {
+		DataStream outputStream = null;
+		String sortedFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
+		int rowCount = 0;
+		try (DataReader dr = new DataReader(inputStream); DataWriter dw = new DataWriter(sortedFilename, _Session.getMemoryLimit())) {
+			String[] columnNames = dr.getColumnNames();
+			DataType[] columnTypes = dr.getDataTypes();
+			dw.setDataColumns(columnNames, columnTypes);
+			for (int i = 0; i < _indexData.length; i++) {
+				long offset = _indexData[i].getRowStart();
+				Object[] data = dr.getDataRowAt(offset);
+				dw.writeDataRow(data);				
+				rowCount++;
+			}
+//			for (SortDataRow keys : _indexData) {
+////				dr.getDataRowAt(keys.getRowStart());
+////				dw.writeDataRow(dr.getDataRow());
+//				dw.writeDataRow(dr.getDataRowAt(keys.getRowStart()));				
+//				rowCount++;
+//			}
+			Calendar calendarExpires = Calendar.getInstance();
+			calendarExpires.add(Calendar.MINUTE,30);
+			dw.setFullRowCount(rowCount);
+			dw.setBufferFirstRow(1);
+			dw.setBufferLastRow(rowCount);
+			dw.setBufferExpires(calendarExpires.getTime());
+			dw.setFullRowCountKnown(true);
+			dw.close();
+			dr.close();
+			outputStream = dw.getDataStream();
+			_indexDataList = null;
+			_indexData = null;
+		} catch (Exception ex) {
+			throw new RuntimeException("Error while trying to write final sorted file.", ex);
+		}
+		return outputStream;
+	}
 }

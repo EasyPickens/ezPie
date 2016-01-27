@@ -133,34 +133,34 @@ class SortDataPoint implements Comparable<SortDataPoint> {
 	public int compareTo(SortDataPoint o) {
 		switch (_DataType) {
 		case StringData:
-			if ((_s == null) && (o._s == null)) {
+			if ((this._s == null) && (o._s == null)) {
 				return 0;
-			} else if ((_s == null)) {
-				return -1 * _directionModifier;
+			} else if ((this._s == null)) {
+				return -1 * this._directionModifier;
 			}
-			return _s.compareTo(o._s) * _directionModifier;
+			return this._s.compareTo(o._s) * this._directionModifier;
 		case IntegerData:
-			return (_i > o._i ? 1 : (_i < o._i) ? -1 : 0) * _directionModifier;
+			return (this._i > o._i ? 1 : (this._i < o._i) ? -1 : 0) * this._directionModifier;
 		case LongData:
-			return (_l > o._l ? 1 : (_l < o._l) ? -1 : 0) * _directionModifier;
+			return (this._l > o._l ? 1 : (this._l < o._l) ? -1 : 0) * this._directionModifier;
 		case DoubleData:
-			return (_d > o._d ? 1 : (_d < o._d) ? -1 : 0) * _directionModifier;
+			return (this._d > o._d ? 1 : (this._d < o._d) ? -1 : 0) * this._directionModifier;
 		case BigDecimalData:
-			if ((_bd == null) && (o._bd == null)) {
+			if ((this._bd == null) && (o._bd == null)) {
 				return 0;
-			} else if (_bd == null) {
-				return -1 * _directionModifier;
+			} else if (this._bd == null) {
+				return -1 * this._directionModifier;
 			}
-			return _bd.compareTo(o._bd) * _directionModifier;
+			return this._bd.compareTo(o._bd) * this._directionModifier;
 		case BooleanData:
-			return (_b == o._b ? 0 : (_b ? 1 : -1)) * _directionModifier;
+			return (this._b == o._b ? 0 : (this._b ? 1 : -1)) * this._directionModifier;
 		case DateData:
-			if ((_dt == null) && (o._dt == null)) {
+			if ((this._dt == null) && (o._dt == null)) {
 				return 0;
-			} else if (_dt == null) {
-				return -1 * _directionModifier;
+			} else if (this._dt == null) {
+				return -1 * this._directionModifier;
 			}
-			return _dt.compareTo(o._dt) * _directionModifier;
+			return _dt.compareTo(o._dt) * this._directionModifier;
 		default:
 			return 0;
 		}

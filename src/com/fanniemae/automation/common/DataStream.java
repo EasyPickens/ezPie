@@ -1,6 +1,9 @@
 package com.fanniemae.automation.common;
 
 import java.io.File;
+import java.util.Map;
+
+import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums;
 
 /**
  * 
@@ -12,13 +15,14 @@ public class DataStream {
     protected boolean _isMemory = true;
     protected byte[] _data;
     protected String _filename;
+    protected Map<DataFileEnums.BinaryFileInfo, Object> _headerInformation;
     
-    public DataStream(byte[] data) {
+    public DataStream(byte[] data, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation) {
         _data = data;
         _isMemory = true;
     }
     
-    public DataStream(String Filename) {
+    public DataStream(String Filename, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation) {
         _filename = Filename;
         _isMemory = false;
     }
@@ -42,5 +46,9 @@ public class DataStream {
     		File fi = new File(_filename);
     		return fi.length();
     	}
+    }
+    
+    public Map<DataFileEnums.BinaryFileInfo, Object> getHeader() {
+    	return _headerInformation;
     }
 }

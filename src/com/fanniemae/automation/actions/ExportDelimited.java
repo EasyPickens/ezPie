@@ -49,13 +49,13 @@ public class ExportDelimited extends Action {
 		_Session.addLogMessage("", "Delimiter", _Delimiter);
 
 		_DataSetID = _Session.getAttribute(action, "DataSetID");
-		_DataStream = _Session.getDataStream(_DataSetID);
 		_WriteColumnNames = StringUtilities.toBoolean(_Session.getAttribute(action, "IncludeColumnNames"), true);
 	}
 
 	@Override
 	public String execute() {
-
+		_DataStream = _Session.getDataStream(_DataSetID);
+		
 		try (DataReader dr = new DataReader(_DataStream); FileWriter fw = new FileWriter(_OutputFilename)) {
 			defineOutputColumns(dr.getColumnNames());
 			_OutputColumnDataTypes = dr.getDataTypes();
@@ -82,7 +82,7 @@ public class ExportDelimited extends Action {
 					if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.DateData) {
 						fw.append(DateUtilities.toIsoString((Date)dataRow[_OutputColumnIndexes[i]]));
 					} else if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.StringData) {
-						fw.append(wrapString(dataRow[_OutputColumnIndexes[i]].toString()));
+						fw.append(wrapString(dataRow[_OutputColumnIndexes[i]]));
 					} else if (dataRow[_OutputColumnIndexes[i]] == null) {
 						fw.append("");
 					} else {
@@ -135,8 +135,13 @@ public class ExportDelimited extends Action {
 		_OutputLength = _OutputColumnIndexes.length;
 	}
 
-	protected String wrapString(String value) {
+	protected String wrapString(Object objectValue) {
+		if (objectValue == null) {
+			return "";
+		}
+
 		boolean wrapDoubleQuotes = false;
+		String value = objectValue.toString();
 		if (StringUtilities.isNullOrEmpty(value)) {
 			return "";
 		} else if (value.contains("\"")) {

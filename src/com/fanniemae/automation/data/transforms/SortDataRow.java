@@ -22,7 +22,8 @@ class SortDataRow implements Comparable<SortDataRow> {
 
 	public SortDataRow(long rowStart, int keyCount) {
 		_rowStart = rowStart;
-		_dataRowKeys = new SortDataPoint[keyCount];
+		_dataRowKeys = new SortDataPoint[keyCount+1];
+		_dataRowKeys[keyCount] = new SortDataPoint(rowStart, true);
 	}
 
 	public void setDataPoint(int index, Object value, DataType dataType, boolean isAscending) {
@@ -71,8 +72,8 @@ class SortDataRow implements Comparable<SortDataRow> {
 
 	@Override
 	public int compareTo(SortDataRow o) {
-		for (int i = 0; i < _dataRowKeys.length; i++) {
-			int result = _dataRowKeys[i].compareTo(o._dataRowKeys[i]);
+		for (int i = 0; i < this._dataRowKeys.length; i++) {
+			int result = this._dataRowKeys[i].compareTo(o._dataRowKeys[i]);
 			if (result != 0) {
 				return result;
 			}
