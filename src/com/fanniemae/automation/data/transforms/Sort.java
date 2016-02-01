@@ -180,18 +180,10 @@ public class Sort extends DataTransform {
 			String[] columnNames = dr.getColumnNames();
 			DataType[] columnTypes = dr.getDataTypes();
 			dw.setDataColumns(columnNames, columnTypes);
-			for (int i = 0; i < _indexData.length; i++) {
-				long offset = _indexData[i].getRowStart();
-				Object[] data = dr.getDataRowAt(offset);
-				dw.writeDataRow(data);				
+			for (SortDataRow keys : _indexData) {
+				dw.writeDataRow(dr.getDataRowAt(keys.getRowStart()));				
 				rowCount++;
 			}
-//			for (SortDataRow keys : _indexData) {
-////				dr.getDataRowAt(keys.getRowStart());
-////				dw.writeDataRow(dr.getDataRow());
-//				dw.writeDataRow(dr.getDataRowAt(keys.getRowStart()));				
-//				rowCount++;
-//			}
 			Calendar calendarExpires = Calendar.getInstance();
 			calendarExpires.add(Calendar.MINUTE,30);
 			dw.setFullRowCount(rowCount);
