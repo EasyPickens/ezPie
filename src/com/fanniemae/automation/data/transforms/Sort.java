@@ -94,15 +94,16 @@ public class Sort extends DataTransform {
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
 
-		try (DataReader br = new DataReader(inputStream);) {
-			String[] inputColumnNames = br.getColumnNames();
-			DataType[] inputColumnTypes = br.getDataTypes();
+		try (DataReader dr = new DataReader(inputStream);) {
+			String[] inputColumnNames = dr.getColumnNames();
+			DataType[] inputColumnTypes = dr.getDataTypes();
 			updateSortInstructions(inputColumnNames, inputColumnTypes);
 
 			int indexCount = 0;
-			while (!br.eof()) {
-				Object[] dataRow = br.getDataRow();
-				SortDataRow rowKeys = new SortDataRow(br.getPosition(), _numberOfKeys);
+			while (!dr.eof()) {
+				long offset = dr.getPosition();
+				Object[] dataRow = dr.getDataRow();
+				SortDataRow rowKeys = new SortDataRow(offset, _numberOfKeys);
 
 				for (int i = 0; i < _numberOfKeys; i++) {
 					Object dataPoint = _inputColumnIndexes[i] == -1 ? null : dataRow[_inputColumnIndexes[i]];
@@ -122,7 +123,7 @@ public class Sort extends DataTransform {
 					indexCount = 0;
 				}
 			}
-			br.close();
+			dr.close();
 		} catch (Exception ex) {
 			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _TransformName), ex);
 		}
@@ -131,9 +132,9 @@ public class Sort extends DataTransform {
 			_indexData = new SortDataRow[_indexDataList.size()];
             _indexDataList.toArray(_indexData);
 			_indexDataList.clear();
-			saveIndexToFile(_indexData, "C:\\Developers\\Code\\TestDirectory\\_Exports\\BeforeSort.txt");
+			//saveIndexToFile(_indexData, "C:\\Developers\\Code\\TestDirectory\\_Exports\\BeforeSort.txt");
 			Arrays.sort(_indexData);
-			saveIndexToFile(_indexData, "C:\\Developers\\Code\\TestDirectory\\_Exports\\AfterSort.txt");
+			//saveIndexToFile(_indexData, "C:\\Developers\\Code\\TestDirectory\\_Exports\\AfterSort.txt");
 		}
 		
 		if (_SortedFilenameBlocks.size() > 0) {
@@ -175,7 +176,7 @@ public class Sort extends DataTransform {
 		DataStream outputStream = null;
 		String sortedFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
 		int rowCount = 0;
-		try (DataReader dr = new DataReader(inputStream); DataWriter dw = new DataWriter(sortedFilename, _Session.getMemoryLimit())) {
+		try (DataReader dr = new DataReader(inputStream); DataWriter dw = new DataWriter(sortedFilename, 0)) {
 			String[] columnNames = dr.getColumnNames();
 			DataType[] columnTypes = dr.getDataTypes();
 			dw.setDataColumns(columnNames, columnTypes);
