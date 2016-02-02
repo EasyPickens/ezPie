@@ -32,6 +32,11 @@ public class DataSetConnector extends DataConnector {
 		}
 		_dataStream = _Session.getDataStream(_DataSetID);
 	}
+	
+	public DataSetConnector(SessionManager session, DataStream dataStream, Boolean isSchemaOnly) {
+		super(session, null, isSchemaOnly);
+		_dataStream = dataStream;
+	}
 
 	@Override
 	public Boolean open() {

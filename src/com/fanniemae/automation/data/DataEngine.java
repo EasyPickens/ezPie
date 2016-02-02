@@ -13,7 +13,6 @@ import com.fanniemae.automation.SessionManager;
 import com.fanniemae.automation.common.DataStream;
 import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
-import com.fanniemae.automation.data.connectors.BinaryFileConnector;
 import com.fanniemae.automation.data.connectors.DataConnector;
 import com.fanniemae.automation.data.connectors.DataSetConnector;
 import com.fanniemae.automation.data.connectors.DelimitedConnector;
@@ -129,7 +128,7 @@ public class DataEngine {
 
 	protected DataConnector getConnector(DataStream inputStream) {
 		if (inputStream != null) {
-			return new BinaryFileConnector(_Session, inputStream, false);
+			return new DataSetConnector(_Session, inputStream, false);
 		}
 
 		String connectorType = _DataSource.getAttribute("Type").toLowerCase();

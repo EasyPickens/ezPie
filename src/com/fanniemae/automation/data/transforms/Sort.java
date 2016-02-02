@@ -29,6 +29,7 @@ public class Sort extends DataTransform {
 	protected DataStream _dataStream;
 
 	protected int _numberOfKeys;
+	
 	protected String[] _columnNames;
 	protected int[] _inputColumnIndexes;
 	protected DataType[] _dataTypes;
