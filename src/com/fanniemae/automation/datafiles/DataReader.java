@@ -49,6 +49,7 @@ public class DataReader extends DataFormat {
     
     protected DataReader _drSourceData = null;
     protected long _EndOfDataBlock;
+    protected String[][] _DataSchema = new String[][] {};
 
     public DataReader(DataStream ds) throws IOException {
         if (ds.IsMemory()) {
@@ -185,13 +186,17 @@ public class DataReader extends DataFormat {
     public long getPosition() throws IOException {
     	return _bis.getPosition();
     }
+    
+    public String[][] getSchema() {
+    	return _DataSchema;
+    }
 
     protected void initialize() throws IOException {
         readHeader();
         int length = _DataRow.getColumnCount();
         _ReadMethods = new FieldReadWrite[length];
         for (int i = 0; i < _ReadMethods.length; i++) {
-            _ReadMethods[i] = getReadMethod(_DataRow.getDataType(i));
+           _ReadMethods[i] = getReadMethod(_DataRow.getDataType(i));
         }
     }
 
@@ -242,6 +247,7 @@ public class DataReader extends DataFormat {
             }
 
             _DataRow = new DataRow(nodes.getLength());
+            _DataSchema = new String[nodes.getLength()][2];
             for (int i = 0; i < nodes.getLength(); i++) {
                 Element elementColumn = (Element) nodes.item(i);
 
@@ -256,6 +262,8 @@ public class DataReader extends DataFormat {
                     globalValue = StringUtilities.toObject(dataType, sGlobalValue);
                 }
                 _DataRow.DefineColumn(i, name, eColType, dataType, globalValue);
+            	_DataSchema[i][0] = name;
+            	_DataSchema[i][1] = dataType;
             }
         } catch (XPathExpressionException | IOException ex) {
             throw new IOException("Error reading data file header. ", ex);
@@ -312,5 +320,4 @@ public class DataReader extends DataFormat {
                 throw new IOException("Data type " + columnDataType.toString() + " is not currently supported by the data engine.");
         }
     }
-
 }

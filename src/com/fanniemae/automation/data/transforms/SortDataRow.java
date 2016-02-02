@@ -22,7 +22,7 @@ class SortDataRow implements Comparable<SortDataRow> {
 
 	public SortDataRow(long rowStart, int keyCount) {
 		_rowStart = rowStart;
-		_dataRowKeys = new SortDataPoint[keyCount+1];
+		_dataRowKeys = new SortDataPoint[keyCount + 1];
 		_dataRowKeys[keyCount] = new SortDataPoint(rowStart, true);
 	}
 
@@ -69,7 +69,7 @@ class SortDataRow implements Comparable<SortDataRow> {
 		}
 		return values;
 	}
-	
+
 	public String getSortValuesAsCSV() {
 		if (_dataRowKeys == null) {
 			return null;
@@ -77,7 +77,8 @@ class SortDataRow implements Comparable<SortDataRow> {
 
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < _dataRowKeys.length; i++) {
-			if (i > 0) sb.append(", ");
+			if (i > 0)
+				sb.append(", ");
 			sb.append(_dataRowKeys[i].getValueAsString());
 		}
 		return sb.toString();
@@ -91,8 +92,6 @@ class SortDataRow implements Comparable<SortDataRow> {
 				return result;
 			}
 		}
-		//return _rowStart > o._rowStart ? 1 : (_rowStart < o._rowStart ? -1 : 0);
-		// since the last data column is file offset, it should never reach this line.
 		return 0;
 	}
 }

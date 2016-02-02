@@ -223,6 +223,12 @@ public class SessionManager {
 		if (!_DataSets.containsKey(dataSetID))
 			throw new RuntimeException(String.format("DataSetID %s was not found in the list of available data sets.", dataSetID));
 
-		return _DataSets.get(dataSetID);
+		DataStream dataStream = _DataSets.get(dataSetID);
+		if (dataStream.IsMemory()) {
+			addLogMessage("", "DataStream Details", String.format("MemoryStream of %,d bytes", dataStream.getSize()));
+		} else {
+			addLogMessage("", "DataStream Details", String.format("FileStream (%s) of %,d bytes", dataStream.getFilename(), dataStream.getSize()));
+		}
+		return dataStream;
 	}
 }

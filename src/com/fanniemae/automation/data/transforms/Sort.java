@@ -69,9 +69,9 @@ public class Sort extends DataTransform {
 		} else {
 			int length = Math.min(sortDirections.length, _numberOfKeys);
 			for (int i = 0; i < length; i++) {
-				_columnNames[i] = columnNames[i];
+				_columnNames[i] = columnNames[i].trim();
 				String direction = sortDirections[i];
-				if (StringUtilities.isNullOrEmpty(direction) || direction.toLowerCase().startsWith("asc")) {
+				if (StringUtilities.isNullOrEmpty(direction) || direction.toLowerCase().trim().startsWith("asc")) {
 					_isAscending[i] = true;
 				} else {
 					_isAscending[i] = false;
@@ -114,8 +114,8 @@ public class Sort extends DataTransform {
 				indexCount++;
 				if (indexCount >= SORT_ARRAY_MAX_ITEMS) {
 					// Sort the array
-					_indexData = new SortDataRow[_indexDataList.size()]; 
-		            _indexDataList.toArray(_indexData);
+					_indexData = new SortDataRow[_indexDataList.size()];
+					_indexDataList.toArray(_indexData);
 					_indexDataList.clear();
 					Arrays.sort(_indexData);
 					// Write the sorted data to an index file
@@ -130,13 +130,15 @@ public class Sort extends DataTransform {
 
 		if (_indexDataList.size() > 0) {
 			_indexData = new SortDataRow[_indexDataList.size()];
-            _indexDataList.toArray(_indexData);
+			_indexDataList.toArray(_indexData);
 			_indexDataList.clear();
-			//saveIndexToFile(_indexData, "C:\\Developers\\Code\\TestDirectory\\_Exports\\BeforeSort.txt");
+			// saveIndexToFile(_indexData,
+			// "C:\\Developers\\Code\\TestDirectory\\_Exports\\BeforeSort.txt");
 			Arrays.sort(_indexData);
-			//saveIndexToFile(_indexData, "C:\\Developers\\Code\\TestDirectory\\_Exports\\AfterSort.txt");
+			// saveIndexToFile(_indexData,
+			// "C:\\Developers\\Code\\TestDirectory\\_Exports\\AfterSort.txt");
 		}
-		
+
 		if (_SortedFilenameBlocks.size() > 0) {
 			// Write final sorted index block
 			writeIndexFile();
@@ -181,11 +183,11 @@ public class Sort extends DataTransform {
 			DataType[] columnTypes = dr.getDataTypes();
 			dw.setDataColumns(columnNames, columnTypes);
 			for (SortDataRow keys : _indexData) {
-				dw.writeDataRow(dr.getDataRowAt(keys.getRowStart()));				
+				dw.writeDataRow(dr.getDataRowAt(keys.getRowStart()));
 				rowCount++;
 			}
 			Calendar calendarExpires = Calendar.getInstance();
-			calendarExpires.add(Calendar.MINUTE,30);
+			calendarExpires.add(Calendar.MINUTE, 30);
 			dw.setFullRowCount(rowCount);
 			dw.setBufferFirstRow(1);
 			dw.setBufferLastRow(rowCount);
@@ -201,24 +203,26 @@ public class Sort extends DataTransform {
 		}
 		return outputStream;
 	}
-	
+
+	// This method is only used for detailed development debugging. Not
+	// currently used by application. If it is needed, I will add a static
+	// version to the ArrayUtilities class in the common package.  
 	protected void saveIndexToFile(SortDataRow[] indexData, String outFilename) {
 		try (FileWriter fw = new FileWriter(outFilename)) {
-			for(int i=0; i < _columnNames.length;i++) {
-				if (i > 0) fw.append(", ");
+			for (int i = 0; i < _columnNames.length; i++) {
+				if (i > 0)
+					fw.append(", ");
 				fw.append(_columnNames[i]);
 			}
 			fw.append(_Session.getLineSeparator());
 			for (int i = 0; i < indexData.length; i++) {
-				//long offset = _indexData[i].getRowStart();
 				fw.append(_indexData[i].getSortValuesAsCSV());
 				fw.append(_Session.getLineSeparator());
 			}
 			fw.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException("Error while trying to save index file.", e);
 		}
-		
+
 	}
 }

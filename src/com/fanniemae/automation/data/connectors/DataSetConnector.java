@@ -2,24 +2,41 @@ package com.fanniemae.automation.data.connectors;
 
 import java.io.IOException;
 
+import org.w3c.dom.Element;
+
 import com.fanniemae.automation.SessionManager;
 import com.fanniemae.automation.common.DataStream;
+import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.datafiles.DataReader;
 
-public class BinaryFileConnector extends DataConnector {
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-02-01
+ * 
+ */
+public class DataSetConnector extends DataConnector {
 
+	protected String _DataSetID;
+	
+	protected DataStream _dataStream;
+	
 	protected DataReader _dr;
-	protected DataStream _inputStream;
-
-	public BinaryFileConnector(SessionManager session, DataStream inputStream, Boolean isSchemaOnly) {
-		super(session, null, isSchemaOnly);
-		_inputStream = inputStream;
+	
+	public DataSetConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
+		super(session, dataSource, isSchemaOnly);
+		
+		_DataSetID = _Session.getAttribute(dataSource, "DataSetID");
+		if (StringUtilities.isNullOrEmpty(_DataSetID)) {
+			throw new RuntimeException("DataSource.DataSet is missing the required DataSetID.");
+		}
+		_dataStream = _Session.getDataStream(_DataSetID);
 	}
 
 	@Override
 	public Boolean open() {
 		try {
-			_dr = new DataReader(_inputStream);
+			_dr = new DataReader(_dataStream);
 			_DataSchema = _dr.getSchema();
 		} catch (IOException ex) {
 			throw new RuntimeException("Could not open requested data stream.", ex);
