@@ -79,6 +79,8 @@ public class DataEngine {
 			// Some data operations require access to then entire data stream
 			// they cannot be combined with other operations.
 			if ((operationCount == 1) && dataOperations.get(0).isTableLevel()) {
+				_Session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _ProcessingGroupsCount), "");
+				dataOperations.get(0).addTransformLogMessage();
 				dataStream = dataOperations.get(0).processDataStream(dataStream, _Session.getMemoryLimit());
 				continue;
 			}
@@ -89,9 +91,11 @@ public class DataEngine {
 				dc.open();
 				String[][] schema = dc.getDataSourceSchema();
 				if (operationCount > 0) {
+					_Session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _ProcessingGroupsCount), "");
 					// Update the schema based on the operations within this
 					// group.
 					for (int i = 0; i < operationCount; i++) {
+						dataOperations.get(i).addTransformLogMessage();
 						schema = dataOperations.get(i).UpdateSchema(schema);
 					}
 				}

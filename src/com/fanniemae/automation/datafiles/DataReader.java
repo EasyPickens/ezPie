@@ -55,12 +55,14 @@ public class DataReader extends DataFormat {
         if (ds.IsMemory()) {
             _bis = new BinaryInputStream(ds.getMemorystream());
         } else {
-            _bis = new BinaryInputStream(ds.getFilename());
+        	_Filename = ds.getFilename();
+            _bis = new BinaryInputStream(_Filename);
         }
         initialize();
     }
 
     public DataReader(String filename) throws IOException {
+    	_Filename = filename;
         _bis = new BinaryInputStream(filename);
         initialize();
     }
@@ -83,6 +85,10 @@ public class DataReader extends DataFormat {
 
     public boolean eof() throws IOException {
         return _bis.getPosition() >= _EndOfDataBlock;
+    }
+    
+    public String getFilename() {
+    	return _Filename;
     }
 
     public DataRow getDataRowAndSchemaAt(long offSet) throws IOException {

@@ -37,7 +37,7 @@ public class ExecutionPlanner {
 			return processingGroups;
 		}
 
-		_Session.addLogMessage("Execution Path", "Initialize", "Initialize data transformation processing groups.");
+		//_Session.addLogMessage("Execution Path", "Initialize", "Initialize data transformation processing groups.");
 		//_Session.addLogMessage("", "Processing Group #1", "");
 		for (int i = 0; i < iLen; i++) {
 			Element eleTransform = (Element) transforms.item(i);
@@ -58,9 +58,9 @@ public class ExecutionPlanner {
 				throw new RuntimeException(String.format("%s data transformation not currently supported.", nodeName));
 			}
 			if (currentTransform.isTableLevel()) {
-				if (aCurrentGroup.size() == 0) {
-					_Session.addLogMessage("", "", "Import the data into the processing engine.");
-				}
+//				if (aCurrentGroup.size() == 0) {
+//					_Session.addLogMessage("", "", "Import the data into the processing engine.");
+//				}
 				processingGroups.put(processingGroups.size(), aCurrentGroup);
 				aCurrentGroup = new HashMap<Integer, DataTransform>();
 //				if (i < iLen) {
@@ -83,17 +83,17 @@ public class ExecutionPlanner {
 		// }
 
 		// Output processing group information to the log.
-		for (int i = 0; i < processingGroups.size(); i++) {
-			_Session.addLogMessage("", String.format("Processing Group #%d", i + 1), "");
-			int steps = processingGroups.get(i).size();
-			if (steps == 0) {
-				 //_Session.addLogMessage("", "Execution Path", "Data is read from the source.");
-			} else {
-				for (int x = 0; x < processingGroups.get(i).size(); x++) {
-					processingGroups.get(i).get(x).addTransformLogMessage();
-				}
-			}
-		}
+//		for (int i = 0; i < processingGroups.size(); i++) {
+//			_Session.addLogMessage("", String.format("Processing Group #%d", i + 1), "");
+//			int steps = processingGroups.get(i).size();
+//			if (steps == 0) {
+//				 //_Session.addLogMessage("", "Execution Path", "Data is read from the source.");
+//			} else {
+//				for (int x = 0; x < processingGroups.get(i).size(); x++) {
+//					processingGroups.get(i).get(x).addTransformLogMessage();
+//				}
+//			}
+//		}
 
 		return processingGroups;
 	}

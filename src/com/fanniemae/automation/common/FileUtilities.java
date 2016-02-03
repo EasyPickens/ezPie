@@ -36,6 +36,19 @@ public class FileUtilities {
 		return !isValidFile(fileName);
 	}
 
+	public static boolean deleteFile(String fileName) {
+		if (StringUtilities.isNullOrEmpty(fileName)) {
+			return true;
+		}
+
+		File fi = new File(fileName);
+		if (!fi.exists()) {
+			return true;
+		}
+
+		return fi.delete();
+	}
+
 	public static String formatPath(String path, String defaultPath, String attributeName) {
 		if (StringUtilities.isNullOrEmpty(path))
 			path = defaultPath;

@@ -17,10 +17,16 @@ import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
  * 
  */
 class SortDataRow implements Comparable<SortDataRow> {
+	protected int _streamChannel;
 	protected long _rowStart;
 	protected SortDataPoint[] _dataRowKeys;
 
 	public SortDataRow(long rowStart, int keyCount) {
+		this(1,rowStart, keyCount);
+	}
+	
+	public SortDataRow(int streamChannel, long rowStart, int keyCount) {
+		_streamChannel = streamChannel;
 		_rowStart = rowStart;
 		_dataRowKeys = new SortDataPoint[keyCount + 1];
 		_dataRowKeys[keyCount] = new SortDataPoint(rowStart, true);
@@ -54,6 +60,10 @@ class SortDataRow implements Comparable<SortDataRow> {
 		}
 	}
 
+	public int getStreamChannel() {
+		return _streamChannel;
+	}
+	
 	public long getRowStart() {
 		return _rowStart;
 	}
