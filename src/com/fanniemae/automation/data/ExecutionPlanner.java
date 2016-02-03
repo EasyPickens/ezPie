@@ -28,17 +28,17 @@ public class ExecutionPlanner {
 
 	public Map<Integer, Map<Integer, DataTransform>> getExecutionPlan(NodeList transforms) {
 		Map<Integer, Map<Integer, DataTransform>> processingGroups = new HashMap<Integer, Map<Integer, DataTransform>>();
-
-		_Session.addLogMessage("Execution Path", "Initialize", "Initialize data transformation processing groups.");
-		_Session.addLogMessage("", "Processing Group #1", "");
 		Map<Integer, DataTransform> aCurrentGroup = new HashMap<Integer, DataTransform>();
 		int iLen = transforms.getLength();
+
 		if (iLen == 0) {
-			// No data transforms to apply, just read data. 
+			// No data transforms to apply, just read data.
 			processingGroups.put(0, new HashMap<Integer, DataTransform>());
 			return processingGroups;
 		}
-		
+
+		_Session.addLogMessage("Execution Path", "Initialize", "Initialize data transformation processing groups.");
+		//_Session.addLogMessage("", "Processing Group #1", "");
 		for (int i = 0; i < iLen; i++) {
 			Element eleTransform = (Element) transforms.item(i);
 			String nodeName = eleTransform.getNodeName();
@@ -63,21 +63,38 @@ public class ExecutionPlanner {
 				}
 				processingGroups.put(processingGroups.size(), aCurrentGroup);
 				aCurrentGroup = new HashMap<Integer, DataTransform>();
-				if (i < iLen) {
-					_Session.addLogMessage("", String.format("Processing Group #%d", processingGroups.size()), "");
-				}
+//				if (i < iLen) {
+//					_Session.addLogMessage("", String.format("Processing Group #%d", processingGroups.size() + 1), "");
+//				}
 			}
 			aCurrentGroup.put(aCurrentGroup.size(), currentTransform);
 		}
 		if (aCurrentGroup.size() > 0) {
 			processingGroups.put(processingGroups.size(), aCurrentGroup);
 		}
-		
-		if (processingGroups.size() == 1) {
-			_Session.addLogMessage("", "Execution Path", "Transformations applied as data is read from source.");
-		} else {
-			_Session.addLogMessage("", "Execution Path", String.format("Transformations require %d processing groups.", processingGroups.size()));
+
+		// if (processingGroups.size() == 1) {
+		// _Session.addLogMessage("", "Execution Path",
+		// "Transformations applied as data is read from the source.");
+		// } else {
+		// _Session.addLogMessage("", "Execution Path",
+		// String.format("Transformations require %d processing groups.",
+		// processingGroups.size()));
+		// }
+
+		// Output processing group information to the log.
+		for (int i = 0; i < processingGroups.size(); i++) {
+			_Session.addLogMessage("", String.format("Processing Group #%d", i + 1), "");
+			int steps = processingGroups.get(i).size();
+			if (steps == 0) {
+				 //_Session.addLogMessage("", "Execution Path", "Data is read from the source.");
+			} else {
+				for (int x = 0; x < processingGroups.get(i).size(); x++) {
+					processingGroups.get(i).get(x).addTransformLogMessage();
+				}
+			}
 		}
+
 		return processingGroups;
 	}
 }

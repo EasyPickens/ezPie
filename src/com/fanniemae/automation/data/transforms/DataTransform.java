@@ -159,7 +159,7 @@ public abstract class DataTransform {
 		return aNewDataTypeArray;
 	}
 	
-	protected void addTransformLogMessage() {
+	public void addTransformLogMessage() {
 		_Session.addLogMessage("", _TransformName, _TransformInfo.toString());
 	}
 

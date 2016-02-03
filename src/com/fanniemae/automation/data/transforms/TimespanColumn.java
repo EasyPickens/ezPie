@@ -73,7 +73,7 @@ public class TimespanColumn extends DataTransform {
 			_TransformInfo.appendFormatLine("Fiscal Year Start = %s", DateUtilities.toIsoString(fiscalYearStart));
 		}
 		_TransformInfo.appendFormat("TimePeriod = %s", sTimePeriod);
-		addTransformLogMessage();
+		//addTransformLogMessage();
 		
 		// Populate the arrays with the correct day and month names.
 		populateNameArrays(sCulture);

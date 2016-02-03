@@ -42,7 +42,7 @@ public class SequenceColumn extends DataTransform {
 			_Increment = iIncrement;
 		}
 		_TransformInfo.appendFormat("Increment = %d", _Increment);
-		addTransformLogMessage();
+		//addTransformLogMessage();
 	}
 
 	@Override

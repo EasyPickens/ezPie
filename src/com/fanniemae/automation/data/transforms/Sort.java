@@ -48,12 +48,14 @@ public class Sort extends DataTransform {
 		if (StringUtilities.isNullOrEmpty(dataColumnList)) {
 			throw new RuntimeException("Sort transformation requires at least one column name in DataColumns.");
 		}
+		
 		String[] columnNames = dataColumnList.split(",");
 		String[] sortDirections = (StringUtilities.isNullOrEmpty(sortDirectionList)) ? null : sortDirectionList.split(",");
 
 		_numberOfKeys = columnNames.length;
 		_inputColumnIndexes = new int[_numberOfKeys];
 		_isAscending = new boolean[_numberOfKeys];
+		
 		// Added a file position column so that sort is a "stable sort"
 		// Stable sort = equal items remain in the original order.
 		// Offset column name is ixStreamOffset
@@ -79,6 +81,16 @@ public class Sort extends DataTransform {
 				}
 			}
 		}
+		
+		// Added to log the instructions defined:
+		StringBuilder sortRequest = new StringBuilder();
+		for (int i=0; i < _numberOfKeys; i++) {
+			if (i > 0) sortRequest.append(", ");
+			sortRequest.append(_columnNames[i]);
+			sortRequest.append(_isAscending[i] ? " ASC": " DESC");
+		}
+		_TransformInfo.appendFormat("Sorting by: %s", sortRequest.toString());
+		//addTransformLogMessage();
 	}
 
 	@Override

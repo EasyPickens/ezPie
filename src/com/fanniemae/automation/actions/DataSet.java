@@ -23,7 +23,12 @@ public class DataSet extends Action {
 	public String execute() {
 		DataEngine de = new DataEngine(_Session);
 		NodeList nl = _Action.getElementsByTagName("DataSource");
+		
 		int len = nl.getLength();
+		if (len == 0) {
+			throw new RuntimeException("Each DataSet element requires at least one DataSource child element.");
+		}
+		
 		for (int i = 0; i < len; i++) {
 			DataStream ds = de.getData((Element) (nl.item(i)));
 			_Session.addDataSet(_ID,ds);
