@@ -293,4 +293,21 @@ public class StringUtilities {
 			throw new RuntimeException("Unable to detect delimited file schema format.");
 		}
 	}
+
+	public static String[] split(String value) {
+		return split(value, ",");
+	}
+
+	public static String[] split(String value, String regex) {
+		if (isNullOrEmpty(value))
+			return new String[0];
+
+		String[] values = value.split(regex);
+		int length = values.length;
+
+		for (int i = 0; i < length; i++) {
+			values[i] = values[i].trim();
+		}
+		return values;
+	}
 }

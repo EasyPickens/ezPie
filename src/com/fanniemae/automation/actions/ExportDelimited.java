@@ -34,6 +34,7 @@ public class ExportDelimited extends Action {
 	protected String[] _OutputColumnNames;
 	protected int[] _OutputColumnIndexes;
 	protected DataType[] _OutputColumnDataTypes;
+	protected boolean _trimSpaces = false;
 
 	protected boolean  _WriteColumnNames = true;
 
@@ -47,6 +48,12 @@ public class ExportDelimited extends Action {
 
 		_Delimiter = _Session.getAttribute(action, "Delimiter", "|");
 		_Session.addLogMessage("", "Delimiter", _Delimiter);
+		
+		String trimSpaces = _Session.getAttribute(action, "TrimSpaces");
+		_trimSpaces = StringUtilities.toBoolean(trimSpaces,false);
+		if (StringUtilities.isNotNullOrEmpty(trimSpaces)) {
+			_Session.addLogMessage("", "TrimSpaces", _trimSpaces ? "True" : "False");
+		}
 
 		_DataSetID = _Session.getAttribute(action, "DataSetID");
 		_WriteColumnNames = StringUtilities.toBoolean(_Session.getAttribute(action, "IncludeColumnNames"), true);
@@ -142,6 +149,9 @@ public class ExportDelimited extends Action {
 
 		boolean wrapDoubleQuotes = false;
 		String value = objectValue.toString();
+		if (_trimSpaces) {
+			value = value.trim();
+		}
 		if (StringUtilities.isNullOrEmpty(value)) {
 			return "";
 		} else if (value.contains("\"")) {
