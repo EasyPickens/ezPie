@@ -45,11 +45,11 @@ public class Sort extends DataTransform {
 	protected ArrayList<SortDataRow> _indexDataList = new ArrayList<SortDataRow>();
 	protected SortDataRow[] _indexData;
 
-	public Sort(SessionManager session, Element operation) {
-		super(session, operation, false);
+	public Sort(SessionManager session, Element transform) {
+		super(session, transform, false);
 
-		String dataColumnList = _Session.getAttribute(operation, "DataColumns");
-		String sortDirectionList = _Session.getAttribute(operation, "SortDirections");
+		String dataColumnList = _Session.getAttribute(transform, "DataColumns");
+		String sortDirectionList = _Session.getAttribute(transform, "SortDirections");
 
 		if (StringUtilities.isNullOrEmpty(dataColumnList)) {
 			throw new RuntimeException("Sort transformation requires at least one column name in DataColumns.");

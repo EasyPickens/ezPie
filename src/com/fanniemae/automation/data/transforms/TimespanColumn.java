@@ -42,12 +42,12 @@ public class TimespanColumn extends DataTransform {
 	protected int[] _QuarterLastMonth = new int[] { 4, 7, 10, 1 };
 	protected int[] _FiscalQuarterLastMonth = new int[] { 4, 7, 10, 1 };
 
-	public TimespanColumn(SessionManager session, Element operation) {
-		this(session, operation, null);
+	public TimespanColumn(SessionManager session, Element transform) {
+		this(session, transform, null);
 	}
 
-	public TimespanColumn(SessionManager session, Element operation, Calendar fiscalYearStart) {
-		super(session, operation, false);
+	public TimespanColumn(SessionManager session, Element transform, Calendar fiscalYearStart) {
+		super(session, transform, false);
 		if (fiscalYearStart == null) {
 			_FiscalStart.set(Calendar.MONTH, 0);
 			_FiscalStart.set(Calendar.DATE, 1);

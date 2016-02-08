@@ -21,8 +21,8 @@ public class SequenceColumn extends DataTransform {
 	 * @since 2016-01-07
 	 * 
 	 */
-	public SequenceColumn(SessionManager session, Element operation) {
-		super(session, operation);
+	public SequenceColumn(SessionManager session, Element transform) {
+		super(session, transform);
 		_ColumnType = "java.lang.Integer";
 		
 		String sStartNumber = _Transform.getAttribute("StartNumber");

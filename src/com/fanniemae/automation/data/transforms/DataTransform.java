@@ -46,8 +46,8 @@ public abstract class DataTransform {
 	
 	protected ReportBuilder _TransformInfo = new ReportBuilder();
 
-	public DataTransform(SessionManager session, Element operation) {
-		this(session, operation, true);
+	public DataTransform(SessionManager session, Element transform) {
+		this(session, transform, true);
 	}
 
 	public DataTransform(SessionManager session, Element transform, boolean idRequired) {

@@ -39,14 +39,14 @@ public class Index extends DataTransform {
 	protected ArrayList<IndexDataRow> _indexDataList = new ArrayList<IndexDataRow>();
 	protected IndexDataRow[] _indexData;
 
-	public Index(SessionManager session, Element operation) {
-		super(session, operation, false);
+	public Index(SessionManager session, Element transform) {
+		super(session, transform, false);
 
-		String dataColumnList = _Session.getAttribute(operation, "DataColumns");
-		String indexDirectionList = _Session.getAttribute(operation, "SortDirections");
+		String dataColumnList = _Session.getAttribute(transform, "DataColumns");
+		String indexDirectionList = _Session.getAttribute(transform, "SortDirections");
 
 		if (StringUtilities.isNullOrEmpty(dataColumnList)) {
-			throw new RuntimeException(String.format("%s transform requires at least one column name in DataColumns.",operation.getNodeName()));
+			throw new RuntimeException(String.format("%s transform requires at least one column name in DataColumns.",transform.getNodeName()));
 		}
 
 		String[] columnNames = dataColumnList.split(",");
