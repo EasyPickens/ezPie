@@ -1,5 +1,7 @@
 package com.fanniemae.automation.data.transforms;
 
+import java.io.IOException;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -8,6 +10,8 @@ import com.fanniemae.automation.common.DataStream;
 import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.data.DataEngine;
+import com.fanniemae.automation.datafiles.DataReader;
+import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
 
 public class Join extends DataTransform {
 
@@ -19,7 +23,7 @@ public class Join extends DataTransform {
 	protected JoinType _joinType;
 
 	protected String _joinText;
-	
+
 	protected Node _rightDataSource;
 
 	protected enum JoinType {
@@ -59,8 +63,8 @@ public class Join extends DataTransform {
 			sb.append(String.format(" left.%s = right.%s", _leftColumnNames[i], _rightColumnNames[i]));
 		}
 		_TransformInfo.append(sb.toString());
-		
-		_rightDataSource = XmlUtilities.selectSingleNode(operation,"DataSource");
+
+		_rightDataSource = XmlUtilities.selectSingleNode(operation, "DataSource");
 		if (_rightDataSource == null) {
 			throw new RuntimeException("Missing right side data source.  Joins require a nested DataSource for the right side.");
 		}
@@ -81,11 +85,43 @@ public class Join extends DataTransform {
 		DataStream outputStream = null;
 		// Get the right side data (create new instance of data engine)
 		DataEngine de = new DataEngine(_Session);
-		DataStream rightDataStream = de.getData((Element)_rightDataSource);
+		DataStream rightDataStream = de.getData((Element) _rightDataSource);
 		// Index the right and left dataStreams on the join columns
-		
-
+		_Session.addLogMessage("", "Index Left", "Indexing the left side data.");
+		DataTransform indexData = TransformFactory.getIndexTransform(_Session, _leftColumnNames);
+		DataStream leftIndexStream = indexData.processDataStream(inputStream, memoryLimit);
+		_Session.addLogMessage("", "Index Right", "Indexing the right side data.");
+		indexData = TransformFactory.getIndexTransform(_Session, _rightColumnNames);
+		DataStream rightIndexStream = indexData.processDataStream(rightDataStream, memoryLimit);
 		// Join the data and write the final file.
+		//@formatter:off
+		try (DataReader leftIndex = new DataReader(leftIndexStream); 
+				DataReader leftData = new DataReader(inputStream); 
+				DataReader rightIndex = new DataReader(rightIndexStream); 
+				DataReader rightData = new DataReader(rightDataStream)) {
+            //@formatter:on
+			String[] leftColumnNames = leftData.getColumnNames();
+			DataType[] leftColumnTypes = leftData.getDataTypes();
+			String[] rightColumnNames = rightData.getColumnNames();
+			DataType[] rightColumnTypes = rightData.getDataTypes();
+			// Merge the two schemas (remove duplicate columns from the right side)
+			
+			
+			rightData.close();
+			rightIndex.close();
+			leftData.close();
+			leftIndex.close();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		// Open the left (data and index) and the right (data and index)
+		// read a row, if compareTo == 0, join, continue.
 
 		return outputStream;
 	}

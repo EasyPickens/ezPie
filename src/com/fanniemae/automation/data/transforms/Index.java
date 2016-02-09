@@ -39,6 +39,11 @@ public class Index extends DataTransform {
 	protected ArrayList<IndexDataRow> _indexDataList = new ArrayList<IndexDataRow>();
 	protected IndexDataRow[] _indexData;
 
+	public Index(SessionManager session, String[] columnNames) {
+		super(session, "Index");
+		initialize(columnNames,null);
+	}
+	
 	public Index(SessionManager session, Element transform) {
 		super(session, transform, false);
 
@@ -51,45 +56,8 @@ public class Index extends DataTransform {
 
 		String[] columnNames = dataColumnList.split(",");
 		String[] indexDirections = (StringUtilities.isNullOrEmpty(indexDirectionList)) ? null : indexDirectionList.split(",");
-
-		_numberOfKeys = columnNames.length;
-		_inputColumnIndexes = new int[_numberOfKeys];
-		_isAscending = new boolean[_numberOfKeys];
-
-		// Using the file offset to ensure that the sort is "stable".
-		// Offset column name is ixStreamOffset
-		_columnNames = new String[_numberOfKeys + 1];
-		_columnNames[_numberOfKeys] = "ixStreamOffset";
-		_dataTypes = new DataType[_numberOfKeys + 1];
-		_dataTypes[_numberOfKeys] = DataType.LongData;
-
-		if (indexDirections == null) {
-			for (int i = 0; i < _numberOfKeys; i++) {
-				_isAscending[i] = true;
-				_columnNames[i] = columnNames[i];
-			}
-		} else {
-			int length = Math.min(indexDirections.length, _numberOfKeys);
-			for (int i = 0; i < length; i++) {
-				_columnNames[i] = columnNames[i].trim();
-				String direction = indexDirections[i];
-				if (StringUtilities.isNullOrEmpty(direction) || direction.toLowerCase().trim().startsWith("asc")) {
-					_isAscending[i] = true;
-				} else {
-					_isAscending[i] = false;
-				}
-			}
-		}
-
-		// Added to log the instructions defined:
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < _numberOfKeys; i++) {
-			if (i > 0)
-				sb.append(", ");
-			sb.append(_columnNames[i]);
-			sb.append(_isAscending[i] ? " ASC" : " DESC");
-		}
-		_TransformInfo.appendFormat("Order by: %s", sb.toString());
+		
+		initialize(columnNames, indexDirections);
 	}
 
 	@Override
@@ -159,6 +127,47 @@ public class Index extends DataTransform {
 			outputStream = writeIndexDataStream(true);
 		}
 		return outputStream;
+	}
+	
+	protected void initialize(String[] columnNames, String[] directions) {
+		_numberOfKeys = columnNames.length;
+		_inputColumnIndexes = new int[_numberOfKeys];
+		_isAscending = new boolean[_numberOfKeys];
+
+		// Using the file offset to ensure that the sort is "stable".
+		// Offset column name is ixStreamOffset
+		_columnNames = new String[_numberOfKeys + 1];
+		_columnNames[_numberOfKeys] = "ixStreamOffset";
+		_dataTypes = new DataType[_numberOfKeys + 1];
+		_dataTypes[_numberOfKeys] = DataType.LongData;
+
+		if (directions == null) {
+			for (int i = 0; i < _numberOfKeys; i++) {
+				_isAscending[i] = true;
+				_columnNames[i] = columnNames[i];
+			}
+		} else {
+			int length = Math.min(directions.length, _numberOfKeys);
+			for (int i = 0; i < length; i++) {
+				_columnNames[i] = columnNames[i].trim();
+				String direction = directions[i];
+				if (StringUtilities.isNullOrEmpty(direction) || direction.toLowerCase().trim().startsWith("asc")) {
+					_isAscending[i] = true;
+				} else {
+					_isAscending[i] = false;
+				}
+			}
+		}
+
+		// Added to log the instructions defined:
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < _numberOfKeys; i++) {
+			if (i > 0)
+				sb.append(", ");
+			sb.append(_columnNames[i]);
+			sb.append(_isAscending[i] ? " ASC" : " DESC");
+		}
+		_TransformInfo.appendFormat("Order by: %s", sb.toString());
 	}
 
 	protected void updateIndexInstructions(String[] inputColumnNames, DataType[] inputColumnTypes) {

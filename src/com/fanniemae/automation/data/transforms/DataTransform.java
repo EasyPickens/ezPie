@@ -46,6 +46,11 @@ public abstract class DataTransform {
 	
 	protected ReportBuilder _TransformInfo = new ReportBuilder();
 
+	public DataTransform(SessionManager session, String transformName) {
+		_Session = session;
+		_TransformName = transformName;
+	}
+	
 	public DataTransform(SessionManager session, Element transform) {
 		this(session, transform, true);
 	}
@@ -76,7 +81,7 @@ public abstract class DataTransform {
 			_TransformInfo.appendFormatLine("Exception Filename = %s", _ExceptionFilename);
 		}
 	}
-
+	
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
 		String sTempFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
