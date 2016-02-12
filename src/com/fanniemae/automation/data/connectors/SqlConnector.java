@@ -45,7 +45,7 @@ public class SqlConnector extends DataConnector {
 
 		_SqlCommand = _Session.getAttribute(dataSource, "Command");
 		if (_SqlCommand.startsWith("file://")) {
-			_SqlCommand = FileUtilities.loadFile(_SqlCommand.substring(7));
+			_SqlCommand = _Session.resolveTokens(FileUtilities.loadFile(_SqlCommand.substring(7)));
 		}
 		_Session.addLogMessagePreserveLayout("", "Command", _SqlCommand);
 	}

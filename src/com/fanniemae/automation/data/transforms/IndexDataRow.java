@@ -104,4 +104,14 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 		}
 		return 0;
 	}
+	
+	public int compareValues(IndexDataRow o) {
+		for (int i = 0; i < this._dataRowKeys.length-1; i++) {
+			int result = this._dataRowKeys[i].compareTo(o._dataRowKeys[i]);
+			if (result != 0) {
+				return result;
+			}
+		}
+		return 0;
+	}
 }

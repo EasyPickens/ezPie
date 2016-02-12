@@ -1,6 +1,10 @@
 package com.fanniemae.automation.data.transforms;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -14,17 +18,34 @@ import com.fanniemae.automation.datafiles.DataReader;
 import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
 
 public class Join extends DataTransform {
-
-	protected int _columnCount;
-
-	protected String[] _leftColumnNames;
-	protected String[] _rightColumnNames;
+	protected int INDEX_BUFFER_LIMIT = 10000;
 
 	protected JoinType _joinType;
-
 	protected String _joinText;
 
 	protected Node _rightDataSource;
+
+	protected int _indexColumnCount;
+
+	protected String[] _finalColumnNames;
+	protected DataType[] _finalDataTypes;
+
+	protected JoinSchemaColumnEntry[] _joinSchema;
+
+	protected String[] _leftJoinColumns;
+	protected String[] _rightJoinColumns;
+	protected String[] _leftIndexNames;
+	protected String[] _rightIndexNames;
+	protected String[] _leftColumnNames;
+	protected String[] _rightColumnNames;
+
+	protected DataType[] _leftIndexTypes;
+	protected DataType[] _rightIndexTypes;
+	protected DataType[] _leftColumnTypes;
+	protected DataType[] _rightColumnTypes;
+
+	protected IndexDataRow[] _leftIndexBuffer;
+	protected IndexDataRow[] _rightIndexBuffer;
 
 	protected enum JoinType {
 		INNERJOIN, LEFTOUTERJOIN, RIGHTOUTERJOIN, OUTERJOIN, UNION, CROSSJOIN
@@ -42,11 +63,11 @@ public class Join extends DataTransform {
 			throw new RuntimeException("Join requires at least one column name in RightColumns.");
 		}
 
-		_leftColumnNames = StringUtilities.split(leftColumnList);
-		_rightColumnNames = StringUtilities.split(rightColumnList);
+		_leftJoinColumns = StringUtilities.split(leftColumnList);
+		_rightJoinColumns = StringUtilities.split(rightColumnList);
 
-		if (_leftColumnNames.length != _rightColumnNames.length) {
-			throw new RuntimeException(String.format("The number of columns for the left and right data sets must be equal (%d left columns != %d right columns)", _leftColumnNames.length, _rightColumnNames.length));
+		if (_leftJoinColumns.length != _rightJoinColumns.length) {
+			throw new RuntimeException(String.format("The number of columns for the left and right data sets must be equal (%d left columns != %d right columns)", _leftJoinColumns.length, _rightJoinColumns.length));
 		}
 
 		String joinType = _Session.getAttribute(operation, "JoinType");
@@ -55,12 +76,13 @@ public class Join extends DataTransform {
 		}
 
 		_joinType = setJoinType(joinType);
+		_indexColumnCount = _leftJoinColumns.length;
 
 		StringBuilder sb = new StringBuilder(_joinText);
-		for (int i = 0; i < _leftColumnNames.length; i++) {
+		for (int i = 0; i < _indexColumnCount; i++) {
 			if (i > 0)
 				sb.append(",");
-			sb.append(String.format(" left.%s = right.%s", _leftColumnNames[i], _rightColumnNames[i]));
+			sb.append(String.format(" left.%s = right.%s", _leftJoinColumns[i], _rightJoinColumns[i]));
 		}
 		_TransformInfo.append(sb.toString());
 
@@ -88,10 +110,10 @@ public class Join extends DataTransform {
 		DataStream rightDataStream = de.getData((Element) _rightDataSource);
 		// Index the right and left dataStreams on the join columns
 		_Session.addLogMessage("", "Index Left", "Indexing the left side data.");
-		DataTransform indexData = TransformFactory.getIndexTransform(_Session, _leftColumnNames);
+		DataTransform indexData = TransformFactory.getIndexTransform(_Session, _leftJoinColumns);
 		DataStream leftIndexStream = indexData.processDataStream(inputStream, memoryLimit);
 		_Session.addLogMessage("", "Index Right", "Indexing the right side data.");
-		indexData = TransformFactory.getIndexTransform(_Session, _rightColumnNames);
+		indexData = TransformFactory.getIndexTransform(_Session, _rightJoinColumns);
 		DataStream rightIndexStream = indexData.processDataStream(rightDataStream, memoryLimit);
 		// Join the data and write the final file.
 		//@formatter:off
@@ -100,13 +122,21 @@ public class Join extends DataTransform {
 				DataReader rightIndex = new DataReader(rightIndexStream); 
 				DataReader rightData = new DataReader(rightDataStream)) {
             //@formatter:on
-			String[] leftColumnNames = leftData.getColumnNames();
-			DataType[] leftColumnTypes = leftData.getDataTypes();
-			String[] rightColumnNames = rightData.getColumnNames();
-			DataType[] rightColumnTypes = rightData.getDataTypes();
+			_leftIndexNames = leftIndex.getColumnNames();
+			_leftIndexTypes = leftIndex.getDataTypes();
+			_leftColumnNames = leftData.getColumnNames();
+			_leftColumnTypes = leftData.getDataTypes();
+			_rightIndexNames = rightIndex.getColumnNames();
+			_rightIndexTypes = rightIndex.getDataTypes();
+			_rightColumnNames = rightData.getColumnNames();
+			_rightColumnTypes = rightData.getDataTypes();
 			// Merge the two schemas (remove duplicate columns from the right side)
-			
-			
+			mergeSchemas();
+			while (!leftIndex.eof() && !rightIndex.eof()) {
+				bufferIndexData(leftIndex, false);
+				bufferIndexData(rightIndex, true);
+				
+			}
 			rightData.close();
 			rightIndex.close();
 			leftData.close();
@@ -152,6 +182,59 @@ public class Join extends DataTransform {
 			return JoinType.CROSSJOIN;
 		default:
 			throw new RuntimeException(String.format("%s join type is not currently supported.", join));
+		}
+	}
+
+	protected void mergeSchemas() {
+		List<JoinSchemaColumnEntry> schema = new ArrayList<JoinSchemaColumnEntry>();
+		Map<String, Boolean> usedColumnNames = new HashMap<String, Boolean>();
+		// populate the left side information
+		for (int i = 0; i < _leftColumnNames.length; i++) {
+			String name = _leftColumnNames[i];
+			if (!usedColumnNames.containsKey(name.toLowerCase())) {
+				schema.add(new JoinSchemaColumnEntry(name, _leftColumnTypes[i], i));
+				usedColumnNames.put(name.toLowerCase(), true);
+			}
+		}
+		// populate the right side information
+		for (int i = 0; i < _rightColumnNames.length; i++) {
+			String name = _rightColumnNames[i];
+			if (!usedColumnNames.containsKey(name.toLowerCase())) {
+				schema.add(new JoinSchemaColumnEntry(name, _rightColumnTypes[i], true, i));
+				usedColumnNames.put(name.toLowerCase(), true);
+			}
+		}
+		_joinSchema = new JoinSchemaColumnEntry[schema.size()];
+		schema.toArray(_joinSchema);
+	}
+
+	protected void bufferIndexData(DataReader dr, boolean isRight) {
+		List<IndexDataRow> buffer = new ArrayList<IndexDataRow>();
+		try {
+			int rowsBuffered = 0;
+			while (!dr.eof()) {
+				Object[] indexRow = dr.getDataRow();
+				IndexDataRow rowKeys = new IndexDataRow(1, (long) indexRow[_indexColumnCount + 1], _indexColumnCount);
+				for (int i = 0; i < _indexColumnCount; i++) {
+					Object dataPoint = indexRow[i];
+					DataType dataType = isRight ? _rightIndexTypes[i] : _leftIndexTypes[i];
+					rowKeys.setDataPoint(i, dataPoint, dataType, true);
+				}
+				buffer.add(rowKeys);
+				rowsBuffered++;
+				if (rowsBuffered >= INDEX_BUFFER_LIMIT) {
+					break;
+				}
+			}
+			if (isRight) {
+				_leftIndexBuffer = new IndexDataRow[buffer.size()];
+				buffer.toArray(_leftIndexBuffer);
+			} else {
+				_rightIndexBuffer = new IndexDataRow[buffer.size()];
+				buffer.toArray(_rightIndexBuffer);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Error while buffering join index data.", e);
 		}
 	}
 }
