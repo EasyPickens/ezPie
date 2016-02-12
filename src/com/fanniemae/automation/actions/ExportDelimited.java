@@ -35,12 +35,14 @@ public class ExportDelimited extends Action {
 	protected int[] _OutputColumnIndexes;
 	protected DataType[] _OutputColumnDataTypes;
 	protected boolean _trimSpaces = false;
+	protected boolean _roundDoubles = false;
+	protected boolean _appendData = false;
 
-	protected boolean  _WriteColumnNames = true;
+	protected boolean _WriteColumnNames = true;
 
 	public ExportDelimited(SessionManager session, Element action) {
 		super(session, action, false);
-		
+
 		_OutputFilename = _Session.getAttribute(action, "Filename");
 		if (StringUtilities.isNullOrEmpty(_OutputFilename))
 			throw new RuntimeException("Missing required output filename.");
@@ -48,11 +50,23 @@ public class ExportDelimited extends Action {
 
 		_Delimiter = _Session.getAttribute(action, "Delimiter", "|");
 		_Session.addLogMessage("", "Delimiter", _Delimiter);
-		
+
 		String trimSpaces = _Session.getAttribute(action, "TrimSpaces");
-		_trimSpaces = StringUtilities.toBoolean(trimSpaces,false);
+		_trimSpaces = StringUtilities.toBoolean(trimSpaces, false);
 		if (StringUtilities.isNotNullOrEmpty(trimSpaces)) {
 			_Session.addLogMessage("", "TrimSpaces", _trimSpaces ? "True" : "False");
+		}
+
+		String appendData = _Session.getAttribute(action, "Append");
+		_appendData = StringUtilities.toBoolean(appendData, false);
+		if (StringUtilities.isNotNullOrEmpty(appendData)) {
+			_Session.addLogMessage("", "Append", _appendData ? "True" : "False");
+		}
+		
+		String roundDoubles = _Session.getAttribute(action, "RoundDoubles");
+		_roundDoubles = StringUtilities.toBoolean(roundDoubles, false);
+		if (StringUtilities.isNotNullOrEmpty(roundDoubles)) {
+			_Session.addLogMessage("", "RoundDoubles", _roundDoubles ? "True" : "False");
 		}
 
 		_DataSetID = _Session.getAttribute(action, "DataSetID");
@@ -62,46 +76,49 @@ public class ExportDelimited extends Action {
 	@Override
 	public String execute() {
 		_DataStream = _Session.getDataStream(_DataSetID);
-		
-		try (DataReader dr = new DataReader(_DataStream); FileWriter fw = new FileWriter(_OutputFilename)) {
+
+		try (DataReader dr = new DataReader(_DataStream); FileWriter fw = new FileWriter(_OutputFilename, _appendData)) {
 			defineOutputColumns(dr.getColumnNames());
 			_OutputColumnDataTypes = dr.getDataTypes();
 
-			if (_WriteColumnNames) {
+			if (!_appendData && _WriteColumnNames) {
 				// Write Column Headers
 				for (int i = 0; i < _OutputLength; i++) {
 					if (i > 0)
 						fw.append(',');
 					fw.append(wrapString(_OutputColumnNames[i]));
 				}
+				fw.append(System.lineSeparator());
 			}
 
 			int iRowCount = 0;
 			// Write the data
 			while (!dr.eof()) {
-				fw.append(System.lineSeparator());
 				Object[] dataRow = dr.getDataRow();
-			
+
 				for (int i = 0; i < _OutputLength; i++) {
 					if (i > 0)
 						fw.append(',');
 
 					if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.DateData) {
-						fw.append(DateUtilities.toIsoString((Date)dataRow[_OutputColumnIndexes[i]]));
+						fw.append(DateUtilities.toIsoString((Date) dataRow[_OutputColumnIndexes[i]]));
 					} else if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.StringData) {
 						fw.append(wrapString(dataRow[_OutputColumnIndexes[i]]));
+					} else if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.DoubleData && _roundDoubles) {
+						fw.append(doubleFormat(dataRow[_OutputColumnIndexes[i]]));
 					} else if (dataRow[_OutputColumnIndexes[i]] == null) {
 						fw.append("");
 					} else {
 						fw.append(dataRow[_OutputColumnIndexes[i]].toString());
 					}
 				}
+				fw.append(System.lineSeparator());
 				iRowCount++;
 			}
 			fw.close();
 			dr.close();
 			_Session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
-			_Session.addLogMessage("", "Completed", String.format("Data saved to %s",_OutputFilename));
+			_Session.addLogMessage("", "Completed", String.format("Data saved to %s", _OutputFilename));
 		} catch (Exception e) {
 			RuntimeException ex = new RuntimeException("Error while trying to export the data into a delimited file.", e);
 			throw ex;
@@ -167,5 +184,12 @@ public class ExportDelimited extends Action {
 			value = "\"" + value + "\"";
 		}
 		return value;
+	}
+	
+	protected String doubleFormat(Object value) {
+		if (value == null) {
+			return "";
+		}
+		return String.format("%.2f", (double)value);
 	}
 }
