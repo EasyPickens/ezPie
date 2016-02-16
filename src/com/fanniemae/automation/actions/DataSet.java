@@ -5,6 +5,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.automation.SessionManager;
 import com.fanniemae.automation.common.DataStream;
+import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.data.DataEngine;
 
 /**
@@ -22,7 +23,7 @@ public class DataSet extends Action {
 	@Override
 	public String execute() {
 		DataEngine de = new DataEngine(_Session);
-		NodeList nl = _Action.getElementsByTagName("DataSource");
+		NodeList nl = XmlUtilities.selectNodes(_Action, "DataSource");
 		
 		int len = nl.getLength();
 		if (len == 0) {

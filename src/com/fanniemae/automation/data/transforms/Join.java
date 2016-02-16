@@ -2,6 +2,7 @@ package com.fanniemae.automation.data.transforms;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +53,10 @@ public class Join extends DataTransform {
 
 	protected enum JoinType {
 		INNERJOIN, LEFTOUTERJOIN, RIGHTOUTERJOIN, OUTERJOIN, UNION, CROSSJOIN
+	}
+
+	protected enum JoinRules {
+		LEFTONLY, RIGHTONLY, BOTHSIDES
 	}
 
 	public Join(SessionManager session, Element operation) {
@@ -146,13 +151,15 @@ public class Join extends DataTransform {
 				int rightStartIndex = 0;
 				for (int left = 0; left < _leftIndexBuffer.length; left++) {
 					Object[] leftRow = leftData.getDataRowAt(_leftIndexBuffer[left].getRowStart());
+					Arrays.fill(completeDataRow, null);
 					for (int i = 0; i < leftRow.length; i++) {
 						completeDataRow[i] = leftRow[i];
 					}
+					boolean writtenRow = false;
 					boolean firstMatch = false;
 					for (int right = rightStartIndex; right < _rightIndexBuffer.length; right++) {
 						int compareValue = _leftIndexBuffer[left].compareValues(_rightIndexBuffer[right]);
-						// 0 ==> string are equal
+						// 0 ==> values match
 						// -n ==> right side comes after the left (right is greater than)
 						// n ==> right side comes before the left (right is less than)
 						if (compareValue == 0) {
@@ -168,9 +175,25 @@ public class Join extends DataTransform {
 							}
 							dw.writeDataRow(completeDataRow);
 							rowCount++;
+							writtenRow = true;
+						} else if ((compareValue > 0) && ((_joinType == JoinType.RIGHTOUTERJOIN) || (_joinType == JoinType.OUTERJOIN))) {
+							Arrays.fill(completeDataRow, null);
+							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
+							for (int i = 0; i < _joinSchema.length; i++) {
+								if (_joinSchema[i].isRightSide()) {
+									completeDataRow[i] = rightRow[i];
+								}
+							}
+							dw.writeDataRow(completeDataRow);
+							rowCount++;
+							writtenRow = true;
 						} else if (compareValue < 0) {
 							break;
 						}
+					}
+					if (!writtenRow && ((_joinType == JoinType.LEFTOUTERJOIN) || (_joinType == JoinType.OUTERJOIN))) {
+						dw.writeDataRow(completeDataRow);
+						rowCount++;
 					}
 				}
 			}
@@ -207,8 +230,8 @@ public class Join extends DataTransform {
 		case "right outer":
 			_joinText = "Right Outer";
 			return JoinType.RIGHTOUTERJOIN;
-		case "full outer":
 		case "outer":
+		case "full outer":
 			_joinText = "Full Outer";
 			return JoinType.OUTERJOIN;
 		case "union":
@@ -216,6 +239,7 @@ public class Join extends DataTransform {
 			return JoinType.UNION;
 		case "cross":
 		case "cross join":
+			// May not add support for this type of join until requested.  Very edge case and could create HUGE datasets.			
 			_joinText = "Cross Join";
 			return JoinType.CROSSJOIN;
 		default:
