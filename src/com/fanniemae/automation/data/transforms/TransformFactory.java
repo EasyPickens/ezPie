@@ -14,6 +14,8 @@ public class TransformFactory {
 			return new SequenceColumn(session, transform);
 		case "Sort":
 			return new Sort(session, transform);
+		case "Join":
+			return new Join(session, transform);
 		default:
 			throw new RuntimeException(String.format("%s data transformation not currently supported.", transform.getNodeName()));
 		}

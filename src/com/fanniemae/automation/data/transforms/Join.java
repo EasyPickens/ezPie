@@ -2,6 +2,7 @@ package com.fanniemae.automation.data.transforms;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,10 +12,12 @@ import org.w3c.dom.Node;
 
 import com.fanniemae.automation.SessionManager;
 import com.fanniemae.automation.common.DataStream;
+import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.StringUtilities;
 import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.data.DataEngine;
 import com.fanniemae.automation.datafiles.DataReader;
+import com.fanniemae.automation.datafiles.DataWriter;
 import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
 
 public class Join extends DataTransform {
@@ -116,11 +119,13 @@ public class Join extends DataTransform {
 		indexData = TransformFactory.getIndexTransform(_Session, _rightJoinColumns);
 		DataStream rightIndexStream = indexData.processDataStream(rightDataStream, memoryLimit);
 		// Join the data and write the final file.
+		String outputFilename = FileUtilities.getRandomFilename(_Session.getStagingPath(), "dat");
 		//@formatter:off
 		try (DataReader leftIndex = new DataReader(leftIndexStream); 
 				DataReader leftData = new DataReader(inputStream); 
 				DataReader rightIndex = new DataReader(rightIndexStream); 
-				DataReader rightData = new DataReader(rightDataStream)) {
+				DataReader rightData = new DataReader(rightDataStream);
+				DataWriter dw = new DataWriter(outputFilename, memoryLimit);) {
             //@formatter:on
 			_leftIndexNames = leftIndex.getColumnNames();
 			_leftIndexTypes = leftIndex.getDataTypes();
@@ -132,27 +137,60 @@ public class Join extends DataTransform {
 			_rightColumnTypes = rightData.getDataTypes();
 			// Merge the two schemas (remove duplicate columns from the right side)
 			mergeSchemas();
+			dw.setDataColumns(_finalColumnNames, _finalDataTypes);
+			Object[] completeDataRow = new Object[_joinSchema.length];
+			int rowCount = 0;
 			while (!leftIndex.eof() && !rightIndex.eof()) {
 				bufferIndexData(leftIndex, false);
 				bufferIndexData(rightIndex, true);
-				
+				int rightStartIndex = 0;
+				for (int left = 0; left < _leftIndexBuffer.length; left++) {
+					Object[] leftRow = leftData.getDataRowAt(_leftIndexBuffer[left].getRowStart());
+					for (int i = 0; i < leftRow.length; i++) {
+						completeDataRow[i] = leftRow[i];
+					}
+					boolean firstMatch = false;
+					for (int right = rightStartIndex; right < _rightIndexBuffer.length; right++) {
+						int compareValue = _leftIndexBuffer[left].compareValues(_rightIndexBuffer[right]);
+						// 0 ==> string are equal
+						// -n ==> right side comes after the left (right is greater than)
+						// n ==> right side comes before the left (right is less than)
+						if (compareValue == 0) {
+							if (!firstMatch) {
+								rightStartIndex = right;
+								firstMatch = true;
+							}
+							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
+							for (int i = 0; i < _joinSchema.length; i++) {
+								if (_joinSchema[i].isRightSide()) {
+									completeDataRow[i] = rightRow[i];
+								}
+							}
+							dw.writeDataRow(completeDataRow);
+							rowCount++;
+						} else if (compareValue < 0) {
+							break;
+						}
+					}
+				}
 			}
 			rightData.close();
 			rightIndex.close();
 			leftData.close();
 			leftIndex.close();
 
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Calendar calendarExpires = Calendar.getInstance();
+			calendarExpires.add(Calendar.MINUTE, 30);
+			dw.setFullRowCount(rowCount);
+			dw.setBufferFirstRow(1);
+			dw.setBufferLastRow(rowCount);
+			dw.setBufferExpires(calendarExpires.getTime());
+			dw.setFullRowCountKnown(true);
+			dw.close();
+			outputStream = dw.getDataStream();
+		} catch (Exception ex) {
+			throw new RuntimeException("Error while joining data sources.", ex);
 		}
-
-		// Open the left (data and index) and the right (data and index)
-		// read a row, if compareTo == 0, join, continue.
-
 		return outputStream;
 	}
 
@@ -206,6 +244,13 @@ public class Join extends DataTransform {
 		}
 		_joinSchema = new JoinSchemaColumnEntry[schema.size()];
 		schema.toArray(_joinSchema);
+
+		_finalColumnNames = new String[schema.size()];
+		_finalDataTypes = new DataType[schema.size()];
+		for (int i = 0; i < _joinSchema.length; i++) {
+			_finalColumnNames[i] = _joinSchema[i].getColumnName();
+			_finalDataTypes[i] = _joinSchema[i].getColumnType();
+		}
 	}
 
 	protected void bufferIndexData(DataReader dr, boolean isRight) {
@@ -214,7 +259,7 @@ public class Join extends DataTransform {
 			int rowsBuffered = 0;
 			while (!dr.eof()) {
 				Object[] indexRow = dr.getDataRow();
-				IndexDataRow rowKeys = new IndexDataRow(1, (long) indexRow[_indexColumnCount + 1], _indexColumnCount);
+				IndexDataRow rowKeys = new IndexDataRow(1, (long) indexRow[_indexColumnCount], _indexColumnCount);
 				for (int i = 0; i < _indexColumnCount; i++) {
 					Object dataPoint = indexRow[i];
 					DataType dataType = isRight ? _rightIndexTypes[i] : _leftIndexTypes[i];
@@ -227,11 +272,11 @@ public class Join extends DataTransform {
 				}
 			}
 			if (isRight) {
-				_leftIndexBuffer = new IndexDataRow[buffer.size()];
-				buffer.toArray(_leftIndexBuffer);
-			} else {
 				_rightIndexBuffer = new IndexDataRow[buffer.size()];
 				buffer.toArray(_rightIndexBuffer);
+			} else {
+				_leftIndexBuffer = new IndexDataRow[buffer.size()];
+				buffer.toArray(_leftIndexBuffer);
 			}
 		} catch (IOException e) {
 			throw new RuntimeException("Error while buffering join index data.", e);
