@@ -145,6 +145,8 @@ public class Join extends DataTransform {
 			dw.setDataColumns(_finalColumnNames, _finalDataTypes);
 			Object[] completeDataRow = new Object[_joinSchema.length];
 			int rowCount = 0;
+			int rightLastIndexRead = 0;
+			// Need to adjust code to work with large data sets.
 			while (!leftIndex.eof() && !rightIndex.eof()) {
 				bufferIndexData(leftIndex, false);
 				bufferIndexData(rightIndex, true);
@@ -159,6 +161,7 @@ public class Join extends DataTransform {
 					boolean firstMatch = false;
 					for (int right = rightStartIndex; right < _rightIndexBuffer.length; right++) {
 						int compareValue = _leftIndexBuffer[left].compareValues(_rightIndexBuffer[right]);
+						rightLastIndexRead = right;
 						// 0 ==> values match
 						// -n ==> right side comes after the left (right is greater than)
 						// n ==> right side comes before the left (right is less than)
@@ -177,14 +180,15 @@ public class Join extends DataTransform {
 							rowCount++;
 							writtenRow = true;
 						} else if ((compareValue > 0) && ((_joinType == JoinType.RIGHTOUTERJOIN) || (_joinType == JoinType.OUTERJOIN))) {
-							Arrays.fill(completeDataRow, null);
+							//Arrays.fill(completeDataRow, null);
+							Object[] rightSideOnlyDataRow = new Object[_joinSchema.length];
 							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
 							for (int i = 0; i < _joinSchema.length; i++) {
 								if (_joinSchema[i].isRightSide()) {
-									completeDataRow[i] = rightRow[i];
+									rightSideOnlyDataRow[i] = rightRow[i];
 								}
 							}
-							dw.writeDataRow(completeDataRow);
+							dw.writeDataRow(rightSideOnlyDataRow);
 							rowCount++;
 							writtenRow = true;
 						} else if (compareValue < 0) {
@@ -197,6 +201,19 @@ public class Join extends DataTransform {
 					}
 				}
 			}
+			if (leftIndex.eof() && (rightLastIndexRead+1 < _rightIndexBuffer.length) && ((_joinType == JoinType.OUTERJOIN) || (_joinType == JoinType.RIGHTOUTERJOIN))) {
+				for (int right = rightLastIndexRead+1; right < _rightIndexBuffer.length; right++) {
+					Object[] rightSideOnlyDataRow = new Object[_joinSchema.length];
+					Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
+					for (int i = 0; i < _joinSchema.length; i++) {
+						if (_joinSchema[i].isRightSide()) {
+							rightSideOnlyDataRow[i] = rightRow[i];
+						}
+					}
+					dw.writeDataRow(rightSideOnlyDataRow);
+					rowCount++;
+				}
+			}			
 			rightData.close();
 			rightIndex.close();
 			leftData.close();
