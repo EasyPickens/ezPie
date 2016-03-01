@@ -3,6 +3,7 @@ package com.fanniemae.automation.data.connectors;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.w3c.dom.Element;
 
@@ -30,7 +31,7 @@ public class DelimitedConnector extends DataConnector {
 	protected Boolean _IncludesColumnNames = true;
 
 	protected int _ColumnCount;
-	
+
 	protected Object[] _DataRow;
 	protected DataType[] _DataTypes;
 
@@ -50,25 +51,6 @@ public class DelimitedConnector extends DataConnector {
 			_Delimiter = sDelimiter.charAt(0);
 			_Session.addLogMessage("", "Delimiter", String.valueOf(_Delimiter));
 		}
-
-		// String value =
-		// "998273i758584843876783786536759862395876.39875484868768648764876487648764876487648764876487644";
-		// //value ="2016/02";
-		// if (StringUtilities.isDate(value)) {
-		// _Session.addLogMessage("", "isDateTime", "Yes");
-		// }
-		// if (StringUtilities.isLong(value)) {
-		// _Session.addLogMessage("", "isLong", "Yes");
-		// }
-		//
-		// if (StringUtilities.isInteger(value)) {
-		// _Session.addLogMessage("", "isInteger", "Yes");
-		// }
-		//
-		// if (StringUtilities.isDouble(value)) {
-		// _Session.addLogMessage("", "isDouble", "Yes");
-		// }
-
 		scanSchema(_Filename);
 	}
 
@@ -98,9 +80,8 @@ public class DelimitedConnector extends DataConnector {
 			}
 			int iLen = dataRow.length < _ColumnCount ? dataRow.length : _ColumnCount;
 			// null the previous row values before reading the next row.
-			for (int i= 0;i< _ColumnCount;i++) {
-				_DataRow[i] = null;
-			}
+			Arrays.fill(_DataRow, null);
+
 			// strongly type the new row values.		
 			for (int i = 0; i < iLen; i++) {
 				_DataRow[i] = castValue(i, dataRow[i]);
@@ -146,7 +127,7 @@ public class DelimitedConnector extends DataConnector {
 			}
 
 			while (dataRow != null) {
-				for (int i = 0; i < dataRow.length; i++) {
+				for (int i = 0; i < Math.min(dataRow.length, _DataSchema.length); i++) {
 					if (!skipSchemaCheck[i] && StringUtilities.isNotNullOrEmpty(dataRow[i])) {
 						_DataSchema[i][1] = StringUtilities.getDataType(dataRow[i], _DataSchema[i][1]);
 						if (StringUtilities.isNotNullOrEmpty(_DataSchema[i][1]) && _DataSchema[i][1].equals("StringData")) {
@@ -166,10 +147,10 @@ public class DelimitedConnector extends DataConnector {
 				if (i > 0) {
 					sb.append(",\n");
 				}
-				sb.append(String.format("%s {%s}",(Object[])_DataSchema[i]));
+				sb.append(String.format("%s {%s}", (Object[]) _DataSchema[i]));
 			}
 			_Session.addLogMessage("", "Columns", sb.toString());
-			
+
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(String.format("%s file not found.", _Filename), e);
 		} catch (IOException e) {
@@ -181,7 +162,7 @@ public class DelimitedConnector extends DataConnector {
 		if (StringUtilities.isNullOrEmpty(value)) {
 			return null;
 		}
-		
+
 		switch (_DataTypes[i]) {
 		case StringData:
 			return value;

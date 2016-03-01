@@ -82,6 +82,9 @@ public class DataUtilities {
 	}
 	
     public static DataType DataTypeToEnum(String sTypeName) {
+    	if (sTypeName == null) {
+    		return DataType.StringData;
+    	}
         switch (sTypeName) {
             case "java.math.BigDecimal":
             case "BigDecimalData":
@@ -112,7 +115,7 @@ public class DataUtilities {
                 return DataType.LongData;
             case "java.lang.Short":
             case "ShortData":
-                return DataType.ShortData;                
+                return DataType.ShortData;
             case "java.lang.String":
             case "StringData":
                 return DataType.StringData;

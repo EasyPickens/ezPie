@@ -271,7 +271,7 @@ public class Join extends DataTransform {
 							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
 							for (int i = 0; i < _joinSchema.length; i++) {
 								if (_joinSchema[i].isRightSide()) {
-									completeDataRow[i] = rightRow[i];
+									completeDataRow[i] = rightRow[_joinSchema[i].getColumnIndex()];
 								}
 							}
 							dw.writeDataRow(completeDataRow);
