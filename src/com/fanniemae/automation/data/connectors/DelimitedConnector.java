@@ -6,11 +6,14 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.fanniemae.automation.SessionManager;
+import com.fanniemae.automation.common.ArrayUtilities;
 import com.fanniemae.automation.common.DataUtilities;
 import com.fanniemae.automation.common.FileUtilities;
 import com.fanniemae.automation.common.StringUtilities;
+import com.fanniemae.automation.common.XmlUtilities;
 import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
 import com.opencsv.CSVReader;
 
@@ -32,6 +35,7 @@ public class DelimitedConnector extends DataConnector {
 
 	protected int _ColumnCount;
 
+	protected int[] _sourceIndex;
 	protected Object[] _DataRow;
 	protected DataType[] _DataTypes;
 
@@ -52,6 +56,7 @@ public class DelimitedConnector extends DataConnector {
 			_Session.addLogMessage("", "Delimiter", String.valueOf(_Delimiter));
 		}
 		scanSchema(_Filename);
+		selectedColumns();
 	}
 
 	@Override
@@ -78,13 +83,22 @@ public class DelimitedConnector extends DataConnector {
 			if (dataRow == null) {
 				return true;
 			}
-			int iLen = dataRow.length < _ColumnCount ? dataRow.length : _ColumnCount;
+			int iLen = Math.min(dataRow.length, _ColumnCount);
 			// null the previous row values before reading the next row.
 			Arrays.fill(_DataRow, null);
 
 			// strongly type the new row values.		
 			for (int i = 0; i < iLen; i++) {
 				_DataRow[i] = castValue(i, dataRow[i]);
+			}
+
+			// strongly type the new row values.		
+			for (int i = 0; i < iLen; i++) {
+				if (_sourceIndex[i] == -1) {
+					_DataRow[i] = null;
+				} else {
+					_DataRow[i] = castValue(i, dataRow[_sourceIndex[i]]);
+				}
 			}
 		} catch (IOException ex) {
 			throw new RuntimeException("Error while reading delimited data file.", ex);
@@ -116,9 +130,11 @@ public class DelimitedConnector extends DataConnector {
 			_DataSchema = new String[dataRow.length][2];
 			_DataRow = new Object[dataRow.length];
 			_DataTypes = new DataType[dataRow.length];
+			_sourceIndex = new int[dataRow.length];
 			boolean[] skipSchemaCheck = new boolean[dataRow.length];
 			for (int i = 0; i < dataRow.length; i++) {
 				_DataSchema[i][0] = _IncludesColumnNames ? dataRow[i] : String.format("Column%d", i);
+				_sourceIndex[i] = i;
 				skipSchemaCheck[i] = false;
 			}
 
@@ -183,4 +199,33 @@ public class DelimitedConnector extends DataConnector {
 		}
 	}
 
+	protected void selectedColumns() {
+		NodeList outputColumns = XmlUtilities.selectNodes(_DataSource, "Column");
+		if (outputColumns.getLength() == 0) {
+			return;
+		}
+
+		int columnCount = outputColumns.getLength();
+		String[][] dataSchema = new String[columnCount][2];
+		Object[] dataRow = new Object[columnCount];
+		DataType[] dataTypes = new DataType[columnCount];
+		_sourceIndex = new int[columnCount];
+		for (int i = 0; i < columnCount; i++) {
+			Element columnElement = (Element) outputColumns.item(i);
+
+			String inputName = _Session.getAttribute(columnElement, "Name");
+			String alais = _Session.getAttribute(columnElement, "Alias");
+
+			int sourceIndex = ArrayUtilities.indexOf(_DataSchema, inputName);
+
+			dataSchema[i][0] = alais;
+			dataSchema[i][1] = _DataSchema[sourceIndex][1];
+			dataTypes[i] = _DataTypes[sourceIndex];
+			_sourceIndex[i] = sourceIndex;
+		}
+		_ColumnCount = dataSchema.length;
+		_DataSchema = dataSchema;
+		_DataTypes = dataTypes;
+		_DataRow = dataRow;
+	}
 }

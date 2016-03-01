@@ -38,7 +38,9 @@ public class ExecutionPlanner {
 		for (int i = 0; i < iLen; i++) {
 			Element eleTransform = (Element) transforms.item(i);
 			DataTransform currentTransform = TransformFactory.getTransform(_Session, eleTransform);
-			if (currentTransform.isTableLevel()) {
+			if (currentTransform == null) {
+				continue;
+			}else if (currentTransform.isTableLevel()) {
 				processingGroups.put(processingGroups.size(), aCurrentGroup);
 				aCurrentGroup = new HashMap<Integer, DataTransform>();
 			}
@@ -46,6 +48,8 @@ public class ExecutionPlanner {
 		}
 		if (aCurrentGroup.size() > 0) {
 			processingGroups.put(processingGroups.size(), aCurrentGroup);
+		} else if (processingGroups.size() == 0) {
+			processingGroups.put(0, new HashMap<Integer, DataTransform>());
 		}
 		return processingGroups;
 	}
