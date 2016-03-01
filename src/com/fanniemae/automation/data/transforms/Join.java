@@ -112,126 +112,131 @@ public class Join extends DataTransform {
 
 	@Override
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
-		DataStream outputStream = null;
-		// Get the right side data (create new instance of data engine)
-		DataEngine de = new DataEngine(_Session);
-		DataStream rightDataStream = de.getData((Element) _rightDataSource);
-		// Index the right and left dataStreams on the join columns
-		_Session.addLogMessage("", "Index Left", "Indexing the left side data.");
-		DataTransform indexData = TransformFactory.getIndexTransform(_Session, _leftJoinColumns);
-		DataStream leftIndexStream = indexData.processDataStream(inputStream, memoryLimit);
-		_Session.addLogMessage("", "Index Right", "Indexing the right side data.");
-		indexData = TransformFactory.getIndexTransform(_Session, _rightJoinColumns);
-		DataStream rightIndexStream = indexData.processDataStream(rightDataStream, memoryLimit);
-		// Join the data and write the final file.
-		String outputFilename = FileUtilities.getRandomFilename(_Session.getStagingPath(), "dat");
-		//@formatter:off
-		try (DataReader leftIndex = new DataReader(leftIndexStream); 
-				DataReader leftData = new DataReader(inputStream); 
-				DataReader rightIndex = new DataReader(rightIndexStream); 
-				DataReader rightData = new DataReader(rightDataStream);
-				DataWriter dw = new DataWriter(outputFilename, memoryLimit);) {
-            //@formatter:on
-			_leftIndexNames = leftIndex.getColumnNames();
-			_leftIndexTypes = leftIndex.getDataTypes();
-			_leftColumnNames = leftData.getColumnNames();
-			_leftColumnTypes = leftData.getDataTypes();
-			_rightIndexNames = rightIndex.getColumnNames();
-			_rightIndexTypes = rightIndex.getDataTypes();
-			_rightColumnNames = rightData.getColumnNames();
-			_rightColumnTypes = rightData.getDataTypes();
-			// Merge the two schemas (remove duplicate columns from the right side)
-			mergeSchemas();
-			dw.setDataColumns(_finalColumnNames, _finalDataTypes);
-			Object[] completeDataRow = new Object[_joinSchema.length];
-			int rowCount = 0;
-			int rightLastIndexRead = 0;
-			// Need to adjust code to work with large data sets.
-			while (!leftIndex.eof() && !rightIndex.eof()) {
-				bufferIndexData(leftIndex, false);
-				bufferIndexData(rightIndex, true);
-				int rightStartIndex = 0;
-				for (int left = 0; left < _leftIndexBuffer.length; left++) {
-					Object[] leftRow = leftData.getDataRowAt(_leftIndexBuffer[left].getRowStart());
-					Arrays.fill(completeDataRow, null);
-					for (int i = 0; i < leftRow.length; i++) {
-						completeDataRow[i] = leftRow[i];
-					}
-					boolean writtenRow = false;
-					boolean firstMatch = false;
-					for (int right = rightStartIndex; right < _rightIndexBuffer.length; right++) {
-						int compareValue = _leftIndexBuffer[left].compareValues(_rightIndexBuffer[right]);
-						rightLastIndexRead = right;
-						// 0 ==> values match
-						// -n ==> right side comes after the left (right is greater than)
-						// n ==> right side comes before the left (right is less than)
-						if (compareValue == 0) {
-							if (!firstMatch) {
-								rightStartIndex = right;
-								firstMatch = true;
-							}
-							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
-							for (int i = 0; i < _joinSchema.length; i++) {
-								if (_joinSchema[i].isRightSide()) {
-									completeDataRow[i] = rightRow[i];
-								}
-							}
-							dw.writeDataRow(completeDataRow);
-							rowCount++;
-							writtenRow = true;
-						} else if ((compareValue > 0) && ((_joinType == JoinType.RIGHTOUTERJOIN) || (_joinType == JoinType.OUTERJOIN))) {
-							//Arrays.fill(completeDataRow, null);
-							Object[] rightSideOnlyDataRow = new Object[_joinSchema.length];
-							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
-							for (int i = 0; i < _joinSchema.length; i++) {
-								if (_joinSchema[i].isRightSide()) {
-									rightSideOnlyDataRow[i] = rightRow[i];
-								}
-							}
-							dw.writeDataRow(rightSideOnlyDataRow);
-							rowCount++;
-							writtenRow = true;
-						} else if (compareValue < 0) {
-							break;
-						}
-					}
-					if (!writtenRow && ((_joinType == JoinType.LEFTOUTERJOIN) || (_joinType == JoinType.OUTERJOIN))) {
-						dw.writeDataRow(completeDataRow);
-						rowCount++;
-					}
-				}
-			}
-			if (leftIndex.eof() && (rightLastIndexRead+1 < _rightIndexBuffer.length) && ((_joinType == JoinType.OUTERJOIN) || (_joinType == JoinType.RIGHTOUTERJOIN))) {
-				for (int right = rightLastIndexRead+1; right < _rightIndexBuffer.length; right++) {
-					Object[] rightSideOnlyDataRow = new Object[_joinSchema.length];
-					Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
-					for (int i = 0; i < _joinSchema.length; i++) {
-						if (_joinSchema[i].isRightSide()) {
-							rightSideOnlyDataRow[i] = rightRow[i];
-						}
-					}
-					dw.writeDataRow(rightSideOnlyDataRow);
-					rowCount++;
-				}
-			}			
-			rightData.close();
-			rightIndex.close();
-			leftData.close();
-			leftIndex.close();
-
-			Calendar calendarExpires = Calendar.getInstance();
-			calendarExpires.add(Calendar.MINUTE, 30);
-			dw.setFullRowCount(rowCount);
-			dw.setBufferFirstRow(1);
-			dw.setBufferLastRow(rowCount);
-			dw.setBufferExpires(calendarExpires.getTime());
-			dw.setFullRowCountKnown(true);
-			dw.close();
-			outputStream = dw.getDataStream();
-		} catch (Exception ex) {
-			throw new RuntimeException("Error while joining data sources.", ex);
-		}
-		return outputStream;
+		if (_joinType == JoinType.UNION) {
+			return unionDataStreams(inputStream, memoryLimit);
+		} 
+		return joinDataStreams(inputStream, memoryLimit);
+		
+//		DataStream outputStream = null;
+//		// Get the right side data (create new instance of data engine)
+//		DataEngine de = new DataEngine(_Session);
+//		DataStream rightDataStream = de.getData((Element) _rightDataSource);
+//		// Index the right and left dataStreams on the join columns
+//		_Session.addLogMessage("", "Index Left", "Indexing the left side data.");
+//		DataTransform indexData = TransformFactory.getIndexTransform(_Session, _leftJoinColumns);
+//		DataStream leftIndexStream = indexData.processDataStream(inputStream, memoryLimit);
+//		_Session.addLogMessage("", "Index Right", "Indexing the right side data.");
+//		indexData = TransformFactory.getIndexTransform(_Session, _rightJoinColumns);
+//		DataStream rightIndexStream = indexData.processDataStream(rightDataStream, memoryLimit);
+//		// Join the data and write the final file.
+//		String outputFilename = FileUtilities.getRandomFilename(_Session.getStagingPath(), "dat");
+//		//@formatter:off
+//		try (DataReader leftIndex = new DataReader(leftIndexStream); 
+//				DataReader leftData = new DataReader(inputStream); 
+//				DataReader rightIndex = new DataReader(rightIndexStream); 
+//				DataReader rightData = new DataReader(rightDataStream);
+//				DataWriter dw = new DataWriter(outputFilename, memoryLimit);) {
+//            //@formatter:on
+//			_leftIndexNames = leftIndex.getColumnNames();
+//			_leftIndexTypes = leftIndex.getDataTypes();
+//			_leftColumnNames = leftData.getColumnNames();
+//			_leftColumnTypes = leftData.getDataTypes();
+//			_rightIndexNames = rightIndex.getColumnNames();
+//			_rightIndexTypes = rightIndex.getDataTypes();
+//			_rightColumnNames = rightData.getColumnNames();
+//			_rightColumnTypes = rightData.getDataTypes();
+//			// Merge the two schemas (remove duplicate columns from the right side)
+//			mergeSchemas();
+//			dw.setDataColumns(_finalColumnNames, _finalDataTypes);
+//			Object[] completeDataRow = new Object[_joinSchema.length];
+//			int rowCount = 0;
+//			int rightLastIndexRead = 0;
+//			// Need to adjust code to work with large data sets.
+//			while (!leftIndex.eof() && !rightIndex.eof()) {
+//				bufferIndexData(leftIndex, false);
+//				bufferIndexData(rightIndex, true);
+//				int rightStartIndex = 0;
+//				for (int left = 0; left < _leftIndexBuffer.length; left++) {
+//					Object[] leftRow = leftData.getDataRowAt(_leftIndexBuffer[left].getRowStart());
+//					Arrays.fill(completeDataRow, null);
+//					for (int i = 0; i < leftRow.length; i++) {
+//						completeDataRow[i] = leftRow[i];
+//					}
+//					boolean writtenRow = false;
+//					boolean firstMatch = false;
+//					for (int right = rightStartIndex; right < _rightIndexBuffer.length; right++) {
+//						int compareValue = _leftIndexBuffer[left].compareValues(_rightIndexBuffer[right]);
+//						rightLastIndexRead = right;
+//						// 0 ==> values match
+//						// -n ==> right side comes after the left (right is greater than)
+//						// n ==> right side comes before the left (right is less than)
+//						if (compareValue == 0) {
+//							_rightIndexBuffer[right].setUsedFlag(true);
+//							if (!firstMatch) {
+//								rightStartIndex = right;
+//								firstMatch = true;
+//							}
+//							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
+//							for (int i = 0; i < _joinSchema.length; i++) {
+//								if (_joinSchema[i].isRightSide()) {
+//									completeDataRow[i] = rightRow[i];
+//								}
+//							}
+//							dw.writeDataRow(completeDataRow);
+//							rowCount++;
+//							writtenRow = true;
+//						} else if ((compareValue > 0) && !_rightIndexBuffer[right].haveUsed() && ((_joinType == JoinType.RIGHTOUTERJOIN) || (_joinType == JoinType.OUTERJOIN))) {
+//							Object[] rightSideOnlyDataRow = new Object[_joinSchema.length];
+//							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
+//							for (int i = 0; i < _joinSchema.length; i++) {
+//								if (_joinSchema[i].isRightSide()) {
+//									rightSideOnlyDataRow[i] = rightRow[i];
+//								}
+//							}
+//							dw.writeDataRow(rightSideOnlyDataRow);
+//							rowCount++;
+//							writtenRow = true;
+//						} else if (compareValue < 0) {
+//							break;
+//						}
+//					}
+//					if (!writtenRow && ((_joinType == JoinType.LEFTOUTERJOIN) || (_joinType == JoinType.OUTERJOIN))) {
+//						dw.writeDataRow(completeDataRow);
+//						rowCount++;
+//					}
+//				}
+//			}
+//			if (leftIndex.eof() && (rightLastIndexRead + 1 < _rightIndexBuffer.length) && ((_joinType == JoinType.OUTERJOIN) || (_joinType == JoinType.RIGHTOUTERJOIN))) {
+//				for (int right = rightLastIndexRead + 1; right < _rightIndexBuffer.length; right++) {
+//					Object[] rightSideOnlyDataRow = new Object[_joinSchema.length];
+//					Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
+//					for (int i = 0; i < _joinSchema.length; i++) {
+//						if (_joinSchema[i].isRightSide()) {
+//							rightSideOnlyDataRow[i] = rightRow[i];
+//						}
+//					}
+//					dw.writeDataRow(rightSideOnlyDataRow);
+//					rowCount++;
+//				}
+//			}
+//			rightData.close();
+//			rightIndex.close();
+//			leftData.close();
+//			leftIndex.close();
+//
+//			Calendar calendarExpires = Calendar.getInstance();
+//			calendarExpires.add(Calendar.MINUTE, 30);
+//			dw.setFullRowCount(rowCount);
+//			dw.setBufferFirstRow(1);
+//			dw.setBufferLastRow(rowCount);
+//			dw.setBufferExpires(calendarExpires.getTime());
+//			dw.setFullRowCountKnown(true);
+//			dw.close();
+//			outputStream = dw.getDataStream();
+//		} catch (Exception ex) {
+//			throw new RuntimeException("Error while joining data sources.", ex);
+//		}
+//		return outputStream;
 	}
 
 	protected JoinType setJoinType(String join) {
@@ -322,5 +327,191 @@ public class Join extends DataTransform {
 		} catch (IOException e) {
 			throw new RuntimeException("Error while buffering join index data.", e);
 		}
+	}
+	
+	protected DataStream joinDataStreams(DataStream inputStream, int memoryLimit) {
+		DataStream outputStream = null;
+		// Get the right side data (create new instance of data engine)
+		DataEngine de = new DataEngine(_Session);
+		DataStream rightDataStream = de.getData((Element) _rightDataSource);
+		// Index the right and left dataStreams on the join columns
+		_Session.addLogMessage("", "Index Left", "Indexing the left side data.");
+		DataTransform indexData = TransformFactory.getIndexTransform(_Session, _leftJoinColumns);
+		DataStream leftIndexStream = indexData.processDataStream(inputStream, memoryLimit);
+		_Session.addLogMessage("", "Index Right", "Indexing the right side data.");
+		indexData = TransformFactory.getIndexTransform(_Session, _rightJoinColumns);
+		DataStream rightIndexStream = indexData.processDataStream(rightDataStream, memoryLimit);
+		// Join the data and write the final file.
+		String outputFilename = FileUtilities.getRandomFilename(_Session.getStagingPath(), "dat");
+		//@formatter:off
+		try (DataReader leftIndex = new DataReader(leftIndexStream); 
+				DataReader leftData = new DataReader(inputStream); 
+				DataReader rightIndex = new DataReader(rightIndexStream); 
+				DataReader rightData = new DataReader(rightDataStream);
+				DataWriter dw = new DataWriter(outputFilename, memoryLimit);) {
+            //@formatter:on
+			_leftIndexNames = leftIndex.getColumnNames();
+			_leftIndexTypes = leftIndex.getDataTypes();
+			_leftColumnNames = leftData.getColumnNames();
+			_leftColumnTypes = leftData.getDataTypes();
+			_rightIndexNames = rightIndex.getColumnNames();
+			_rightIndexTypes = rightIndex.getDataTypes();
+			_rightColumnNames = rightData.getColumnNames();
+			_rightColumnTypes = rightData.getDataTypes();
+			// Merge the two schemas (remove duplicate columns from the right side)
+			mergeSchemas();
+			dw.setDataColumns(_finalColumnNames, _finalDataTypes);
+			Object[] completeDataRow = new Object[_joinSchema.length];
+			int rowCount = 0;
+			int rightLastIndexRead = 0;
+			// Need to adjust code to work with large data sets.
+			while (!leftIndex.eof() && !rightIndex.eof()) {
+				bufferIndexData(leftIndex, false);
+				bufferIndexData(rightIndex, true);
+				int rightStartIndex = 0;
+				for (int left = 0; left < _leftIndexBuffer.length; left++) {
+					Object[] leftRow = leftData.getDataRowAt(_leftIndexBuffer[left].getRowStart());
+					Arrays.fill(completeDataRow, null);
+					for (int i = 0; i < leftRow.length; i++) {
+						completeDataRow[i] = leftRow[i];
+					}
+					boolean writtenRow = false;
+					boolean firstMatch = false;
+					for (int right = rightStartIndex; right < _rightIndexBuffer.length; right++) {
+						int compareValue = _leftIndexBuffer[left].compareValues(_rightIndexBuffer[right]);
+						rightLastIndexRead = right;
+						// 0 ==> values match
+						// -n ==> right side comes after the left (right is greater than)
+						// n ==> right side comes before the left (right is less than)
+						if (compareValue == 0) {
+							_rightIndexBuffer[right].setUsedFlag(true);
+							if (!firstMatch) {
+								rightStartIndex = right;
+								firstMatch = true;
+							}
+							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
+							for (int i = 0; i < _joinSchema.length; i++) {
+								if (_joinSchema[i].isRightSide()) {
+									completeDataRow[i] = rightRow[i];
+								}
+							}
+							dw.writeDataRow(completeDataRow);
+							rowCount++;
+							writtenRow = true;
+						} else if ((compareValue > 0) && !_rightIndexBuffer[right].haveUsed() && ((_joinType == JoinType.RIGHTOUTERJOIN) || (_joinType == JoinType.OUTERJOIN))) {
+							Object[] rightSideOnlyDataRow = new Object[_joinSchema.length];
+							Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
+							for (int i = 0; i < _joinSchema.length; i++) {
+								if (_joinSchema[i].isRightSide()) {
+									rightSideOnlyDataRow[i] = rightRow[i];
+								}
+							}
+							dw.writeDataRow(rightSideOnlyDataRow);
+							rowCount++;
+							writtenRow = true;
+						} else if (compareValue < 0) {
+							break;
+						}
+					}
+					if (!writtenRow && ((_joinType == JoinType.LEFTOUTERJOIN) || (_joinType == JoinType.OUTERJOIN))) {
+						dw.writeDataRow(completeDataRow);
+						rowCount++;
+					}
+				}
+			}
+			if (leftIndex.eof() && (rightLastIndexRead + 1 < _rightIndexBuffer.length) && ((_joinType == JoinType.OUTERJOIN) || (_joinType == JoinType.RIGHTOUTERJOIN))) {
+				for (int right = rightLastIndexRead + 1; right < _rightIndexBuffer.length; right++) {
+					Object[] rightSideOnlyDataRow = new Object[_joinSchema.length];
+					Object[] rightRow = rightData.getDataRowAt(_rightIndexBuffer[right].getRowStart());
+					for (int i = 0; i < _joinSchema.length; i++) {
+						if (_joinSchema[i].isRightSide()) {
+							rightSideOnlyDataRow[i] = rightRow[i];
+						}
+					}
+					dw.writeDataRow(rightSideOnlyDataRow);
+					rowCount++;
+				}
+			}
+			rightData.close();
+			rightIndex.close();
+			leftData.close();
+			leftIndex.close();
+
+			Calendar calendarExpires = Calendar.getInstance();
+			calendarExpires.add(Calendar.MINUTE, 30);
+			dw.setFullRowCount(rowCount);
+			dw.setBufferFirstRow(1);
+			dw.setBufferLastRow(rowCount);
+			dw.setBufferExpires(calendarExpires.getTime());
+			dw.setFullRowCountKnown(true);
+			dw.close();
+			outputStream = dw.getDataStream();
+		} catch (Exception ex) {
+			throw new RuntimeException("Error while joining data sources.", ex);
+		}
+		return outputStream;
+	}
+	
+	protected DataStream unionDataStreams(DataStream inputStream, int memoryLimit) {
+		DataStream outputStream = null;
+		// Get the right side data (create new instance of data engine)
+		DataEngine de = new DataEngine(_Session);
+		DataStream rightDataStream = de.getData((Element) _rightDataSource);
+		// Union the data and write the final file.
+		String outputFilename = FileUtilities.getRandomFilename(_Session.getStagingPath(), "dat");
+		//@formatter:off
+		try (DataReader leftData = new DataReader(inputStream);
+				DataReader rightData = new DataReader(rightDataStream);
+				DataWriter dw = new DataWriter(outputFilename, memoryLimit);) {
+            //@formatter:on
+			_leftColumnNames = leftData.getColumnNames();
+			_leftColumnTypes = leftData.getDataTypes();
+			_rightColumnNames = rightData.getColumnNames();
+			_rightColumnTypes = rightData.getDataTypes();
+			// Merge the two schemas (remove duplicate columns from the right side)
+			mergeSchemas();
+			dw.setDataColumns(_finalColumnNames, _finalDataTypes);
+			Object[] completeDataRow = new Object[_joinSchema.length];
+			int rowCount = 0;
+			
+			// Write left side data first
+			while (!leftData.eof()) {
+				Object[] leftRow = leftData.getDataRow();
+				Arrays.fill(completeDataRow, null);
+				for (int i = 0; i < leftRow.length; i++) {
+					completeDataRow[i] = leftRow[i];
+				}
+				dw.writeDataRow(completeDataRow);
+				rowCount++;
+			}
+			
+			// Write right side data next
+			while (!rightData.eof()) {
+				Object[] rightRow = rightData.getDataRow();
+				Arrays.fill(completeDataRow, null);
+				for (int i = 0; i < _joinSchema.length; i++) {
+					if (_joinSchema[i].isRightSide()) {
+						completeDataRow[i] = rightRow[i];
+					}
+				}
+				dw.writeDataRow(completeDataRow);
+				rowCount++;
+			}
+			rightData.close();
+			leftData.close();
+
+			Calendar calendarExpires = Calendar.getInstance();
+			calendarExpires.add(Calendar.MINUTE, 30);
+			dw.setFullRowCount(rowCount);
+			dw.setBufferFirstRow(1);
+			dw.setBufferLastRow(rowCount);
+			dw.setBufferExpires(calendarExpires.getTime());
+			dw.setFullRowCountKnown(true);
+			dw.close();
+			outputStream = dw.getDataStream();
+		} catch (Exception ex) {
+			throw new RuntimeException("Error during union operation of the data sources.", ex);
+		}
+		return outputStream;		
 	}
 }

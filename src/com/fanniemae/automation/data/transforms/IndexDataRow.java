@@ -20,6 +20,7 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 	protected int _streamChannel;
 	protected long _rowStart;
 	protected IndexDataPoint[] _dataRowKeys;
+	protected boolean _used = false;
 
 	public IndexDataRow(long rowStart, int keyCount) {
 		this(1,rowStart, keyCount);
@@ -66,6 +67,14 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 	
 	public long getRowStart() {
 		return _rowStart;
+	}
+	
+	public boolean haveUsed() {
+		return _used;
+	}
+	
+	public void setUsedFlag(boolean value) {
+		_used = value;
 	}
 
 	public Object[] getIndexValues() {
