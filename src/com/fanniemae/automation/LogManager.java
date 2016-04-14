@@ -25,8 +25,9 @@ public class LogManager {
 
 	protected String _LogFilename;
 	protected String _TemplatePath;
-	protected final String _HtmlFooter = "</table></body></html>";
+	protected final String _HtmlFooter = "</table><script>$(\".togglelink\").click(function () { $header = $(this); $content = $header.next(); $content.slideToggle(200, function () {$header.text(function () { return $content.is(\":visible\") ? \"Hide Text\" : \"View Text\";});});});</script></body></html>";
 	protected final String _BasicLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.4f</td></tr>\n";
+	protected final String _LongTextLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td><div class=\"longtexttoggle\"><div class=\"togglelink\"><span>View Text</span></div><div class=\"togglecontent\">%3$s&nbsp;</div></div></td><td>%4$,.4f</td></tr>\n";
 	protected final String _ExceptionRow = "<tr class=\"exceptionRow\"><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.4f</td></tr>\n";
 
 	protected byte[] _aHtmlFooter;
@@ -195,6 +196,8 @@ public class LogManager {
 			raf.seek(raf.length() - _FooterLength);
 			if (isError)
 				raf.write(String.format(_ExceptionRow, logGroup, event, description, elapsedTime()).getBytes());
+			else if ((description != null) && (description.length() > 300)) 
+				raf.write(String.format(this._LongTextLine, logGroup, event, description, elapsedTime()).getBytes());
 			else
 				raf.write(String.format(_BasicLine, logGroup, event, description, elapsedTime()).getBytes());
 

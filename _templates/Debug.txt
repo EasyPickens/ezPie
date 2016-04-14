@@ -1,0 +1,139 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <style>
+        .debugtable {
+            border-collapse: collapse;
+            border-spacing: 0;
+            border: 1px solid black;
+            width: 100%;
+            margin: 0px;
+            padding: 0px;
+        }
+        .debugtable tr:last-child td:last-child {
+            -moz-border-radius-bottomright: 0px;
+            -webkit-border-bottom-right-radius: 0px;
+            border-bottom-right-radius: 0px;
+        }
+        .debugtable tr:first-child td:first-child {
+            -moz-border-radius-topleft: 0px;
+            -webkit-border-top-left-radius: 0px;
+            border-top-left-radius: 0px;
+        }
+        .debugtable tr:first-child td:last-child {
+            -moz-border-radius-topright: 0px;
+            -webkit-border-top-right-radius: 0px;
+            border-top-right-radius: 0px;
+        }
+        .debugtable tr:last-child td:first-child {
+            -moz-border-radius-bottomleft: 0px;
+            -webkit-border-bottom-left-radius: 0px;
+            border-bottom-left-radius: 0px;
+        }
+        .debugtable tr:hover td {
+        }
+        .debugtable tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        .debugtable tr:nth-child(even) {
+            background-color: #e5e5e5;
+        }
+        .debugtable td {
+            vertical-align: middle;
+            border: 1px solid #000000;
+            border-width: 0px 1px 1px 0px;
+            text-align: left;
+            padding: 7px;
+            font-size: 12px;
+            font-family: Arial;
+            font-weight: normal;
+            color: #000000;
+        }
+        .debugtable tr:last-child td {
+            border-width: 0px 1px 0px 0px;
+        }
+        .debugtable tr td:last-child {
+            border-width: 0px 0px 1px 0px;
+        }
+        .debugtable tr:last-child td:last-child {
+            border-width: 0px 0px 0px 0px;
+        }
+        .debugtable tr:first-child td {
+            background: -o-linear-gradient(bottom, #999999 5%, #999999 100%);
+            background: -webkit-gradient( linear, left top, left bottom, color-stop(0.05, #999999), color-stop(1, #999999) );
+            background: -moz-linear-gradient( center top, #999999 5%, #999999 100% );
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#999999", endColorstr="#999999");
+            background: -o-linear-gradient(top,#999999,999999);
+            background-color: #999999;
+            border: 0px solid #000000;
+            text-align: center;
+            border-width: 0px 0px 1px 1px;
+            font-size: 14px;
+            font-family: Arial;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .debugtable tr:first-child:hover td {
+            background: -o-linear-gradient(bottom, #999999 5%, #999999 100%);
+            background: -webkit-gradient( linear, left top, left bottom, color-stop(0.05, #999999), color-stop(1, #999999) );
+            background: -moz-linear-gradient( center top, #999999 5%, #999999 100% );
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#999999", endColorstr="#999999");
+            background: -o-linear-gradient(top,#999999,999999);
+            background-color: #999999;
+        }
+        .debugtable tr:first-child td:first-child {
+            border-width: 0px 0px 1px 0px;
+        }
+        .debugtable tr:first-child td:last-child {
+            border-width: 0px 0px 1px 1px;
+        }
+	.exceptionRow td {
+	    color: red;
+	}
+        .longtexttoggle {
+
+            width:100%;
+        
+}
+        
+.longtexttoggle div {
+            width:100%;
+        
+}
+        
+.longtexttoggle .togglelink {
+            padding: 2px;
+
+            cursor: pointer;
+            color: blue;
+
+            text-decoration: underline;
+        
+}
+        
+.longtexttoggle .togglecontent {
+
+            display: none;
+            padding : 5px;
+
+        }
+    </style>
+    <title></title>
+</head>
+<body>
+    <table class="debugtable">
+        <tr>
+            <td>
+                Module
+            </td>
+            <td>
+                Description
+            </td>
+            <td>
+                Value
+            </td>
+            <td>
+                Elapsed Time
+            </td>
+        </tr>
