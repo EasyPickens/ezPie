@@ -103,6 +103,10 @@ public class SessionManager {
 	public String getStagingPath() {
 		return _StagingPath;
 	}
+	
+	public String getLogFilename() {
+		return _LogFilename;
+	}
 
 	public String getLogPath() {
 		return _LogPath;
