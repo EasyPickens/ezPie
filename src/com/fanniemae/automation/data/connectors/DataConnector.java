@@ -12,49 +12,49 @@ import com.fanniemae.automation.common.StringUtilities;
  * 
  */
 public abstract class DataConnector implements AutoCloseable {
-	protected SessionManager _Session;
+	protected SessionManager _session;
 
-	protected int _RowCount = 0;
-	protected int _RowLimit = -1; // -1 = no limit
+	protected int _rowCount = 0;
+	protected int _rowLimit = -1; // -1 = no limit
 
-	protected Boolean _SchemaOnly = false;
+	protected Boolean _schemaOnly = false;
 	
-	protected Element _Connection;
-	protected Element _DataSource;
+	protected Element _connection;
+	protected Element _dataSource;
 
-	protected String _DataSourceID;
-	protected String _DataSourceType;
-	protected String _ConnectionID;
-	protected String _ConnectionType;
-	protected String _ConnectionDialect;
-	protected String _ConnectionString;
+	protected String _dataSourceID;
+	protected String _dataSourceType;
+	protected String _connectionID;
+	protected String _connectionType;
+	protected String _connectionDialect;
+	protected String _connectionString;
 
-	protected String[][] _DataSchema = new String[][] {};
+	protected String[][] _dataSchema = new String[][] {};
 
 	public DataConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
-		_Session = session;
-		_DataSource = dataSource;
-		_DataSourceID = _DataSource.getAttribute("ID");
-		_DataSourceType = _DataSource.getAttribute("Type");
-		_SchemaOnly = isSchemaOnly;
+		_session = session;
+		_dataSource = dataSource;
+		_dataSourceID = _dataSource.getAttribute("ID");
+		_dataSourceType = _dataSource.getAttribute("Type");
+		_schemaOnly = isSchemaOnly;
 		
-		_ConnectionID = _DataSource.getAttribute("ConnectionID");
-		_Connection = _Session.getConnection(_ConnectionID);
-		if (_Connection != null) {
-			_ConnectionType = _Session.getAttribute(_Connection, "Type");
-			_ConnectionDialect = _Session.getAttribute(_Connection, "Dialect");
-			_ConnectionString = _Session.getAttribute(_Connection, "ConnectionString");
+		_connectionID = _dataSource.getAttribute("ConnectionID");
+		_connection = _session.getConnection(_connectionID);
+		if (_connection != null) {
+			_connectionType = _session.getAttribute(_connection, "Type");
+			_connectionDialect = _session.getAttribute(_connection, "Dialect");
+			_connectionString = _session.getAttribute(_connection, "ConnectionString");
 		}
 		
-		if (StringUtilities.isNullOrEmpty(_DataSourceID))
-			throw new RuntimeException(String.format("DataSource.%s is missing an ID value.", _DataSourceType));
+		if (StringUtilities.isNullOrEmpty(_dataSourceID))
+			throw new RuntimeException(String.format("DataSource.%s is missing an ID value.", _dataSourceType));
 
-		_Session.addLogMessage(String.format("DataSource.%s", _DataSourceType), "ID", _DataSourceID);
+		_session.addLogMessage(String.format("DataSource.%s", _dataSourceType), "ID", _dataSourceID);
 		
-		String sRowLimit = _Session.getAttribute(_DataSource, "RowLimit");
-		_RowLimit = (StringUtilities.isNullOrEmpty(sRowLimit)) ? -1 : StringUtilities.toInteger(sRowLimit, -1);
-		if (_RowLimit != -1) 
-			_Session.addLogMessage("", "Row Limit", String.format("%,d", _RowLimit));
+		String sRowLimit = _session.getAttribute(_dataSource, "RowLimit");
+		_rowLimit = (StringUtilities.isNullOrEmpty(sRowLimit)) ? -1 : StringUtilities.toInteger(sRowLimit, -1);
+		if (_rowLimit != -1) 
+			_session.addLogMessage("", "Row Limit", String.format("%,d", _rowLimit));
 	}
 
 	public abstract Boolean open();
@@ -66,19 +66,19 @@ public abstract class DataConnector implements AutoCloseable {
 	public abstract void close();
 
 	public int getRowCount() {
-		return _RowCount;
+		return _rowCount;
 	}
 
 	public int getRowLimit() {
-		return _RowLimit;
+		return _rowLimit;
 	}
 
 	public String getConnectionString() {
-		return _ConnectionString;
+		return _connectionString;
 	}
 
 	public String[][] getDataSourceSchema() {
-		return _DataSchema;
+		return _dataSchema;
 	}
 	
  

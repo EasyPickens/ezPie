@@ -12,8 +12,8 @@ import com.fanniemae.automation.common.StringUtilities;
  * 
  */
 public class SequenceColumn extends DataTransform {
-	protected int _SequenceNumber = 1;
-	protected int _Increment = 1;
+	protected int _sequenceNumber = 1;
+	protected int _increment = 1;
 
 	/**
 	 * 
@@ -23,25 +23,25 @@ public class SequenceColumn extends DataTransform {
 	 */
 	public SequenceColumn(SessionManager session, Element transform) {
 		super(session, transform);
-		_ColumnType = "java.lang.Integer";
+		_columnType = "java.lang.Integer";
 		
-		String sStartNumber = _Transform.getAttribute("StartNumber");
+		String sStartNumber = _transform.getAttribute("StartNumber");
 		int iStartNumber = StringUtilities.toInteger(sStartNumber);
 		if (StringUtilities.isNotNullOrEmpty(sStartNumber) && (iStartNumber == Integer.MIN_VALUE)) {
 			throw new RuntimeException("The StartNumber attribute of a SequenceColumn must be a valid integer.");
 		} else if (StringUtilities.isNotNullOrEmpty(sStartNumber)) {
-			_SequenceNumber = iStartNumber;
+			_sequenceNumber = iStartNumber;
 		}
-		_TransformInfo.appendFormatLine("StartNumber = %d", _SequenceNumber);
+		_transformInfo.appendFormatLine("StartNumber = %d", _sequenceNumber);
 
-		String sIncrement = _Transform.getAttribute("Increment");
+		String sIncrement = _transform.getAttribute("Increment");
 		int iIncrement = StringUtilities.toInteger(sIncrement);
 		if (StringUtilities.isNotNullOrEmpty(sIncrement) && (iIncrement == Integer.MIN_VALUE)) {
 			throw new RuntimeException("The Increment attribute of a SequenceColumn must be a valid integer.");
 		} else if (StringUtilities.isNotNullOrEmpty(sIncrement)) {
-			_Increment = iIncrement;
+			_increment = iIncrement;
 		}
-		_TransformInfo.appendFormat("Increment = %d", _Increment);
+		_transformInfo.appendFormat("Increment = %d", _increment);
 		//addTransformLogMessage();
 	}
 
@@ -51,9 +51,9 @@ public class SequenceColumn extends DataTransform {
 			return dataRow;
 		}
 		dataRow = addDataColumn(dataRow);
-		dataRow[_OutColumnIndex] = _SequenceNumber;
-		_SequenceNumber += _Increment;
-		_RowsProcessed++;
+		dataRow[_outColumnIndex] = _sequenceNumber;
+		_sequenceNumber += _increment;
+		_rowsProcessed++;
 		return dataRow;		
 	}
 

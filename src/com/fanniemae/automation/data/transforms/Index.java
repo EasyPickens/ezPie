@@ -47,8 +47,8 @@ public class Index extends DataTransform {
 	public Index(SessionManager session, Element transform) {
 		super(session, transform, false);
 
-		String dataColumnList = _Session.getAttribute(transform, "DataColumns");
-		String indexDirectionList = _Session.getAttribute(transform, "SortDirections");
+		String dataColumnList = _session.getAttribute(transform, "DataColumns");
+		String indexDirectionList = _session.getAttribute(transform, "SortDirections");
 
 		if (StringUtilities.isNullOrEmpty(dataColumnList)) {
 			throw new RuntimeException(String.format("%s transform requires at least one column name in DataColumns.",transform.getNodeName()));
@@ -67,7 +67,7 @@ public class Index extends DataTransform {
 
 	@Override
 	public Object[] processDataRow(Object[] dataRow) {
-		throw new RuntimeException(String.format("%s requires access to the entire data set.  It cannot be combined with other data transformations.",_Transform.getNodeName()));
+		throw new RuntimeException(String.format("%s requires access to the entire data set.  It cannot be combined with other data transformations.",_transform.getNodeName()));
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class Index extends DataTransform {
 			}
 			dr.close();
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _TransformName), ex);
+			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _transformName), ex);
 		}
 
 		if (_indexDataList.size() > 0) {
@@ -167,7 +167,7 @@ public class Index extends DataTransform {
 			sb.append(_columnNames[i]);
 			sb.append(_isAscending[i] ? " ASC" : " DESC");
 		}
-		_TransformInfo.appendFormat("Order by: %s", sb.toString());
+		_transformInfo.appendFormat("Order by: %s", sb.toString());
 	}
 
 	protected void updateIndexInstructions(String[] inputColumnNames, DataType[] inputColumnTypes) {
@@ -188,9 +188,9 @@ public class Index extends DataTransform {
 	protected DataStream writeIndexDataStream(boolean useMemorySettings) {
 		DataStream indexStream = null;
 
-		int memoryLimit = useMemorySettings ? _Session.getMemoryLimit() : 0;
+		int memoryLimit = useMemorySettings ? _session.getMemoryLimit() : 0;
 
-		String indexFilename = FileUtilities.getRandomFilename(_Session.getStagingPath(), "ntx");
+		String indexFilename = FileUtilities.getRandomFilename(_session.getStagingPath(), "ntx");
 		try (DataWriter dw = new DataWriter(indexFilename, memoryLimit);) {
 			dw.setDataColumns(_columnNames, _dataTypes);
 			for (IndexDataRow keys : _indexData) {
@@ -244,10 +244,10 @@ public class Index extends DataTransform {
 					fw.append(", ");
 				fw.append(_columnNames[i]);
 			}
-			fw.append(_Session.getLineSeparator());
+			fw.append(_session.getLineSeparator());
 			for (int i = 0; i < indexData.length; i++) {
 				fw.append(_indexData[i].getIndexValuesAsCSV());
-				fw.append(_Session.getLineSeparator());
+				fw.append(_session.getLineSeparator());
 			}
 			fw.close();
 		} catch (IOException e) {
@@ -258,7 +258,7 @@ public class Index extends DataTransform {
 	// Reads the external index files to create the merged index file.
 	protected DataStream mergeExternalIndexFiles() {
 		DataStream outputStream = null;
-		String indexFilename = FileUtilities.getRandomFilename(_Session.getStagingPath(), "ntx");
+		String indexFilename = FileUtilities.getRandomFilename(_session.getStagingPath(), "ntx");
 
 		// 1. Evenly divide the max items among the streams.
 		// 2. read that many from each stream.
@@ -341,7 +341,7 @@ public class Index extends DataTransform {
 			outputStream = dw.getDataStream();
 			_indexDataList = null;
 			_indexData = null;
-			_Session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
+			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
 		} catch (Exception ex) {
 			throw new RuntimeException("Could not combine external index streams.", ex);
 		} finally {
@@ -353,7 +353,7 @@ public class Index extends DataTransform {
 						FileUtilities.deleteFile(_indexStreams[i].getFilename());
 					} catch (Exception ex) {
 						String message = ((ex != null) && (ex.getMessage() != null)) ? ex.getMessage() : "No Details";
-						_Session.addLogMessage("", "** Warning **", "Tried to close stream: " + message);
+						_session.addLogMessage("", "** Warning **", "Tried to close stream: " + message);
 					}
 				}
 			}

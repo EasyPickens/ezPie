@@ -23,17 +23,17 @@ import com.fanniemae.automation.common.XmlUtilities;
  */
 public class SvnCheckout extends RunCommand {
 
-	public Map<String, String> _DirectoryURLs = new HashMap<String, String>();
-	public String _AppVersion;
+	public Map<String, String> _directoryURLs = new HashMap<String, String>();
+	public String _appVersion;
 
 	public SvnCheckout(SessionManager session, Element action) {
 		super(session, action, false);
 
-		String sAppName = _Session.getAttribute(_Action, "ApplicationName");
-		String sAppVersion = _Session.getAttribute(action, "ApplicationVersion");
-		String sWorkDirectory = _Session.getAttribute(action, "DestinationPath");
-		String sWaitForExit = _Session.getAttribute(action, "WaitForExit");
-		String sTimeout = _Session.getAttribute(action, "Timeout");
+		String sAppName = _session.getAttribute(_action, "ApplicationName");
+		String sAppVersion = _session.getAttribute(action, "ApplicationVersion");
+		String sWorkDirectory = _session.getAttribute(action, "DestinationPath");
+		String sWaitForExit = _session.getAttribute(action, "WaitForExit");
+		String sTimeout = _session.getAttribute(action, "Timeout");
 
 		if (StringUtilities.isNullOrEmpty(sAppName))
 			throw new RuntimeException("No ApplicationName value specified.");
@@ -43,16 +43,16 @@ public class SvnCheckout extends RunCommand {
 			throw new RuntimeException("No WorkDirectory value specified.");
 		
 		// Read the branches
-		NodeList nlBranches = XmlUtilities.selectNodes(_Action, "SvnDirectory");
+		NodeList nlBranches = XmlUtilities.selectNodes(_action, "SvnDirectory");
 		int iLen = nlBranches.getLength();
 		if (iLen == 0) {
 			throw new RuntimeException("No SvnDirectory URLs specified. Nothing to check out.");
 		}
 		
 		for (int i = 0; i < iLen; i++) {
-			String sUrl = _Session.getAttribute(nlBranches.item(i), "URL");
-			String sDirName = _Session.getAttribute(nlBranches.item(i), "DirectoryName");
-			String sRevision = _Session.getAttribute(nlBranches.item(i), "Revision");
+			String sUrl = _session.getAttribute(nlBranches.item(i), "URL");
+			String sDirName = _session.getAttribute(nlBranches.item(i), "DirectoryName");
+			String sRevision = _session.getAttribute(nlBranches.item(i), "Revision");
 			
 			if (StringUtilities.isNullOrEmpty(sUrl)) {
 				continue;
@@ -72,55 +72,55 @@ public class SvnCheckout extends RunCommand {
 				sUrl += "@"+sRevision;
 			}
 			
-			_DirectoryURLs.put(sDirName, sUrl);
+			_directoryURLs.put(sDirName, sUrl);
 		}
 
 		// Create application directory structure
 		String sCurrentPath = sWorkDirectory;
 		try {
-			_Session.addLogMessage("", "Work Directory", sCurrentPath);
+			_session.addLogMessage("", "Work Directory", sCurrentPath);
 			new File(sCurrentPath).mkdirs();
 			// Create each module directory - delete the old if found.
 			boolean bAddNewLine = false;
 			StringBuilder sb = new StringBuilder();
-			for (Entry<String, String> kvp : _DirectoryURLs.entrySet()) {
+			for (Entry<String, String> kvp : _directoryURLs.entrySet()) {
 				sCurrentPath = sWorkDirectory + File.separator + kvp.getKey();
 				if (FileUtilities.isValidDirectory(sCurrentPath)) {
 					FileUtils.deleteDirectory(new File(sCurrentPath));
 				}
 				if (bAddNewLine)
-					sb.append(_Session.getLineSeparator());
+					sb.append(_session.getLineSeparator());
 				sb.append(sCurrentPath);
 				new File(sCurrentPath).mkdirs();
 				bAddNewLine = true;
 			}
-			_Session.addLogMessage("", "Branch Directories", sb.toString());
+			_session.addLogMessage("", "Branch Directories", sb.toString());
 		} catch (SecurityException ex) {
-			_Session.addErrorMessage(ex);
+			_session.addErrorMessage(ex);
 			throw new RuntimeException(String.format("Could not create SVN DestinationPath (%s).", sWorkDirectory));
 		} catch (IOException e) {
-			_Session.addErrorMessage(e);
+			_session.addErrorMessage(e);
 			throw new RuntimeException(String.format("Could not delete or create SVN DestinationPath (%s).", sWorkDirectory));
 		}
 
-		_WorkDirectory = sWorkDirectory;
-		_WaitForExit = StringUtilities.toBoolean(sWaitForExit,true);
-		_Timeout = parseTimeout(sTimeout);
+		_workDirectory = sWorkDirectory;
+		_waitForExit = StringUtilities.toBoolean(sWaitForExit,true);
+		_timeout = parseTimeout(sTimeout);
 
 		if (StringUtilities.isNotNullOrEmpty(sWaitForExit))
-			_Session.addLogMessage("", "Wait For Exit", _WaitForExit.toString());
+			_session.addLogMessage("", "Wait For Exit", _waitForExit.toString());
 		if (StringUtilities.isNotNullOrEmpty(sTimeout))
-			_Session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _Timeout));
+			_session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _timeout));
 	}
 
 	@Override
 	public String execute() {
 		String sCurrentPath;
 		
-		for (Entry<String, String> kvp : _DirectoryURLs.entrySet()) {
-			sCurrentPath = _WorkDirectory + File.separator + kvp.getKey();
-			_Arguments = new String[] { "svn", "checkout", StringUtilities.wrapValue(kvp.getValue()), StringUtilities.wrapValue(sCurrentPath) };
-			_Session.addLogMessage("", "Command Line", createCommandLine(_Arguments));
+		for (Entry<String, String> kvp : _directoryURLs.entrySet()) {
+			sCurrentPath = _workDirectory + File.separator + kvp.getKey();
+			_arguments = new String[] { "svn", "checkout", StringUtilities.wrapValue(kvp.getValue()), StringUtilities.wrapValue(sCurrentPath) };
+			_session.addLogMessage("", "Command Line", createCommandLine(_arguments));
 			super.execute();
 		}
 		return "";

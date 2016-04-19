@@ -17,11 +17,11 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
  */
 public class TokenManager {
 
-	protected HashMap<String, HashMap<String, String>> _aTokens = new HashMap<String, HashMap<String, String>>();
-	protected LogManager _Log;
+	protected HashMap<String, HashMap<String, String>> _tokens = new HashMap<String, HashMap<String, String>>();
+	protected LogManager _log;
 
 	public TokenManager(Element eleSettings, LogManager oLogger) {
-		_Log = oLogger;
+		_log = oLogger;
 		NodeList nl = eleSettings.getChildNodes();
 		int iLength = nl.getLength();
 		for (int i = 0; i < iLength; i++) {
@@ -41,11 +41,11 @@ public class TokenManager {
 
 	public void addToken(String tokenType, String key, String value) {
 		HashMap<String, String> aTokenValues = new HashMap<String, String>();
-		if (_aTokens.containsKey(tokenType))
-			aTokenValues = _aTokens.get(tokenType);
+		if (_tokens.containsKey(tokenType))
+			aTokenValues = _tokens.get(tokenType);
 
 		aTokenValues.put(key, value);
-		_aTokens.put(tokenType, aTokenValues);
+		_tokens.put(tokenType, aTokenValues);
 	}
 
 	public void addTokens(String tokenType, Node nodeTokenValues) {
@@ -82,8 +82,8 @@ public class TokenManager {
 			if ((aDataRow == null) && sGroup.equals("Data"))
 				continue;
 
-			if (_aTokens.containsKey(sGroup) && _aTokens.get(sGroup).containsKey(sKey)) {
-				sValue = sValue.replace(sFullToken, _aTokens.get(sGroup).get(sKey));
+			if (_tokens.containsKey(sGroup) && _tokens.get(sGroup).containsKey(sKey)) {
+				sValue = sValue.replace(sFullToken, _tokens.get(sGroup).get(sKey));
 			}
 		}
 		return sValue;
@@ -91,8 +91,8 @@ public class TokenManager {
 
 	protected void loadTokenValues(String sTokenType, Node xNode) {
 		HashMap<String, String> aKeyValues;
-		if (_aTokens.containsKey(sTokenType)) {
-			aKeyValues = _aTokens.get(sTokenType);
+		if (_tokens.containsKey(sTokenType)) {
+			aKeyValues = _tokens.get(sTokenType);
 		} else {
 			aKeyValues = new HashMap<String, String>();
 		}
@@ -113,7 +113,7 @@ public class TokenManager {
 			aKeyValues.put(sName, sValue);
 			sb.append(String.format("%s = %s \n", sName, sValue));
 		}
-		_aTokens.put(sTokenType, aKeyValues);
+		_tokens.put(sTokenType, aKeyValues);
 		
 		String sLogMessage = "Adding tokens to log manager.";
 		if (startCount == 0) {
@@ -123,6 +123,6 @@ public class TokenManager {
 		} else if (startCount < aKeyValues.size()) {
 			sLogMessage = String.format("%,d %s token value(s) added/updated.\n%s", aKeyValues.size()-startCount, sTokenType, sb.toString());
 		}
-		_Log.addMessage("", "@" + sTokenType, sLogMessage);
+		_log.addMessage("", "@" + sTokenType, sLogMessage);
 	}
 }

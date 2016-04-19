@@ -17,7 +17,7 @@ import com.fanniemae.automation.datafiles.DataReader;
  */
 public class DataSetConnector extends DataConnector {
 
-	protected String _DataSetID;
+	protected String _dataSetID;
 	
 	protected DataStream _dataStream;
 	
@@ -26,11 +26,11 @@ public class DataSetConnector extends DataConnector {
 	public DataSetConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
 		
-		_DataSetID = _Session.getAttribute(dataSource, "DataSetID");
-		if (StringUtilities.isNullOrEmpty(_DataSetID)) {
+		_dataSetID = _session.getAttribute(dataSource, "DataSetID");
+		if (StringUtilities.isNullOrEmpty(_dataSetID)) {
 			throw new RuntimeException("DataSource.DataSet is missing the required DataSetID.");
 		}
-		_dataStream = _Session.getDataStream(_DataSetID);
+		_dataStream = _session.getDataStream(_dataSetID);
 	}
 	
 	public DataSetConnector(SessionManager session, DataStream dataStream, Boolean isSchemaOnly) {
@@ -42,7 +42,7 @@ public class DataSetConnector extends DataConnector {
 	public Boolean open() {
 		try {
 			_dr = new DataReader(_dataStream);
-			_DataSchema = _dr.getSchema();
+			_dataSchema = _dr.getSchema();
 		} catch (IOException ex) {
 			throw new RuntimeException("Could not open requested data stream.", ex);
 		}

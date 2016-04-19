@@ -19,28 +19,28 @@ import com.fanniemae.automation.common.StringUtilities;
  */
 public class TimespanColumn extends DataTransform {
 
-	protected TransformDateValue _FormatDateValue;
+	protected TransformDateValue _formatDateValue;
 
-	protected int _DayOfWeekShift = 0;
-	protected Calendar _FiscalStart = Calendar.getInstance();
+	protected int _dayOfWeekShift = 0;
+	protected Calendar _fiscalStart = Calendar.getInstance();
 
 	// Notes: (after testing.)
 	// Arrays added to improve performance. Data processing time dropped from
 	// 23.5 seconds down to 7.7 seconds on 1 million rows x 30 Date operations
 	// on test machine.
-	protected String[] _DayAbbreviations = new String[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-	protected String[] _DayNames = new String[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
-	protected String[] _MonthAbbreviations = new String[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	protected String[] _MonthNames = new String[] { "January", "February", "Marche", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
-	protected int[] _Quarters = new int[] { 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4 };
-	protected int[] _QuarterFirstMonth = new int[] { 1, 4, 7, 10 };
+	protected String[] _dayAbbreviations = new String[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	protected String[] _dayNames = new String[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+	protected String[] _monthAbbreviations = new String[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	protected String[] _monthNames = new String[] { "January", "February", "Marche", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
+	protected int[] _quarters = new int[] { 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4 };
+	protected int[] _quarterFirstMonth = new int[] { 1, 4, 7, 10 };
 
-	protected int[] _FiscalQuarters = new int[] { 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4 };
-	protected int[] _FiscalQuarterFirstMonth = new int[] { 1, 4, 7, 10 };
+	protected int[] _fiscalQuarters = new int[] { 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4 };
+	protected int[] _fiscalQuarterFirstMonth = new int[] { 1, 4, 7, 10 };
 
 	// Special case: just subtract 1 day to get last day of the previous month.
-	protected int[] _QuarterLastMonth = new int[] { 4, 7, 10, 1 };
-	protected int[] _FiscalQuarterLastMonth = new int[] { 4, 7, 10, 1 };
+	protected int[] _quarterLastMonth = new int[] { 4, 7, 10, 1 };
+	protected int[] _fiscalQuarterLastMonth = new int[] { 4, 7, 10, 1 };
 
 	public TimespanColumn(SessionManager session, Element transform) {
 		this(session, transform, null);
@@ -49,35 +49,35 @@ public class TimespanColumn extends DataTransform {
 	public TimespanColumn(SessionManager session, Element transform, Calendar fiscalYearStart) {
 		super(session, transform, false);
 		if (fiscalYearStart == null) {
-			_FiscalStart.set(Calendar.MONTH, 0);
-			_FiscalStart.set(Calendar.DATE, 1);
+			_fiscalStart.set(Calendar.MONTH, 0);
+			_fiscalStart.set(Calendar.DATE, 1);
 		} else {
-			_FiscalStart = fiscalYearStart;
+			_fiscalStart = fiscalYearStart;
 		}
 
-		_DataColumn = _Session.getAttribute(_Transform, "DataColumn");
-		String sTimePeriod = _Session.getAttribute(_Transform, "TimePeriod");
-		String sCulture = _Session.getAttribute(_Transform, "TimePeriodCulture");
+		_dataColumn = _session.getAttribute(_transform, "DataColumn");
+		String sTimePeriod = _session.getAttribute(_transform, "TimePeriod");
+		String sCulture = _session.getAttribute(_transform, "TimePeriodCulture");
 
-		if (StringUtilities.isNullOrEmpty(_DataColumn)) {
+		if (StringUtilities.isNullOrEmpty(_dataColumn)) {
 			throw new RuntimeException("Missing a value in DataColumn for the TimePeriodColumn.");
 		}
 		if (StringUtilities.isNullOrEmpty(sTimePeriod)) {
 			throw new RuntimeException("Missing a value in TimePeroid for the TimePeriodColumn.");
 		}
-		_TransformInfo.appendFormatLine("DataColumn = %s", _DataColumn);
+		_transformInfo.appendFormatLine("DataColumn = %s", _dataColumn);
 		if (StringUtilities.isNotNullOrEmpty(sCulture)) {
-			_TransformInfo.appendFormatLine("TimePeriodCulture = %s", sCulture);
+			_transformInfo.appendFormatLine("TimePeriodCulture = %s", sCulture);
 		}
 		if (fiscalYearStart != null) {
-			_TransformInfo.appendFormatLine("Fiscal Year Start = %s", DateUtilities.toIsoString(fiscalYearStart));
+			_transformInfo.appendFormatLine("Fiscal Year Start = %s", DateUtilities.toIsoString(fiscalYearStart));
 		}
-		_TransformInfo.appendFormat("TimePeriod = %s", sTimePeriod);
+		_transformInfo.appendFormat("TimePeriod = %s", sTimePeriod);
 		
 		// Populate the arrays with the server culture day and month names.
 		populateNameArrays(sCulture);
 
-		_FormatDateValue = inializeFormatClass(sTimePeriod);
+		_formatDateValue = inializeFormatClass(sTimePeriod);
 	}
 
 	@Override
@@ -91,8 +91,8 @@ public class TimespanColumn extends DataTransform {
 			return dataRow;
 		}
 		dataRow = addDataColumn(dataRow);
-		dataRow[_OutColumnIndex] = _FormatDateValue.transform((Date) dataRow[_SourceColumnIndex]);
-		_RowsProcessed++;
+		dataRow[_outColumnIndex] = _formatDateValue.transform((Date) dataRow[_sourceColumnIndex]);
+		_rowsProcessed++;
 		return dataRow;
 	}
 
@@ -119,37 +119,37 @@ public class TimespanColumn extends DataTransform {
 		String[] aMonthNames = dfs.getMonths();
 
 		for (int i = 0; i < 7; i++) {
-			_DayAbbreviations[i] = aDayAbbreviations[i + 1];
-			_DayNames[i] = aDayNames[i + 1];
+			_dayAbbreviations[i] = aDayAbbreviations[i + 1];
+			_dayNames[i] = aDayNames[i + 1];
 		}
 
 		for (int i = 0; i < 12; i++) {
-			_MonthAbbreviations[i] = aMonthAbbreviations[i + 1];
-			_MonthNames[i] = aMonthNames[i + 1];
+			_monthAbbreviations[i] = aMonthAbbreviations[i + 1];
+			_monthNames[i] = aMonthNames[i + 1];
 		}
 	}
 
 	protected void initializeFiscalYearArrays() {
 		// In JAVA returns 0 for January
-		if (_FiscalStart.get(Calendar.MONTH) != 0) {
-			int iStartMonth = _FiscalStart.get(Calendar.MONTH) + 1;
+		if (_fiscalStart.get(Calendar.MONTH) != 0) {
+			int iStartMonth = _fiscalStart.get(Calendar.MONTH) + 1;
 			// Shift fiscal arrays based on fiscal year start
 			int nQ = 1;
 			int nMonth = 1;
 			int nIndex = iStartMonth - 1;
-			_FiscalQuarterFirstMonth[0] = iStartMonth;
-			_FiscalQuarterLastMonth[0] = iStartMonth + 3;
-			if (_FiscalQuarterLastMonth[0] > 12) {
-				_FiscalQuarterLastMonth[0] = _FiscalQuarterFirstMonth[0] - 12;
+			_fiscalQuarterFirstMonth[0] = iStartMonth;
+			_fiscalQuarterLastMonth[0] = iStartMonth + 3;
+			if (_fiscalQuarterLastMonth[0] > 12) {
+				_fiscalQuarterLastMonth[0] = _fiscalQuarterFirstMonth[0] - 12;
 			}
 			for (int i = 0; i < 12; i++) {
-				_FiscalQuarters[nIndex] = nQ;
+				_fiscalQuarters[nIndex] = nQ;
 				nMonth++;
 				if ((nMonth > 3) && (i < 11)) {
-					_FiscalQuarterFirstMonth[nQ] = nIndex + 2;
-					_FiscalQuarterLastMonth[nQ] = nIndex + 5;
-					if (_FiscalQuarterLastMonth[nQ] > 12) {
-						_FiscalQuarterLastMonth[nQ] = _FiscalQuarterLastMonth[nQ] - 12;
+					_fiscalQuarterFirstMonth[nQ] = nIndex + 2;
+					_fiscalQuarterLastMonth[nQ] = nIndex + 5;
+					if (_fiscalQuarterLastMonth[nQ] > 12) {
+						_fiscalQuarterLastMonth[nQ] = _fiscalQuarterLastMonth[nQ] - 12;
 					}
 					nQ++;
 					nMonth = 1;
@@ -163,36 +163,36 @@ public class TimespanColumn extends DataTransform {
 	}
 
 	protected TransformDateValue inializeFormatClass(String sTimePeriod) {
-		_ColumnType = "java.util.Date";
+		_columnType = "java.util.Date";
 		switch (sTimePeriod.toLowerCase()) {
 		case "date":
 			return new DateOnly();
 		case "day":
 			return new DateOnly();
 		case "dayofmonth":
-			_ColumnType = "java.lang.Integer";
+			_columnType = "java.lang.Integer";
 			return new DayOfMonth();
 		case "dayofweek":
-			_ColumnType = "java.lang.Integer";
-			return new DayOfWeek(_DayOfWeekShift);
+			_columnType = "java.lang.Integer";
+			return new DayOfWeek(_dayOfWeekShift);
 		case "dayofweekabbreviation":
-			_ColumnType = "java.lang.String";
-			return new DayOfWeekAbbreviation(_DayAbbreviations);
+			_columnType = "java.lang.String";
+			return new DayOfWeekAbbreviation(_dayAbbreviations);
 		case "dayofweekname":
-			_ColumnType = "java.lang.String";
-			return new DayOfWeekName(_DayNames);
+			_columnType = "java.lang.String";
+			return new DayOfWeekName(_dayNames);
 		case "dayofyear":
-			_ColumnType = "java.lang.Integer";
+			_columnType = "java.lang.Integer";
 			return new DayOfYear();
 		case "firstdayoffiscalquarter":
 			initializeFiscalYearArrays();
-			return new FiscalQuarterFirstDay(_FiscalQuarters, _FiscalQuarterFirstMonth);
+			return new FiscalQuarterFirstDay(_fiscalQuarters, _fiscalQuarterFirstMonth);
 		case "firstdayofmonth":
 			return new FirstDayOfMonth();
 		case "firstdayofquarter":
 			return new FirstDayOfQuarter();
 		case "firstdayofweek":
-			return new FirstDayOfWeek(_DayOfWeekShift);
+			return new FirstDayOfWeek(_dayOfWeekShift);
 		case "firstdayofyear":
 			return new FirstDayOfYear();
 		case "firsthourofday":
@@ -202,46 +202,46 @@ public class TimespanColumn extends DataTransform {
 		case "firstsecondofminute":
 			return new FirstSecondOfMinute();
 		case "fiscalquarter":
-			_ColumnType = "java.lang.Integer";
+			_columnType = "java.lang.Integer";
 			initializeFiscalYearArrays();
-			return new FiscalQuarter(_FiscalQuarters);
+			return new FiscalQuarter(_fiscalQuarters);
 		case "hour":
-			_ColumnType = "java.lang.Integer";
+			_columnType = "java.lang.Integer";
 			return new JustHour();
 		case "lastdayoffiscalquarter":
 			initializeFiscalYearArrays();
-			return new FiscalQuarterLastDay(_FiscalQuarters, _FiscalQuarterLastMonth);
+			return new FiscalQuarterLastDay(_fiscalQuarters, _fiscalQuarterLastMonth);
 		case "lastdayofmonth":
 			return new LastDayOfMonth();
 		case "lastdayofquarter":
-			return new LastDayOfQuarter(_Quarters, _QuarterLastMonth);
+			return new LastDayOfQuarter(_quarters, _quarterLastMonth);
 		case "lastdayofweek":
-			return new LastDayOfWeek(_DayOfWeekShift);
+			return new LastDayOfWeek(_dayOfWeekShift);
 		case "lastdayofyear":
 			return new LastDayOfYear();
 		case "minute":
-			_ColumnType = "java.lang.Integer";
+			_columnType = "java.lang.Integer";
 			return new JustMinute();
 		case "month":
-			_ColumnType = "java.lang.Integer";
+			_columnType = "java.lang.Integer";
 			return new MonthNumber();
 		case "monthabbreviation":
-			_ColumnType = "java.lang.String";
-			return new MonthAbbrevation(_MonthAbbreviations);
+			_columnType = "java.lang.String";
+			return new MonthAbbrevation(_monthAbbreviations);
 		case "monthname":
-			_ColumnType = "java.lang.String";
-			return new MonthName(_MonthNames);
+			_columnType = "java.lang.String";
+			return new MonthName(_monthNames);
 		case "quarter":
-			_ColumnType = "java.lang.Integer";
-			return new QuarterNumber(_Quarters);
+			_columnType = "java.lang.Integer";
+			return new QuarterNumber(_quarters);
 		case "second":
-			_ColumnType = "java.lang.Integer";
+			_columnType = "java.lang.Integer";
 			return new JustSecond();
 		case "week":
-			_ColumnType = "java.lang.Integer";
+			_columnType = "java.lang.Integer";
 			return new WeekOfYear();
 		case "year":
-			_ColumnType = "java.lang.Integer";
+			_columnType = "java.lang.Integer";
 			return new JustYear();
 		default:
 			throw new RuntimeException("Invalid TimePeriod attribute for a TimePeriodColumn: " + sTimePeriod);
@@ -281,7 +281,7 @@ public class TimespanColumn extends DataTransform {
 		@Override
 		public Object transform(Date dateValue) {
 			_Calendar.setTime(dateValue);
-			_Calendar.set(Calendar.MONTH, _QuarterFirstMonth[_Quarters[_Calendar.get(Calendar.MONTH)] - 1] - 1);
+			_Calendar.set(Calendar.MONTH, _quarterFirstMonth[_quarters[_Calendar.get(Calendar.MONTH)] - 1] - 1);
 			_Calendar.set(Calendar.DATE, 1);
 			_Calendar.set(Calendar.HOUR, 0);
 			_Calendar.set(Calendar.HOUR_OF_DAY, 0);

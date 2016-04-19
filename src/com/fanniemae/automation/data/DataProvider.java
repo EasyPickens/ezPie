@@ -29,40 +29,40 @@ import com.fanniemae.automation.data.utilities.SqlParameterInfo;
  * 
  */
 public class DataProvider {
-	protected Element _Connection = null;
+	protected Element _connection = null;
 
-	protected String _SqlDialect = "";
-	protected String _ConnectionString = "";
-	protected String _LastErrorMessage = "";
-	protected String _JarFilename = "";
-	protected String _ClassName = "";
-	protected String _URL;
+	protected String _sqlDialect = "";
+	protected String _connectionString = "";
+	protected String _lastErrorMessage = "";
+	protected String _jarFilename = "";
+	protected String _className = "";
+	protected String _url;
 
 	protected int _CommandTimeout = 60;
 
 	public DataProvider(Element eleConnection) {
-		_Connection = eleConnection;
+		_connection = eleConnection;
 
-		_SqlDialect = eleConnection.getAttribute("Dialect");
-		if (StringUtilities.isNullOrEmpty(_SqlDialect)) {
-			_SqlDialect = "SQL92";
+		_sqlDialect = eleConnection.getAttribute("Dialect");
+		if (StringUtilities.isNullOrEmpty(_sqlDialect)) {
+			_sqlDialect = "SQL92";
 		}
 		
-		_URL = eleConnection.getAttribute("URL");
-		_ClassName = eleConnection.getAttribute("ClassName");
-		_ConnectionString = eleConnection.getAttribute("ConnectionString");
+		_url = eleConnection.getAttribute("URL");
+		_className = eleConnection.getAttribute("ClassName");
+		_connectionString = eleConnection.getAttribute("ConnectionString");
 	}
 
 	public Connection getConnection() {
 		Connection con = null;
 		try {
-			URL u = new URL(formatProviderUrl(_URL));
+			URL u = new URL(formatProviderUrl(_url));
 			URLClassLoader ucl = new URLClassLoader(new URL[] { u });
-			Driver d = (Driver) Class.forName(_ClassName, true, ucl).newInstance();
+			Driver d = (Driver) Class.forName(_className, true, ucl).newInstance();
 			DriverManager.registerDriver(new DriverShim(d));
-			con = DriverManager.getConnection(_ConnectionString);
+			con = DriverManager.getConnection(_connectionString);
 		} catch (Exception ex) {
-			_LastErrorMessage = ex.getMessage();
+			_lastErrorMessage = ex.getMessage();
 			if (con != null) {
 				try {
 					con.close();
@@ -91,7 +91,7 @@ public class DataProvider {
 				aResults.add(oInfo);
 			}
 		} catch (SQLException ex) {
-			_LastErrorMessage = ex.getMessage();
+			_lastErrorMessage = ex.getMessage();
 			aResults = null;
 		} finally {
 			if (rs != null) {
@@ -166,7 +166,7 @@ public class DataProvider {
 
 			}
 		} catch (SQLException e) {
-			_LastErrorMessage = e.getMessage();
+			_lastErrorMessage = e.getMessage();
 		}
 		return cstmt;
 	}

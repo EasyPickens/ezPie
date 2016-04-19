@@ -23,32 +23,32 @@ import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
  * 
  */
 public abstract class DataTransform {
-	protected SessionManager _Session;
-	protected Element _Transform;
+	protected SessionManager _session;
+	protected Element _transform;
 
-	protected String _ID;
-	protected String _TransformName;
-	protected String _ExceptionID;
-	protected String _ExceptionFilename;
-	protected String _DataColumn;
-	protected String _ColumnType = "java.lang.String";
+	protected String _id;
+	protected String _transformName;
+	protected String _exceptionID;
+	protected String _exceptionFilename;
+	protected String _dataColumn;
+	protected String _columnType = "java.lang.String";
 
-	protected int _OutColumnIndex;
-	protected int _SourceColumnIndex;
-	protected int _RowsProcessed;
-	protected int _RowsRemaining;
-	protected int _RowsReturned;
-	protected int _RowsRemoved;
+	protected int _outColumnIndex;
+	protected int _sourceColumnIndex;
+	protected int _rowsProcessed;
+	protected int _rowsRemaining;
+	protected int _rowsReturned;
+	protected int _rowsRemoved;
 
-	protected Boolean _IDRequired = true;
-	protected Boolean _NewColumn;
-	protected Boolean _AddedNewColumn;
+	protected Boolean _idRequired = true;
+	protected Boolean _newColumn;
+	protected Boolean _addedNewColumn;
 	
-	protected ReportBuilder _TransformInfo = new ReportBuilder();
+	protected ReportBuilder _transformInfo = new ReportBuilder();
 
 	public DataTransform(SessionManager session, String transformName) {
-		_Session = session;
-		_TransformName = transformName;
+		_session = session;
+		_transformName = transformName;
 	}
 	
 	public DataTransform(SessionManager session, Element transform) {
@@ -56,35 +56,35 @@ public abstract class DataTransform {
 	}
 
 	public DataTransform(SessionManager session, Element transform, boolean idRequired) {
-		_Session = session;
-		_Transform = transform;
-		_IDRequired = idRequired;
+		_session = session;
+		_transform = transform;
+		_idRequired = idRequired;
 
-		_ID = _Session.getAttribute(transform, "ID");
-		_TransformName = transform.getNodeName();
+		_id = _session.getAttribute(transform, "ID");
+		_transformName = transform.getNodeName();
 		String sType = transform.getAttribute("Type");
 		if (StringUtilities.isNotNullOrEmpty(sType)) {
-			_TransformName += "." + sType;
+			_transformName += "." + sType;
 		}
 
-		if (_IDRequired && StringUtilities.isNullOrEmpty(_ID)) {
-			throw new RuntimeException(String.format("{0} must have an ID value defined.", _TransformName));
+		if (_idRequired && StringUtilities.isNullOrEmpty(_id)) {
+			throw new RuntimeException(String.format("{0} must have an ID value defined.", _transformName));
 		} 
-		if (StringUtilities.isNotNullOrEmpty(_ID)) {
-			_TransformInfo.appendFormatLine("ID = %s", _ID);
+		if (StringUtilities.isNotNullOrEmpty(_id)) {
+			_transformInfo.appendFormatLine("ID = %s", _id);
 		}
 
-		_ExceptionID = _Transform.getAttribute("ExceptionDataID");
-		if (StringUtilities.isNotNullOrEmpty(_ExceptionID)) {
-			_ExceptionFilename = FileUtilities.getDataFilename(_Session.getStagingPath(), XmlUtilities.getOuterXml(_Transform), _ExceptionID);
-			_TransformInfo.appendFormatLine("ExceptionID = %s",_ExceptionID);
-			_TransformInfo.appendFormatLine("Exception Filename = %s", _ExceptionFilename);
+		_exceptionID = _transform.getAttribute("ExceptionDataID");
+		if (StringUtilities.isNotNullOrEmpty(_exceptionID)) {
+			_exceptionFilename = FileUtilities.getDataFilename(_session.getStagingPath(), XmlUtilities.getOuterXml(_transform), _exceptionID);
+			_transformInfo.appendFormatLine("ExceptionID = %s",_exceptionID);
+			_transformInfo.appendFormatLine("Exception Filename = %s", _exceptionFilename);
 		}
 	}
 	
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
-		String sTempFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
+		String sTempFilename = FileUtilities.getRandomFilename(_session.getStagingPath());
 		try (DataReader br = new DataReader(inputStream); DataWriter bw = new DataWriter(sTempFilename, memoryLimit)) {
 			String[] aColumnNames = br.getColumnNames();
 			DataType[] aDataTypes = br.getDataTypes();
@@ -100,7 +100,7 @@ public abstract class DataTransform {
 			bw.close();
 			outputStream = bw.getDataStream();
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _TransformName), ex);
+			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _transformName), ex);
 
 		}
 		return outputStream;
@@ -111,14 +111,14 @@ public abstract class DataTransform {
 	public abstract Object[] processDataRow(Object[] dataRow);
 
 	public String[][] UpdateSchema(String[][] aSchema) {
-		_OutColumnIndex = ArrayUtilities.indexOf(aSchema, _ID, true);
+		_outColumnIndex = ArrayUtilities.indexOf(aSchema, _id, true);
 
-		if (StringUtilities.isNotNullOrEmpty(_DataColumn)) {
-			_SourceColumnIndex = ArrayUtilities.indexOf(aSchema, _DataColumn, true);
+		if (StringUtilities.isNotNullOrEmpty(_dataColumn)) {
+			_sourceColumnIndex = ArrayUtilities.indexOf(aSchema, _dataColumn, true);
 		}
 
-		if (_OutColumnIndex != -1) {
-			aSchema[_OutColumnIndex][1] = _ColumnType;
+		if (_outColumnIndex != -1) {
+			aSchema[_outColumnIndex][1] = _columnType;
 			return aSchema;
 		} else {
 			int nLength = aSchema.length;
@@ -127,10 +127,10 @@ public abstract class DataTransform {
 				aNewSchema[i][0] = aSchema[i][0];
 				aNewSchema[i][1] = aSchema[i][1];
 			}
-			_NewColumn = true;
-			_OutColumnIndex = nLength;
-			aNewSchema[nLength][0] = _ID;
-			aNewSchema[nLength][1] = _ColumnType;
+			_newColumn = true;
+			_outColumnIndex = nLength;
+			aNewSchema[nLength][0] = _id;
+			aNewSchema[nLength][1] = _columnType;
 			return aNewSchema;
 		}
 	}
@@ -146,7 +146,7 @@ public abstract class DataTransform {
 	}
 
 	protected String[] resizeColumnArray(String[] aColumnNames, int nNewColumnCount) {
-		_AddedNewColumn = true;
+		_addedNewColumn = true;
 		String[] aNewColumnArray = new String[aColumnNames.length + nNewColumnCount];
 
 		System.arraycopy(aColumnNames, 0, aNewColumnArray, 0, aColumnNames.length);
@@ -165,27 +165,27 @@ public abstract class DataTransform {
 	}
 	
 	public void addTransformLogMessage() {
-		_Session.addLogMessage("", _TransformName, _TransformInfo.toString());
+		_session.addLogMessage("", _transformName, _transformInfo.toString());
 	}
 
 	public int getRowsProcessed() {
-		return _RowsProcessed;
+		return _rowsProcessed;
 	}
 
 	public int getRowsRemaining() {
-		return _RowsRemaining;
+		return _rowsRemaining;
 	}
 
 	public int getRowsRemoved() {
-		return _RowsRemoved;
+		return _rowsRemoved;
 	}
 
 	public String getID() {
-		return _ID;
+		return _id;
 	}
 
 	public String getDataColumn() {
-		return _DataColumn;
+		return _dataColumn;
 	}
 
 	public boolean isGlobalValue() {

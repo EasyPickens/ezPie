@@ -62,8 +62,8 @@ public class Join extends DataTransform {
 	public Join(SessionManager session, Element operation) {
 		super(session, operation, false);
 
-		String leftColumnList = _Session.getAttribute(operation, "LeftColumns");
-		String rightColumnList = _Session.getAttribute(operation, "RightColumns");
+		String leftColumnList = _session.getAttribute(operation, "LeftColumns");
+		String rightColumnList = _session.getAttribute(operation, "RightColumns");
 
 		if (StringUtilities.isNullOrEmpty(leftColumnList)) {
 			throw new RuntimeException("Join requires at least one column name in LeftColumns.");
@@ -78,7 +78,7 @@ public class Join extends DataTransform {
 			throw new RuntimeException(String.format("The number of columns for the left and right data sets must be equal (%d left columns != %d right columns)", _leftJoinColumns.length, _rightJoinColumns.length));
 		}
 
-		String joinType = _Session.getAttribute(operation, "JoinType");
+		String joinType = _session.getAttribute(operation, "JoinType");
 		if (StringUtilities.isNullOrEmpty(joinType)) {
 			joinType = "Inner";
 		}
@@ -92,7 +92,7 @@ public class Join extends DataTransform {
 				sb.append(",");
 			sb.append(String.format(" left.%s = right.%s", _leftJoinColumns[i], _rightJoinColumns[i]));
 		}
-		_TransformInfo.append(sb.toString());
+		_transformInfo.append(sb.toString());
 
 		_rightDataSource = XmlUtilities.selectSingleNode(operation, "DataSource");
 		if (_rightDataSource == null) {
@@ -211,17 +211,17 @@ public class Join extends DataTransform {
 	protected DataStream joinDataStreams(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
 		// Get the right side data (create new instance of data engine)
-		DataEngine de = new DataEngine(_Session);
+		DataEngine de = new DataEngine(_session);
 		DataStream rightDataStream = de.getData((Element) _rightDataSource);
 		// Index the right and left dataStreams on the join columns
-		_Session.addLogMessage("", "Index Left", "Indexing the left side data.");
-		DataTransform indexData = TransformFactory.getIndexTransform(_Session, _leftJoinColumns);
+		_session.addLogMessage("", "Index Left", "Indexing the left side data.");
+		DataTransform indexData = TransformFactory.getIndexTransform(_session, _leftJoinColumns);
 		DataStream leftIndexStream = indexData.processDataStream(inputStream, memoryLimit);
-		_Session.addLogMessage("", "Index Right", "Indexing the right side data.");
-		indexData = TransformFactory.getIndexTransform(_Session, _rightJoinColumns);
+		_session.addLogMessage("", "Index Right", "Indexing the right side data.");
+		indexData = TransformFactory.getIndexTransform(_session, _rightJoinColumns);
 		DataStream rightIndexStream = indexData.processDataStream(rightDataStream, memoryLimit);
 		// Join the data and write the final file.
-		String outputFilename = FileUtilities.getRandomFilename(_Session.getStagingPath(), "dat");
+		String outputFilename = FileUtilities.getRandomFilename(_session.getStagingPath(), "dat");
 		//@formatter:off
 		try (DataReader leftIndex = new DataReader(leftIndexStream); 
 				DataReader leftData = new DataReader(inputStream); 
@@ -334,10 +334,10 @@ public class Join extends DataTransform {
 	protected DataStream unionDataStreams(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
 		// Get the right side data (create new instance of data engine)
-		DataEngine de = new DataEngine(_Session);
+		DataEngine de = new DataEngine(_session);
 		DataStream rightDataStream = de.getData((Element) _rightDataSource);
 		// Union the data and write the final file.
-		String outputFilename = FileUtilities.getRandomFilename(_Session.getStagingPath(), "dat");
+		String outputFilename = FileUtilities.getRandomFilename(_session.getStagingPath(), "dat");
 		//@formatter:off
 		try (DataReader leftData = new DataReader(inputStream);
 				DataReader rightData = new DataReader(rightDataStream);

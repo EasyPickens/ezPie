@@ -21,62 +21,62 @@ import com.fanniemae.automation.common.XmlUtilities;
  */
 public class JobManager {
 
-	protected SessionManager _Session;
+	protected SessionManager _session;
 
 	public JobManager(String settingsFilename, String jobFilename) {
-		_Session = new SessionManager(settingsFilename, jobFilename);
+		_session = new SessionManager(settingsFilename, jobFilename);
 	}
 	
 	public String getLogFilename() {
-		return _Session.getLogFilename();
+		return _session.getLogFilename();
 	}
 
 	public String runJob() {
 		Action act;
 		try {
-			NodeList nlActions = XmlUtilities.selectNodes(_Session.getJobDefinition(), "*");
+			NodeList nlActions = XmlUtilities.selectNodes(_session.getJobDefinition(), "*");
 			int iLen = nlActions.getLength();
 			for (int i = 0; i < iLen; i++) {
 				Element eleOperation = (Element) nlActions.item(i);
 				switch (eleOperation.getNodeName()) {
 				case "RunCommand":
 					// Run external command or batch file
-					act = new RunCommand(_Session, eleOperation);
+					act = new RunCommand(_session, eleOperation);
 					act.execute();
 					break;
 				case "LocalTokens":
-					act = new LocalTokens(_Session, eleOperation);
+					act = new LocalTokens(_session, eleOperation);
 					act.execute();
 					break;
 				case "DataSet":
 					// Pull data and process
-					act = new DataSet(_Session, eleOperation);
+					act = new DataSet(_session, eleOperation);
 					act.execute();
 					break;
 				case "LogComment":
-					act = new LogComment(_Session, eleOperation);
+					act = new LogComment(_session, eleOperation);
 					act.execute();
 					break;
 				case "Export":
-					act = new ExportDelimited(_Session, eleOperation);
+					act = new ExportDelimited(_session, eleOperation);
 					act.execute();
 					break;
 				case "SvnCheckout":
-					act = new SvnCheckout(_Session, eleOperation);
+					act = new SvnCheckout(_session, eleOperation);
 					act.execute();
 					break;
 				case "Directory" :
-					act = new Directory(_Session, eleOperation);
+					act = new Directory(_session, eleOperation);
 					act.execute();
 					break;
 				default:
-					_Session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
+					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}
 			}
-			_Session.addLogMessage("Completed", "", "Processing completed successfully.");
+			_session.addLogMessage("Completed", "", "Processing completed successfully.");
 			return "";
 		} catch (Exception ex) {
-			_Session.addErrorMessage(ex);
+			_session.addErrorMessage(ex);
 			throw ex;
 		}
 	}

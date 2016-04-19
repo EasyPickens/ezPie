@@ -15,85 +15,85 @@ import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
  * 
  */
 abstract public class DataFormat implements AutoCloseable {
-	protected String _Filename = "";
-    protected DataRow _DataRow;
-    protected ArrayList<IndexEntry> _IndexBlock = null;
-    protected int _MemoryLimitInBytes = 20971520;   // = 20 megs or 10485760 = 10 megs;
+	protected String _filename = "";
+    protected DataRow _dataRow;
+    protected ArrayList<IndexEntry> _indexBlock = null;
+    protected int _memoryLimitInBytes = 20971520;   // = 20 megs or 10485760 = 10 megs;
 
-    protected boolean _ProfileData = false;
-    protected boolean _Disposed = false;
-    protected long _IndexInterval = 5000L;       // Used by index to determine how often to add entry.
-    protected long _NextBreak = 5000L;      // Next row count to add an index entry.
-    protected long _CurrentRowNumber = 0L;
-    protected long _StartOfDataBlock = 0L;
+    protected boolean _profileData = false;
+    protected boolean _disposed = false;
+    protected long _indexInterval = 5000L;       // Used by index to determine how often to add entry.
+    protected long _nextBreak = 5000L;      // Next row count to add an index entry.
+    protected long _currentRowNumber = 0L;
+    protected long _startOfDataBlock = 0L;
 
     // File header information in order
-    protected byte _byteFileType = 0;
+    protected byte _fileType = 0;
     protected boolean _isEncrypted = true;
-    protected String _FingerPrint;
-    protected String _SourceDataFilename = "";
-    protected boolean _FullRowCountKnown = true;
-    protected long _FullRowCount = 0L;
-    protected long _FirstRow = 0L;
-    protected long _LastRow = 0L;
-    protected long _IndexStart = 0L;
-    protected long _SchemaStart = 0L;
-    protected Date _DateCreated = new Date();
-    protected Date _DateExpires = new Date();
-    protected String _SchemaXML = "";
+    protected String _fingerPrint;
+    protected String _sourceDataFilename = "";
+    protected boolean _fullRowCountKnown = true;
+    protected long _fullRowCount = 0L;
+    protected long _firstRow = 0L;
+    protected long _lastRow = 0L;
+    protected long _indexStart = 0L;
+    protected long _schemaStart = 0L;
+    protected Date _dateCreated = new Date();
+    protected Date _dateExpires = new Date();
+    protected String _schemaXML = "";
 
     protected Map<DataFileEnums.BinaryFileInfo, Object> _HeaderInformation = null;
 
     public String getFingerPrint() {
-        return _FingerPrint;
+        return _fingerPrint;
     }
 
     public long getFullRowCount() {
-        return _FullRowCount;
+        return _fullRowCount;
     }
 
     public void setFullRowCount(long value) {
-        _FullRowCount = value;
+        _fullRowCount = value;
     }
 
     public long getBufferFirstRow() {
-        return _FirstRow;
+        return _firstRow;
     }
 
     public void setBufferFirstRow(long value) {
-        _FirstRow = value;
+        _firstRow = value;
     }
 
     public long getBufferLastRow() {
-        return _LastRow;
+        return _lastRow;
     }
 
     public void setBufferLastRow(long value) {
-        _LastRow = value;
+        _lastRow = value;
     }
 
     public Date getBufferExpires() {
-        return _DateExpires;
+        return _dateExpires;
     }
 
     public void setBufferExpires(Date value) {
-        _DateExpires = value;
+        _dateExpires = value;
     }
 
     public Date getDateCreated() {
-        return _DateCreated;
+        return _dateCreated;
     }
     
     public void setFullRowCountKnown(Boolean value) {
-        _FullRowCountKnown = value;
+        _fullRowCountKnown = value;
     }
 
     public DataFormat() {
-        _IndexBlock = new ArrayList<>();
+        _indexBlock = new ArrayList<>();
     }
 
     public void defineDataColumn(int index, String columnName, DataType columnDataType) {
-        _DataRow.DefineColumn(index, columnName, columnDataType);
+        _dataRow.DefineColumn(index, columnName, columnDataType);
     }
 
     public void defineDataColumn(int index, String columnName, String javaDataType) {
@@ -105,22 +105,22 @@ abstract public class DataFormat implements AutoCloseable {
     }
 
     protected void defineDataColumn(int index, String columnName, String javaDataType, ColumnTypes columnType, String globalValue) {
-        _DataRow.DefineColumn(index, columnName, columnType, javaDataType, null);
+        _dataRow.DefineColumn(index, columnName, columnType, javaDataType, null);
     }
 
     protected void populateHeaderInformation() {
         _HeaderInformation = new HashMap<>();
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.DateCreated, _DateCreated);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.DateCreated, _dateCreated);
         _HeaderInformation.put(DataFileEnums.BinaryFileInfo.Encrypted, _isEncrypted);
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.DateExpires, _DateExpires);
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.FileType, _byteFileType);
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.FingerPrint, _FingerPrint);
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.BufferFirstRow, _FirstRow);
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.BufferLastRow, _LastRow);
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.FullRowCountKnown,_FullRowCountKnown);
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.RowCount, _FullRowCount);
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.DatFilename, _SourceDataFilename);
-        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.SchemaXML, _SchemaXML);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.DateExpires, _dateExpires);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.FileType, _fileType);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.FingerPrint, _fingerPrint);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.BufferFirstRow, _firstRow);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.BufferLastRow, _lastRow);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.FullRowCountKnown,_fullRowCountKnown);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.RowCount, _fullRowCount);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.DatFilename, _sourceDataFilename);
+        _HeaderInformation.put(DataFileEnums.BinaryFileInfo.SchemaXML, _schemaXML);
     }
 
     public class IndexEntry {

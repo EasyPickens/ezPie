@@ -18,7 +18,7 @@ public class LogComment extends Action {
 
 	@Override
 	public String execute() {
-		_Session.addLogMessage("", "Message", _Session.getAttribute(_Action, "Message"));
+		_session.addLogMessage("", "Message", _session.getAttribute(_action, "Message"));
 		return "";
 	}
 }

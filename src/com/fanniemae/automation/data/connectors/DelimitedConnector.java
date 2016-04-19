@@ -27,13 +27,13 @@ public class DelimitedConnector extends DataConnector {
 
 	protected CSVReader _reader;
 
-	protected String _Filename;
+	protected String _filename;
 
-	protected char _Delimiter = ',';
+	protected char _delimiter = ',';
 
-	protected Boolean _IncludesColumnNames = true;
+	protected Boolean _includesColumnNames = true;
 
-	protected int _ColumnCount;
+	protected int _columnCount;
 
 	protected int[] _sourceIndex;
 	protected Object[] _DataRow;
@@ -42,28 +42,28 @@ public class DelimitedConnector extends DataConnector {
 	public DelimitedConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
 
-		_Filename = _Session.getAttribute(_DataSource, "Filename");
-		if (StringUtilities.isNullOrEmpty(_Filename)) {
+		_filename = _session.getAttribute(_dataSource, "Filename");
+		if (StringUtilities.isNullOrEmpty(_filename)) {
 			throw new RuntimeException("DataSource.Delimited requires a Filename.");
-		} else if (FileUtilities.isInvalidFile(_Filename)) {
-			throw new RuntimeException(String.format("%s file not found.", _Filename));
+		} else if (FileUtilities.isInvalidFile(_filename)) {
+			throw new RuntimeException(String.format("%s file not found.", _filename));
 		}
-		_Session.addLogMessage("", "Filename", _Filename);
+		_session.addLogMessage("", "Filename", _filename);
 
-		String sDelimiter = _Session.getAttribute(_DataSource, "Delimiter");
+		String sDelimiter = _session.getAttribute(_dataSource, "Delimiter");
 		if (StringUtilities.isNotNullOrEmpty(sDelimiter)) {
-			_Delimiter = sDelimiter.charAt(0);
-			_Session.addLogMessage("", "Delimiter", String.valueOf(_Delimiter));
+			_delimiter = sDelimiter.charAt(0);
+			_session.addLogMessage("", "Delimiter", String.valueOf(_delimiter));
 		}
-		scanSchema(_Filename);
+		scanSchema(_filename);
 		selectedColumns();
 	}
 
 	@Override
 	public Boolean open() {
 		try {
-			_reader = new CSVReader(new FileReader(_Filename), ',');
-			if (_IncludesColumnNames) {
+			_reader = new CSVReader(new FileReader(_filename), ',');
+			if (_includesColumnNames) {
 				_reader.readNext();
 			}
 		} catch (FileNotFoundException ex) {
@@ -83,7 +83,7 @@ public class DelimitedConnector extends DataConnector {
 			if (dataRow == null) {
 				return true;
 			}
-			int iLen = Math.min(dataRow.length, _ColumnCount);
+			int iLen = Math.min(dataRow.length, _columnCount);
 			// null the previous row values before reading the next row.
 			Arrays.fill(_DataRow, null);
 
@@ -123,30 +123,30 @@ public class DelimitedConnector extends DataConnector {
 	}
 
 	protected void scanSchema(String filename) {
-		try (CSVReader rdr = new CSVReader(new FileReader(_Filename), ',');) {
+		try (CSVReader rdr = new CSVReader(new FileReader(_filename), ',');) {
 			String[] dataRow = rdr.readNext();
 
 			// Read/create column names.
-			_DataSchema = new String[dataRow.length][2];
+			_dataSchema = new String[dataRow.length][2];
 			_DataRow = new Object[dataRow.length];
 			_DataTypes = new DataType[dataRow.length];
 			_sourceIndex = new int[dataRow.length];
 			boolean[] skipSchemaCheck = new boolean[dataRow.length];
 			for (int i = 0; i < dataRow.length; i++) {
-				_DataSchema[i][0] = _IncludesColumnNames ? dataRow[i] : String.format("Column%d", i);
+				_dataSchema[i][0] = _includesColumnNames ? dataRow[i] : String.format("Column%d", i);
 				_sourceIndex[i] = i;
 				skipSchemaCheck[i] = false;
 			}
 
-			if (_IncludesColumnNames) {
+			if (_includesColumnNames) {
 				dataRow = rdr.readNext();
 			}
 
 			while (dataRow != null) {
-				for (int i = 0; i < Math.min(dataRow.length, _DataSchema.length); i++) {
+				for (int i = 0; i < Math.min(dataRow.length, _dataSchema.length); i++) {
 					if (!skipSchemaCheck[i] && StringUtilities.isNotNullOrEmpty(dataRow[i])) {
-						_DataSchema[i][1] = StringUtilities.getDataType(dataRow[i], _DataSchema[i][1]);
-						if (StringUtilities.isNotNullOrEmpty(_DataSchema[i][1]) && _DataSchema[i][1].equals("StringData")) {
+						_dataSchema[i][1] = StringUtilities.getDataType(dataRow[i], _dataSchema[i][1]);
+						if (StringUtilities.isNotNullOrEmpty(_dataSchema[i][1]) && _dataSchema[i][1].equals("StringData")) {
 							skipSchemaCheck[i] = true;
 						}
 					}
@@ -156,21 +156,21 @@ public class DelimitedConnector extends DataConnector {
 
 			// Load the data types for each column (faster conversion from
 			// string to whatever)
-			_ColumnCount = _DataSchema.length;
+			_columnCount = _dataSchema.length;
 			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < _ColumnCount; i++) {
-				_DataTypes[i] = DataUtilities.DataTypeToEnum(_DataSchema[i][1]);
+			for (int i = 0; i < _columnCount; i++) {
+				_DataTypes[i] = DataUtilities.DataTypeToEnum(_dataSchema[i][1]);
 				if (i > 0) {
 					sb.append(",\n");
 				}
-				sb.append(String.format("%s {%s}", (Object[]) _DataSchema[i]));
+				sb.append(String.format("%s {%s}", (Object[]) _dataSchema[i]));
 			}
-			_Session.addLogMessage("", "Columns", sb.toString());
+			_session.addLogMessage("", "Columns", sb.toString());
 
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException(String.format("%s file not found.", _Filename), e);
+			throw new RuntimeException(String.format("%s file not found.", _filename), e);
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Could not read schema for delimited file %s", _Filename), e);
+			throw new RuntimeException(String.format("Could not read schema for delimited file %s", _filename), e);
 		}
 	}
 
@@ -200,7 +200,7 @@ public class DelimitedConnector extends DataConnector {
 	}
 
 	protected void selectedColumns() {
-		NodeList outputColumns = XmlUtilities.selectNodes(_DataSource, "Column");
+		NodeList outputColumns = XmlUtilities.selectNodes(_dataSource, "Column");
 		if (outputColumns.getLength() == 0) {
 			return;
 		}
@@ -213,18 +213,18 @@ public class DelimitedConnector extends DataConnector {
 		for (int i = 0; i < columnCount; i++) {
 			Element columnElement = (Element) outputColumns.item(i);
 
-			String inputName = _Session.getAttribute(columnElement, "Name");
-			String alais = _Session.getAttribute(columnElement, "Alias");
+			String inputName = _session.getAttribute(columnElement, "Name");
+			String alais = _session.getAttribute(columnElement, "Alias");
 
-			int sourceIndex = ArrayUtilities.indexOf(_DataSchema, inputName);
+			int sourceIndex = ArrayUtilities.indexOf(_dataSchema, inputName);
 
 			dataSchema[i][0] = alais;
-			dataSchema[i][1] = _DataSchema[sourceIndex][1];
+			dataSchema[i][1] = _dataSchema[sourceIndex][1];
 			dataTypes[i] = _DataTypes[sourceIndex];
 			_sourceIndex[i] = sourceIndex;
 		}
-		_ColumnCount = dataSchema.length;
-		_DataSchema = dataSchema;
+		_columnCount = dataSchema.length;
+		_dataSchema = dataSchema;
 		_DataTypes = dataTypes;
 		_DataRow = dataRow;
 	}

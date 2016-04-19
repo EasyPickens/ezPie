@@ -22,8 +22,8 @@ public class DataSet extends Action {
 
 	@Override
 	public String execute() {
-		DataEngine de = new DataEngine(_Session);
-		NodeList nl = XmlUtilities.selectNodes(_Action, "DataSource");
+		DataEngine de = new DataEngine(_session);
+		NodeList nl = XmlUtilities.selectNodes(_action, "DataSource");
 		
 		int len = nl.getLength();
 		if (len == 0) {
@@ -32,7 +32,7 @@ public class DataSet extends Action {
 		
 		for (int i = 0; i < len; i++) {
 			DataStream ds = de.getData((Element) (nl.item(i)));
-			_Session.addDataSet(_ID,ds);
+			_session.addDataSet(_id,ds);
 		}
 		return null;
 	}

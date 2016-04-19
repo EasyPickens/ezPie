@@ -18,11 +18,11 @@ public class CompareFilter extends DataTransform {
 	public CompareFilter(SessionManager session, Element transform, boolean idRequired) {
 		super(session, transform, false);
 
-		_DataColumn = _Session.getAttribute(transform, "DataColumn");
-		_compareType = setCompareType(_Session.getAttribute(transform, "Operation"));
-		_compareValue = _Session.getAttribute(transform, "CompareValue");
+		_dataColumn = _session.getAttribute(transform, "DataColumn");
+		_compareType = setCompareType(_session.getAttribute(transform, "Operation"));
+		_compareValue = _session.getAttribute(transform, "CompareValue");
 
-		if (StringUtilities.isNullOrEmpty(_DataColumn)) {
+		if (StringUtilities.isNullOrEmpty(_dataColumn)) {
 			throw new RuntimeException(String.format("%s transform requires a column name in DataColumn.", transform.getNodeName()));
 		}
 

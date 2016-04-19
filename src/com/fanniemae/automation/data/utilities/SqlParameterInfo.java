@@ -10,10 +10,10 @@ import java.sql.Types;
  * 
  */
 public class SqlParameterInfo {
-    protected String _Name = "";
-    protected int _DbType = Types.VARCHAR;
-    protected String _DbTypeName = "";
-    protected int _Direction = DatabaseMetaData.procedureColumnIn;
+    protected String _name = "";
+    protected int _dbType = Types.VARCHAR;
+    protected String _dbTypeName = "";
+    protected int _direction = DatabaseMetaData.procedureColumnIn;
     protected Object _value = null;
     
     public SqlParameterInfo() {
@@ -21,43 +21,43 @@ public class SqlParameterInfo {
     }
     
     public SqlParameterInfo(String name, int dbType, String dbTypeName, int direction, Object value) {
-        _Name = name;
-        _DbType = dbType;
-        _DbTypeName = dbTypeName;
-        _Direction = direction;
+        _name = name;
+        _dbType = dbType;
+        _dbTypeName = dbTypeName;
+        _direction = direction;
         _value = value;
     }
     
     public String getName() {
-    	return _Name;
+    	return _name;
     }
     
     public void setName(String value) {
-    	_Name = value;
+    	_name = value;
     }
     
     public int getDbType() {
-    	return _DbType;
+    	return _dbType;
     }
     
     public void setDbType(int value) {
-    	_DbType = value;
+    	_dbType = value;
     }
     
     public String getDbTypeName() {
-    	return _DbTypeName;
+    	return _dbTypeName;
     }
     
     public void setDbTypeName(String value) {
-    	_DbTypeName = value;
+    	_dbTypeName = value;
     }
     
     public int getDirection() {
-    	return _Direction;
+    	return _direction;
     }
     
     public void setDirection(int value) {
-    	_Direction = value;
+    	_direction = value;
     }
     
     public Object getValue() {

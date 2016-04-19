@@ -26,51 +26,51 @@ import com.fanniemae.automation.data.DataProvider;
  * 
  */
 public class SqlConnector extends DataConnector {
-	protected DataProvider _Provider;
+	protected DataProvider _provider;
 	protected Connection _con;
 	protected PreparedStatement _pstmt;
 	protected ResultSet _rs;
 
-	protected String _SqlCommand;
+	protected String _sqlCommand;
 
-	protected String[] _FieldNames;
+	protected String[] _fieldNames;
 
-	protected Boolean _CalledCommandCancel = false;
+	protected Boolean _calledCommandCancel = false;
 
-	protected int _ColumnCount;
-	protected int _CommandTimeout = 60;
+	protected int _columnCount;
+	protected int _commandTimeout = 60;
 
 	public SqlConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
 
-		_SqlCommand = _Session.getAttribute(dataSource, "Command");
-		if (_SqlCommand.startsWith("file://")) {
-			_SqlCommand = _Session.resolveTokens(FileUtilities.loadFile(_SqlCommand.substring(7)));
+		_sqlCommand = _session.getAttribute(dataSource, "Command");
+		if (_sqlCommand.startsWith("file://")) {
+			_sqlCommand = _session.resolveTokens(FileUtilities.loadFile(_sqlCommand.substring(7)));
 		}
-		_Session.addLogMessagePreserveLayout("", "Command", _SqlCommand);
+		_session.addLogMessagePreserveLayout("", "Command", _sqlCommand);
 	}
 
 	@Override
 	public Boolean open() {
 		try {
-			_Provider = new DataProvider(_Connection);
-			_con = _Provider.getConnection();
-			_pstmt = _con.prepareStatement(_SqlCommand);
-			_ConnectionString = _con.getMetaData().getURL();
+			_provider = new DataProvider(_connection);
+			_con = _provider.getConnection();
+			_pstmt = _con.prepareStatement(_sqlCommand);
+			_connectionString = _con.getMetaData().getURL();
 
-			_Session.addLogMessage("", "ConnectionID", _Connection.getAttribute("ID"));
+			_session.addLogMessage("", "ConnectionID", _connection.getAttribute("ID"));
 
 			AddCommandParameters();
-			String sCommandTimeout = _DataSource.getAttribute("CommandTimeout");
+			String sCommandTimeout = _dataSource.getAttribute("CommandTimeout");
 			if (StringUtilities.isNullOrEmpty(sCommandTimeout)) {
-				sCommandTimeout = _Connection.getAttribute("CommandTimeout");
+				sCommandTimeout = _connection.getAttribute("CommandTimeout");
 			}
 
 			if (StringUtilities.isNotNullOrEmpty(sCommandTimeout)) { // &&
 																		// NotPostgreSQL())
 																		// {
 				_pstmt.setQueryTimeout(StringUtilities.toInteger(sCommandTimeout, 60));
-				_Session.addLogMessage("", "Command Timeout", String.format("%,d", _pstmt.getQueryTimeout()));
+				_session.addLogMessage("", "Command Timeout", String.format("%,d", _pstmt.getQueryTimeout()));
 				// } else if (StringUtilities.isNotNullOrEmpty(sCommandTimeout)
 				// && isPostgreSQL()) {
 				// int iTimeout = StringUtilities.toInteger(sCommandTimeout, 60)
@@ -84,14 +84,14 @@ public class SqlConnector extends DataConnector {
 				// String.format("%,d", iTimeout / 1000));
 			}
 
-			if (_SchemaOnly) {
+			if (_schemaOnly) {
 				_pstmt.setFetchSize(1);
-			} else if (_RowLimit != -1) {
-				_pstmt.setFetchSize(_RowLimit);
-				_Session.addLogMessage("", "Row Limit", String.format("%, d", _RowLimit));
+			} else if (_rowLimit != -1) {
+				_pstmt.setFetchSize(_rowLimit);
+				_session.addLogMessage("", "Row Limit", String.format("%, d", _rowLimit));
 			}
 
-			_Session.addLogMessage("", "Execute Query", "Send the query to the database server.");
+			_session.addLogMessage("", "Execute Query", "Send the query to the database server.");
 			// JDBC executeQuery does not support SQL queries that combine
 			// multiple statements
 			// _rs = _pstmt.executeQuery();
@@ -111,25 +111,25 @@ public class SqlConnector extends DataConnector {
 					}
 				}
 			}
-			_Session.addLogMessage("", "", "Database server returned.");
+			_session.addLogMessage("", "", "Database server returned.");
 
 			if (_rs == null) {
 				RuntimeException ex = new RuntimeException("Query returned null result set information.");
 				throw ex;
 			}
 			
-			_Session.addLogMessage("", "Read MetaData", "Read field names and data types.");
+			_session.addLogMessage("", "Read MetaData", "Read field names and data types.");
 			ResultSetMetaData rsmd = _rs.getMetaData();
-			_ColumnCount = rsmd.getColumnCount();
-			_FieldNames = new String[_ColumnCount];
+			_columnCount = rsmd.getColumnCount();
+			_fieldNames = new String[_columnCount];
 			// _FieldTypes = new JavaDataType[_ColumnCount];
-			_DataSchema = new String[_ColumnCount][2];
+			_dataSchema = new String[_columnCount][2];
 
 			StringBuilder sbFields = new StringBuilder();
 			String sUsedFieldNames = "";
 			int nFieldNumber = 0;
 			int nColNumber = 0;
-			for (int i = 0; i < _FieldNames.length; i++) {
+			for (int i = 0; i < _fieldNames.length; i++) {
 				String sName = rsmd.getColumnName(i + 1);
 				if (StringUtilities.isNullOrEmpty(sName)) {
 					sName = String.format("Column%s", nColNumber);
@@ -150,15 +150,15 @@ public class SqlConnector extends DataConnector {
 					}
 				}
 				sUsedFieldNames += sTarget;
-				_FieldNames[nFieldNumber] = sName;
-				_DataSchema[nFieldNumber][0] = sName;
-				_DataSchema[nFieldNumber][1] = rsmd.getColumnClassName(i + 1);
+				_fieldNames[nFieldNumber] = sName;
+				_dataSchema[nFieldNumber][0] = sName;
+				_dataSchema[nFieldNumber][1] = rsmd.getColumnClassName(i + 1);
 				if (i > 0)
 					sbFields.append(",\n");
 				sbFields.append(String.format("%s (%s)", sName, rsmd.getColumnClassName(i + 1)));
 				nFieldNumber++;
 			}
-			_Session.addLogMessage("", "Query Returned", sbFields.toString());
+			_session.addLogMessage("", "Query Returned", sbFields.toString());
 		} catch (NumberFormatException | SQLException ex) {
 			throw new RuntimeException("Error while trying to open and run the query. " + ex.getMessage(), ex);
 		}
@@ -177,11 +177,11 @@ public class SqlConnector extends DataConnector {
 	@Override
 	public Object[] getDataRow() {
 		try {
-			Object[] aValues = new Object[_ColumnCount];
-			for (int i = 0; i < _ColumnCount; i++) {
+			Object[] aValues = new Object[_columnCount];
+			for (int i = 0; i < _columnCount; i++) {
 				aValues[i] = _rs.getObject(i + 1);
 			}
-			_RowCount++;
+			_rowCount++;
 			return aValues;
 		} catch (SQLException ex) {
 			throw new RuntimeException("Error reading data row values. " + ex.getMessage(), ex);
@@ -200,14 +200,14 @@ public class SqlConnector extends DataConnector {
 	protected void AddCommandParameters() throws SQLException {
 		// Add parameters in the order listed.
 		// Check report definition for defined parameters
-		Node nodeParameters = XmlUtilities.selectSingleNode(_DataSource, "SPParameters");
+		Node nodeParameters = XmlUtilities.selectSingleNode(_dataSource, "SPParameters");
 		if (nodeParameters == null) {
 			return;
 		}
 		java.util.Calendar oCalendar;
 		String sNullValue = ((Element) nodeParameters).getAttribute("NullValue");
 
-		NodeList nlParameters = XmlUtilities.selectNodes(_DataSource, "SPParameters/SPParameter");
+		NodeList nlParameters = XmlUtilities.selectNodes(_dataSource, "SPParameters/SPParameter");
 
 		if ((nlParameters != null) && (nlParameters.getLength() > 0)) {
 			int iLength = nlParameters.getLength();

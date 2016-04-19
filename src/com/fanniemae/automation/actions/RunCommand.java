@@ -25,15 +25,15 @@ import com.fanniemae.automation.common.StringUtilities;
  * 
  */
 public class RunCommand extends Action {
-	protected String _WorkDirectory;
-	protected String _CommandLine;
+	protected String _workDirectory;
+	protected String _commandLine;
 
-	protected String[] _Arguments;
+	protected String[] _arguments;
 
-	protected Boolean _WaitForExit = true;
+	protected Boolean _waitForExit = true;
 
-	protected int _Timeout = 0;
-	protected int _ExitCode = 0;
+	protected int _timeout = 0;
+	protected int _exitCode = 0;
 	
 	public RunCommand(SessionManager session, Element action) {
 		this(session, action, false);
@@ -45,45 +45,45 @@ public class RunCommand extends Action {
 		if (!action.getNodeName().equals("RunCommand"))
 			return;
 
-		String sWorkDirectory = _Session.getAttribute(action, "WorkDirectory");
-		String sCmdLine = _Session.getAttribute(action, "CommandLine");
-		String sWaitForExit = _Session.getAttribute(action, "WaitForExit");
-		String sTimeout = _Session.getAttribute(action, "Timeout");
+		String sWorkDirectory = _session.getAttribute(action, "WorkDirectory");
+		String sCmdLine = _session.getAttribute(action, "CommandLine");
+		String sWaitForExit = _session.getAttribute(action, "WaitForExit");
+		String sTimeout = _session.getAttribute(action, "Timeout");
 
 		if (StringUtilities.isNullOrEmpty(sWorkDirectory))
 			throw new RuntimeException("No WorkDirectory value specified.");
 		if (StringUtilities.isNullOrEmpty(sCmdLine))
 			throw new RuntimeException("No CommandLine value specified.");
 
-		_WorkDirectory = sWorkDirectory;
-		_CommandLine = sCmdLine;
-		_WaitForExit = StringUtilities.toBoolean(sWaitForExit, true);
-		_Timeout = parseTimeout(sTimeout);
+		_workDirectory = sWorkDirectory;
+		_commandLine = sCmdLine;
+		_waitForExit = StringUtilities.toBoolean(sWaitForExit, true);
+		_timeout = parseTimeout(sTimeout);
 
-		_Session.addLogMessage("", "Work Directory", _WorkDirectory);
-		_Session.addLogMessage("", "Command Line", _CommandLine);
+		_session.addLogMessage("", "Work Directory", _workDirectory);
+		_session.addLogMessage("", "Command Line", _commandLine);
 		if (StringUtilities.isNotNullOrEmpty(sWaitForExit))
-			_Session.addLogMessage("", "Wait For Exit", _WaitForExit.toString());
+			_session.addLogMessage("", "Wait For Exit", _waitForExit.toString());
 		if (StringUtilities.isNotNullOrEmpty(sTimeout))
-			_Session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _Timeout));
+			_session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _timeout));
 
-		_Arguments = parseCommandLine(_CommandLine);
+		_arguments = parseCommandLine(_commandLine);
 	}
 
 	@Override
 	public String execute() {
-		String sConsoleFilename = FileUtilities.getRandomFilename(_Session.getLogPath(), "txt");
+		String sConsoleFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
 		Timer commandTimer = null;
-		ProcessBuilder pb = new ProcessBuilder(_Arguments);
-		pb.directory(new File(_WorkDirectory));
+		ProcessBuilder pb = new ProcessBuilder(_arguments);
+		pb.directory(new File(_workDirectory));
 		pb.redirectErrorStream(true);
 		try {
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
 			TimerTask killer = new TimeoutRunCommandManager(p);
-			if (_Timeout > 0) {
+			if (_timeout > 0) {
 				commandTimer = new Timer();
-				commandTimer.schedule(killer, _Timeout * 1000);
+				commandTimer.schedule(killer, _timeout * 1000);
 			}
 			try (InputStream is = p.getInputStream(); InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr); FileWriter fw = new FileWriter(sConsoleFilename); BufferedWriter bw = new BufferedWriter(fw);) {
 				String line = "";
@@ -96,25 +96,25 @@ public class RunCommand extends Action {
 					bAddLineBreak = true;
 					iLines++;
 				}
-				if (_WaitForExit)
+				if (_waitForExit)
 					p.waitFor();
 
-				_Session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
+				_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
 			} catch (InterruptedException ex) {
-				_Session.addErrorMessage(ex);
+				_session.addErrorMessage(ex);
 				throw new RuntimeException("Error while running external command.", ex);
 			} finally {
 				if (commandTimer != null) {
 					commandTimer.cancel();
 					if (p.exitValue() != 0)
-						throw new RuntimeException(String.format("External command timed out. Update timeout limit (currently %d) or disable it.", _Timeout));
+						throw new RuntimeException(String.format("External command timed out. Update timeout limit (currently %d) or disable it.", _timeout));
 				}
 			}
 		} catch (IOException ex) {
-			_Session.addErrorMessage(ex);
+			_session.addErrorMessage(ex);
 			throw new RuntimeException("Error while running external command.", ex);
 		}
-		_Session.addLogMessage("", "Command", "Completed");
+		_session.addLogMessage("", "Command", "Completed");
 		return null;
 	}
 

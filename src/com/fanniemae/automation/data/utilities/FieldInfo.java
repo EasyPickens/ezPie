@@ -10,41 +10,41 @@ import java.sql.Types;
  */
 public class FieldInfo {
 
-	protected String _Name = "";
-	protected int _DbType = Types.VARCHAR;
-	protected String _DbTypeName = "VARCHAR";
+	protected String _name = "";
+	protected int _dbType = Types.VARCHAR;
+	protected String _dbTypeName = "VARCHAR";
 
 	public FieldInfo() {
 		
 	}
 	
 	public FieldInfo(String name, int dbType, String dbTypeName) {
-		_Name = name;
-		_DbType = dbType;
-		_DbTypeName = dbTypeName;
+		_name = name;
+		_dbType = dbType;
+		_dbTypeName = dbTypeName;
 	}
 	
 	public String getName() {
-		return _Name;
+		return _name;
 	}
 	
 	public void setName(String value) {
-		_Name = value;
+		_name = value;
 	}
 
 	public int getDbType() {
-		return _DbType;
+		return _dbType;
 	}
 	
 	public void setDbType(int value) {
-		_DbType = value; 
+		_dbType = value; 
 	}
 
 	public String getDbTypeName() {
-		return _DbTypeName;
+		return _dbTypeName;
 	}
 	
 	public void setDbTypeName(String value) {
-		_DbTypeName = value;
+		_dbTypeName = value;
 	}
 }

@@ -17,7 +17,7 @@ import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
  * 
  */
 class IndexDataPoint implements Comparable<IndexDataPoint> {
-	protected DataType _DataType;
+	protected DataType _dataType;
 	protected boolean _isAscending = true;
 	protected int _directionModifier = 1;
 
@@ -58,56 +58,56 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 	}
 
 	public IndexDataPoint(String value, boolean isAscending) {
-		_DataType = DataType.StringData;
+		_dataType = DataType.StringData;
 		_isAscending = isAscending;
 		_s = value;
 		updateModifier();
 	}
 
 	public IndexDataPoint(int value, boolean isAscending) {
-		_DataType = DataType.IntegerData;
+		_dataType = DataType.IntegerData;
 		_isAscending = isAscending;
 		_i = value;
 		updateModifier();
 	}
 
 	public IndexDataPoint(long value, boolean isAscending) {
-		_DataType = DataType.LongData;
+		_dataType = DataType.LongData;
 		_isAscending = isAscending;
 		_l = value;
 		updateModifier();
 	}
 
 	public IndexDataPoint(double value, boolean isAscending) {
-		_DataType = DataType.DoubleData;
+		_dataType = DataType.DoubleData;
 		_isAscending = isAscending;
 		_d = value;
 		updateModifier();
 	}
 
 	public IndexDataPoint(BigDecimal value, boolean isAscending) {
-		_DataType = DataType.BigDecimalData;
+		_dataType = DataType.BigDecimalData;
 		_isAscending = isAscending;
 		_bd = value;
 		updateModifier();
 	}
 
 	public IndexDataPoint(boolean value, boolean isAscending) {
-		_DataType = DataType.BooleanData;
+		_dataType = DataType.BooleanData;
 		_isAscending = isAscending;
 		_b = value;
 		updateModifier();
 	}
 
 	public IndexDataPoint(Date value, boolean isAscending) {
-		_DataType = DataType.DateData;
+		_dataType = DataType.DateData;
 		_isAscending = isAscending;
 		_dt = value;
 		updateModifier();
 	}
 
 	public Object getValue() {
-		switch (_DataType) {
+		switch (_dataType) {
 		case StringData:
 			return _s;
 		case IntegerData:
@@ -128,7 +128,7 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 	}
 	
 	public Object getValueAsString() {
-		switch (_DataType) {
+		switch (_dataType) {
 		case StringData:
 			return _s;
 		case IntegerData:
@@ -155,7 +155,7 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 
 	@Override
 	public int compareTo(IndexDataPoint o) {
-		switch (_DataType) {
+		switch (_dataType) {
 		case StringData:
 			if ((this._s == null) && (o._s == null)) {
 				return 0;

@@ -23,53 +23,53 @@ import com.fanniemae.automation.common.StringUtilities;
  * 
  */
 public class Directory extends Action {
-	protected String _Path;
-	protected String _DestinationPath;
-	protected String _NewName;
+	protected String _path;
+	protected String _destinationPath;
+	protected String _newName;
 
 	// Variables used to profile directory
-	protected String _SkippedExtensions;
-	protected String _SkippedDirectories;
-	protected String _LongestPath;
-	protected String _LongestFilename;
-	protected String _LargestFilename;
+	protected String _skippedExtensions;
+	protected String _skippedDirectories;
+	protected String _longestPath;
+	protected String _longestFilename;
+	protected String _largestFilename;
 
-	protected boolean _DeepScan = true;
-	protected boolean _SortByCount = true;
-	protected boolean _CheckSkipList = false;
+	protected boolean _deepScan = true;
+	protected boolean _sortByCount = true;
+	protected boolean _checkSkipList = false;
 
-	protected int _TotalFileCount = 0;
-	protected int _TotalDirectoryCount = 0;
-	protected int _ComponentCount = 0;
-	protected int _LongestPathLength = 0;
-	protected int _LongestFilenameLength = 0;
+	protected int _totalFileCount = 0;
+	protected int _totalDirectoryCount = 0;
+	protected int _componentCount = 0;
+	protected int _longestPathLength = 0;
+	protected int _longestFilenameLength = 0;
 
-	protected long _TotalSize = 0L;
-	protected long _LargestFileSize = 0L;
+	protected long _totalSize = 0L;
+	protected long _largestFileSize = 0L;
 
-	protected Map<String, FileExtensionCount> _ExtensionCount = new HashMap<String, FileExtensionCount>();
-	protected Map<String, String> _Components = new HashMap<String, String>();
-	protected Map<String, Boolean> _ComponentExtensions = new HashMap<String, Boolean>();
-	protected Map<String, Boolean> _SkipExtensions = new HashMap<String, Boolean>();
-	protected Map<String, Boolean> _SkipDirectories = new HashMap<String, Boolean>();
+	protected Map<String, FileExtensionCount> _extensionCount = new HashMap<String, FileExtensionCount>();
+	protected Map<String, String> _components = new HashMap<String, String>();
+	protected Map<String, Boolean> _componentExtensions = new HashMap<String, Boolean>();
+	protected Map<String, Boolean> _skipExtensions = new HashMap<String, Boolean>();
+	protected Map<String, Boolean> _skipDirectories = new HashMap<String, Boolean>();
 
 	public Directory(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_Path = removeFinalSlash(_Session.getAttribute(_Action, "Path"));
-		_DestinationPath = removeFinalSlash(_Session.getAttribute(_Action, "DestinationPath"));
-		_NewName = _Session.getAttribute(_Action, "NewName");
+		_path = removeFinalSlash(_session.getAttribute(_action, "Path"));
+		_destinationPath = removeFinalSlash(_session.getAttribute(_action, "DestinationPath"));
+		_newName = _session.getAttribute(_action, "NewName");
 
-		if (StringUtilities.isNullOrEmpty(_Path)) {
-			throw new RuntimeException(String.format("%s is missing a value for Path.", _ActionName));
+		if (StringUtilities.isNullOrEmpty(_path)) {
+			throw new RuntimeException(String.format("%s is missing a value for Path.", _actionName));
 		}
-		_Session.addLogMessage("", "Path", _Path);
+		_session.addLogMessage("", "Path", _path);
 	}
 
 	@Override
 	public String execute() {
 		try {
-			switch (_ActionType) {
+			switch (_actionType) {
 			case "Delete":
 				return deleteDirectory();
 			case "Create":
@@ -81,10 +81,10 @@ public class Directory extends Action {
 			case "Profile":
 				return profileDirectory();
 			default:
-				throw new IOException(String.format("%s is not currently supported.", _ActionType));
+				throw new IOException(String.format("%s is not currently supported.", _actionType));
 			}
 		} catch (IOException ex) {
-			throw new RuntimeException(String.format("%s could not %s %s.", _ActionName, _ActionType.toLowerCase(), _Path), ex);
+			throw new RuntimeException(String.format("%s could not %s %s.", _actionName, _actionType.toLowerCase(), _path), ex);
 		}
 	}
 
@@ -96,129 +96,129 @@ public class Directory extends Action {
 	}
 
 	protected String deleteDirectory() throws IOException {
-		int iLevels = _Path.length() - _Path.replace(File.separator, "").length();
+		int iLevels = _path.length() - _path.replace(File.separator, "").length();
 		if (iLevels == 0) {
-			throw new RuntimeException(String.format("%s requires at least one directory level (%s).", _ActionName, _Path));
+			throw new RuntimeException(String.format("%s requires at least one directory level (%s).", _actionName, _path));
 		}
-		File fi = new File(_Path);
+		File fi = new File(_path);
 		if (!fi.exists()) {
-			_Session.addLogMessage("", "Process", String.format("%s does not exist, nothing to delete.", _Path));
+			_session.addLogMessage("", "Process", String.format("%s does not exist, nothing to delete.", _path));
 		} else if (fi.isFile()) {
-			throw new IOException(String.format("%s is a file, use File.Delete to remove.", _Path));
+			throw new IOException(String.format("%s is a file, use File.Delete to remove.", _path));
 		} else {
-			_Session.addLogMessage("", "Process", String.format("Deleting %s", _Path));
-			FileUtils.deleteDirectory(new File(_Path));
-			_Session.addLogMessage("", "", "Completed");
+			_session.addLogMessage("", "Process", String.format("Deleting %s", _path));
+			FileUtils.deleteDirectory(new File(_path));
+			_session.addLogMessage("", "", "Completed");
 		}
 		return "";
 	}
 
 	protected String createDirectory() throws IOException {
-		File fi = new File(_Path);
+		File fi = new File(_path);
 		if (!fi.exists()) {
-			_Session.addLogMessage("", "Process", String.format("Creating %s", _Path));
-			new File(_Path).mkdirs();
-			_Session.addLogMessage("", "", "Completed");
+			_session.addLogMessage("", "Process", String.format("Creating %s", _path));
+			new File(_path).mkdirs();
+			_session.addLogMessage("", "", "Completed");
 		} else if (fi.isDirectory()) {
-			_Session.addLogMessage("", "Process", "Directory already exists, nothing to do.");
+			_session.addLogMessage("", "Process", "Directory already exists, nothing to do.");
 		} else if (fi.isFile()) {
-			throw new IOException(String.format("%s is the name of an existing file.", _Path));
+			throw new IOException(String.format("%s is the name of an existing file.", _path));
 		}
 		return "";
 	}
 
 	protected String renameDirectory() throws IOException {
-		File fi = new File(_Path);
+		File fi = new File(_path);
 		if (!fi.exists()) {
-			throw new RuntimeException(String.format("Directory %s not found, nothing to rename.", _Path));
+			throw new RuntimeException(String.format("Directory %s not found, nothing to rename.", _path));
 		} else if (fi.isDirectory()) {
-			_Session.addLogMessage("", "Process", String.format("Renaming %s to %s.", _Path, _NewName));
-			fi.renameTo(new File(_NewName));
-			_Session.addLogMessage("", "", "Completed");
+			_session.addLogMessage("", "Process", String.format("Renaming %s to %s.", _path, _newName));
+			fi.renameTo(new File(_newName));
+			_session.addLogMessage("", "", "Completed");
 		} else if (fi.isFile()) {
-			throw new RuntimeException(String.format("%s is a file.  Use the File.Rename operations to work with files.", _Path));
+			throw new RuntimeException(String.format("%s is a file.  Use the File.Rename operations to work with files.", _path));
 		}
 		return "";
 	}
 
 	protected String moveDirectory() throws IOException {
-		if (StringUtilities.isNullOrEmpty(_DestinationPath)) {
-			throw new RuntimeException(String.format("%s is missing a value for DestinationPath.", _ActionName));
+		if (StringUtilities.isNullOrEmpty(_destinationPath)) {
+			throw new RuntimeException(String.format("%s is missing a value for DestinationPath.", _actionName));
 		}
-		if (FileUtilities.isValidDirectory(_DestinationPath)) {
-			throw new RuntimeException(String.format("Destination directory (%s) already exists.", _DestinationPath));
+		if (FileUtilities.isValidDirectory(_destinationPath)) {
+			throw new RuntimeException(String.format("Destination directory (%s) already exists.", _destinationPath));
 		}
-		_Session.addLogMessage("", "Destination Path", _DestinationPath);
-		_Session.addLogMessage("", "Process", "Moving directory");
-		FileUtils.moveDirectoryToDirectory(new File(_Path), new File(_DestinationPath), true);
+		_session.addLogMessage("", "Destination Path", _destinationPath);
+		_session.addLogMessage("", "Process", "Moving directory");
+		FileUtils.moveDirectoryToDirectory(new File(_path), new File(_destinationPath), true);
 		return "";
 	}
 
 	protected String profileDirectory() {
-		_ComponentExtensions.put("jar", true);
-		_ComponentExtensions.put("dll", true);
+		_componentExtensions.put("jar", true);
+		_componentExtensions.put("dll", true);
 
-		String sDeep = _Session.getAttribute(_Action, "Deep");
+		String sDeep = _session.getAttribute(_action, "Deep");
 		if (StringUtilities.isNotNullOrEmpty(sDeep)) {
-			_Session.addLogMessage("", "Deep", sDeep);
+			_session.addLogMessage("", "Deep", sDeep);
 		}
-		_DeepScan = StringUtilities.toBoolean(sDeep, true);
+		_deepScan = StringUtilities.toBoolean(sDeep, true);
 
-		_SkippedExtensions = _Session.getAttribute(_Action, "SkipExtensions");
-		if (StringUtilities.isNotNullOrEmpty(_SkippedExtensions)) {
-			_Session.addLogMessage("", "Skip Extensions", _SkippedExtensions);
-			String[] aSkipExtensions = _SkippedExtensions.toLowerCase().split(",");
+		_skippedExtensions = _session.getAttribute(_action, "SkipExtensions");
+		if (StringUtilities.isNotNullOrEmpty(_skippedExtensions)) {
+			_session.addLogMessage("", "Skip Extensions", _skippedExtensions);
+			String[] aSkipExtensions = _skippedExtensions.toLowerCase().split(",");
 			if (aSkipExtensions.length > 0) {
 				for (int i = 0; i < aSkipExtensions.length; i++) {
-					_SkipExtensions.put(aSkipExtensions[i], true);
+					_skipExtensions.put(aSkipExtensions[i], true);
 				}
-				_CheckSkipList = true;
+				_checkSkipList = true;
 			}
 		}
 
-		_SkippedDirectories = _Session.getAttribute(_Action, "SkipDirectories");
-		if (StringUtilities.isNotNullOrEmpty(_SkippedDirectories)) {
-			_Session.addLogMessage("", "Skip Directories", _SkippedDirectories);
-			String[] aSkipDirectories = _SkippedDirectories.toLowerCase().split(",");
+		_skippedDirectories = _session.getAttribute(_action, "SkipDirectories");
+		if (StringUtilities.isNotNullOrEmpty(_skippedDirectories)) {
+			_session.addLogMessage("", "Skip Directories", _skippedDirectories);
+			String[] aSkipDirectories = _skippedDirectories.toLowerCase().split(",");
 			if (aSkipDirectories.length > 0) {
 				for (int i = 0; i < aSkipDirectories.length; i++) {
-					_SkipDirectories.put(aSkipDirectories[i], true);
+					_skipDirectories.put(aSkipDirectories[i], true);
 				}
-				_CheckSkipList = true;
+				_checkSkipList = true;
 			}
 		}
 
-		String sortByCount = _Session.getAttribute(_Action, "SortByCount");
+		String sortByCount = _session.getAttribute(_action, "SortByCount");
 		if (StringUtilities.isNotNullOrEmpty(sortByCount)) {
-			_Session.addLogMessage("", "Sort by Count", sortByCount);
-			_SortByCount = StringUtilities.toBoolean(sortByCount, true);
+			_session.addLogMessage("", "Sort by Count", sortByCount);
+			_sortByCount = StringUtilities.toBoolean(sortByCount, true);
 		}
 
-		scanDirectory(_Path);
+		scanDirectory(_path);
 
-		Object[] aCounts = _ExtensionCount.values().toArray();
+		Object[] aCounts = _extensionCount.values().toArray();
 		Arrays.sort(aCounts);
 
 		// Write the report
 		ReportBuilder sbReport = new ReportBuilder();
 		sbReport.appendFormatLine("Date Scanned: %1$s", DateUtilities.getCurrentDateTime());
-		sbReport.appendFormatLine("Path: %1$s", _Path);
-		if (_CheckSkipList && StringUtilities.isNotNullOrEmpty(_SkippedExtensions)) {
-			sbReport.appendFormatLine("Skipped File Extensions: %1$s", _SkippedExtensions);
+		sbReport.appendFormatLine("Path: %1$s", _path);
+		if (_checkSkipList && StringUtilities.isNotNullOrEmpty(_skippedExtensions)) {
+			sbReport.appendFormatLine("Skipped File Extensions: %1$s", _skippedExtensions);
 		}
-		if (_CheckSkipList && StringUtilities.isNotNullOrEmpty(_SkippedDirectories)) {
-			sbReport.appendFormatLine("Skipped Directories: %1$s", _SkippedDirectories);
+		if (_checkSkipList && StringUtilities.isNotNullOrEmpty(_skippedDirectories)) {
+			sbReport.appendFormatLine("Skipped Directories: %1$s", _skippedDirectories);
 		}
 		sbReport.appendLine("");
-		sbReport.appendFormatLine("Total File Count: %,d", _TotalFileCount);
-		sbReport.appendFormatLine("Total Directory Count: %,d", _TotalDirectoryCount);
-		sbReport.appendFormatLine("Component Files: %,d", _ComponentCount);
+		sbReport.appendFormatLine("Total File Count: %,d", _totalFileCount);
+		sbReport.appendFormatLine("Total Directory Count: %,d", _totalDirectoryCount);
+		sbReport.appendFormatLine("Component Files: %,d", _componentCount);
 		sbReport.appendLine("");
-		sbReport.appendFormatLine("Longest Path (%,d chars): %s", _LongestPathLength, _LongestPath);
-		sbReport.appendFormatLine("Longest Filename (%,d chars): %s", _LongestFilenameLength, _LongestFilename);
+		sbReport.appendFormatLine("Longest Path (%,d chars): %s", _longestPathLength, _longestPath);
+		sbReport.appendFormatLine("Longest Filename (%,d chars): %s", _longestFilenameLength, _longestFilename);
 		sbReport.appendLine("");
-		sbReport.appendFormatLine("Largest File: (%,d bytes): %s", _LargestFileSize, _LargestFilename);
-		sbReport.appendFormatLine("Total Space: %,d bytes", _TotalSize);
+		sbReport.appendFormatLine("Largest File: (%,d bytes): %s", _largestFileSize, _largestFilename);
+		sbReport.appendFormatLine("Total Space: %,d bytes", _totalSize);
 		sbReport.appendLine("");
 		sbReport.appendLine("File Extensions (sorted by count): ");
 
@@ -227,7 +227,7 @@ public class Directory extends Action {
 			FileExtensionCount fileExtensionCount = (FileExtensionCount) aCounts[i];
 			sbReport.appendFormatLine("   *.%1$s: %2$,d", fileExtensionCount.getExtension(), fileExtensionCount.getCount());
 		}
-		_Session.addLogMessage("", "Profile Results", "View Report", "file://" + FileUtilities.writeRandomTextFile(_Session.getLogPath(), sbReport.toString()));
+		_session.addLogMessage("", "Profile Results", "View Report", "file://" + FileUtilities.writeRandomTextFile(_session.getLogPath(), sbReport.toString()));
 		return "";
 	}
 
@@ -236,48 +236,48 @@ public class Directory extends Action {
 		if ((aContents == null) || (aContents.length == 0))
 			return;
 
-		if (path.length() > _LongestPathLength) {
-			_LongestPathLength = path.length();
-			_LongestPath = path;
+		if (path.length() > _longestPathLength) {
+			_longestPathLength = path.length();
+			_longestPath = path;
 		}
 
 		for (File currentFile : aContents) {
-			if (currentFile.isDirectory() && _DeepScan) {
+			if (currentFile.isDirectory() && _deepScan) {
 				String subPath = currentFile.getAbsolutePath();
 				subPath = subPath.substring(subPath.lastIndexOf(File.separatorChar)).toLowerCase();
-				if (_CheckSkipList && _SkipDirectories.containsKey(subPath)) {
+				if (_checkSkipList && _skipDirectories.containsKey(subPath)) {
 					continue;
 				}
-				_TotalDirectoryCount++;
+				_totalDirectoryCount++;
 				scanDirectory(currentFile.getAbsolutePath());
 				continue;
 			}
 
 			String sExtension = FilenameUtils.getExtension(currentFile.getName()).toLowerCase();
-			if (_CheckSkipList && _SkipExtensions.containsKey(sExtension)) {
+			if (_checkSkipList && _skipExtensions.containsKey(sExtension)) {
 				continue;
 			}
 
-			_TotalFileCount++;
-			_TotalSize += currentFile.length();
+			_totalFileCount++;
+			_totalSize += currentFile.length();
 
-			if (currentFile.getName().length() > _LongestFilenameLength) {
-				_LongestFilenameLength = currentFile.getName().length();
-				_LongestFilename = currentFile.getName();
+			if (currentFile.getName().length() > _longestFilenameLength) {
+				_longestFilenameLength = currentFile.getName().length();
+				_longestFilename = currentFile.getName();
 			}
 
-			if (currentFile.length() > _LargestFileSize) {
-				_LargestFileSize = currentFile.length();
-				_LargestFilename = currentFile.getName();
+			if (currentFile.length() > _largestFileSize) {
+				_largestFileSize = currentFile.length();
+				_largestFilename = currentFile.getName();
 			}
 
-			if (_ComponentExtensions.containsKey(sExtension)) {
-				_ComponentCount++;
+			if (_componentExtensions.containsKey(sExtension)) {
+				_componentCount++;
 			}
 
-			FileExtensionCount cnt = _ExtensionCount.get(sExtension);
+			FileExtensionCount cnt = _extensionCount.get(sExtension);
 			if (cnt == null) {
-				_ExtensionCount.put(sExtension, new FileExtensionCount(sExtension, _SortByCount));
+				_extensionCount.put(sExtension, new FileExtensionCount(sExtension, _sortByCount));
 			} else {
 				cnt.increment();
 			}

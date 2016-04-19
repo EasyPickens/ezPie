@@ -16,20 +16,20 @@ import java.util.UUID;
  * 
  */
 public class BinaryOutputStream implements AutoCloseable {
-	protected Boolean _bMonitorMemory = false;
-    protected Boolean _bIsFilestream = false;
-    protected Boolean _bIsOpen = false;
+	protected Boolean _monitorMemory = false;
+    protected Boolean _isFilestream = false;
+    protected Boolean _isOpen = false;
 
-    protected String _sFilename = "";
-    protected long _lngMemoryLimit = 20971520;  //10485760;
-    protected String _sFingerPrint;
+    protected String _filename = "";
+    protected long _memoryLimit = 20971520;  //10485760;
+    protected String _fingerPrint;
 
     protected DataOutputStream _dos = null;
     protected FileOutputStream _fos = null;
     protected BufferedOutputStream _bos = null;
     protected ByteArrayOutputStream _baos = null;  // aka memory stream
 
-    protected byte[] _aMemoryBuffer = null;
+    protected byte[] _memoryBuffer = null;
 
     public BinaryOutputStream(String Filename) throws FileNotFoundException {
         this(Filename, 0, UUID.randomUUID().toString());
@@ -40,33 +40,33 @@ public class BinaryOutputStream implements AutoCloseable {
     }
 
     public BinaryOutputStream(String Filename, int MemoryLimitMegabytes, String FingerPrint) throws FileNotFoundException {
-        _sFilename = Filename;
+        _filename = Filename;
         if (FingerPrint != null) {
-            _sFingerPrint = FingerPrint;
+            _fingerPrint = FingerPrint;
         } else {
-            _sFingerPrint = UUID.randomUUID().toString();
+            _fingerPrint = UUID.randomUUID().toString();
         }
 
         if (MemoryLimitMegabytes == -1) {        // Memory only operation
-            _bIsFilestream = false;
+            _isFilestream = false;
 
         } else if (MemoryLimitMegabytes == 0) {  // File only operation
-            _bIsFilestream = true;
+            _isFilestream = true;
         } else {                                 // Hybrid operation
-            _bMonitorMemory = true;
-            _lngMemoryLimit = MemoryLimitMegabytes * 1048576;
+            _monitorMemory = true;
+            _memoryLimit = MemoryLimitMegabytes * 1048576;
         }
 
         // Open the correct output type
-        if (_bIsFilestream) {
-            _fos = new FileOutputStream(_sFilename);
+        if (_isFilestream) {
+            _fos = new FileOutputStream(_filename);
             _bos = new BufferedOutputStream(_fos);
             _dos = new DataOutputStream(_bos);
         } else {
             _baos = new ByteArrayOutputStream();
             _dos = new DataOutputStream(_baos);
         }
-        _bIsOpen = true;
+        _isOpen = true;
     }
 
     @Override
@@ -91,24 +91,24 @@ public class BinaryOutputStream implements AutoCloseable {
             }
         } catch (IOException ex) {
         }
-        _bIsOpen = false;
+        _isOpen = false;
     }
 
     public void writeFinalHeader(byte[] b) throws IOException {
         close();
-        if (_bIsFilestream) {
-            try (RandomAccessFile raf = new RandomAccessFile(_sFilename, "rw")) {
+        if (_isFilestream) {
+            try (RandomAccessFile raf = new RandomAccessFile(_filename, "rw")) {
                 raf.write(b);
                 raf.close();
             } 
         } else {
-            _aMemoryBuffer = _baos.toByteArray();
-            System.arraycopy(b, 0, _aMemoryBuffer, 0, b.length);
+            _memoryBuffer = _baos.toByteArray();
+            System.arraycopy(b, 0, _memoryBuffer, 0, b.length);
         }
     }
     
     public boolean IsFilestream() {
-        return _bIsFilestream;
+        return _isFilestream;
     }
 
     public long getPosition() {
@@ -116,7 +116,7 @@ public class BinaryOutputStream implements AutoCloseable {
     }
     
     public byte[] getBuffer() {
-        return _aMemoryBuffer;
+        return _memoryBuffer;
     }
 
     public void write(byte[] b) throws IOException {
@@ -190,22 +190,22 @@ public class BinaryOutputStream implements AutoCloseable {
     }
 
     protected void memoryMonitor() throws IOException {
-        if (!_bMonitorMemory) {
+        if (!_monitorMemory) {
             return;
         }
 
-        if (_dos.size() > _lngMemoryLimit) {
+        if (_dos.size() > _memoryLimit) {
             try {
                 this.close();
                 byte[] aMemoryContents = _baos.toByteArray();
-                _fos = new FileOutputStream(_sFilename);
+                _fos = new FileOutputStream(_filename);
                 _bos = new BufferedOutputStream(_fos);
                 _dos = new DataOutputStream(_bos);
 
                 _dos.write(aMemoryContents);
-                _bIsFilestream = true;
-                _bMonitorMemory = false;
-                _bIsOpen = true;
+                _isFilestream = true;
+                _monitorMemory = false;
+                _isOpen = true;
             } catch (IOException ex) {
                 throw new IOException("Stream switching error: " + ex.getMessage(), ex);
             }

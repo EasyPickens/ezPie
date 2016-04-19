@@ -15,7 +15,7 @@ import java.io.RandomAccessFile;
  */
 public class BinaryInputStream implements AutoCloseable {
 	protected boolean _isFilestream = false;
-	protected String _Filename = "";
+	protected String _filename = "";
 
 	protected RandomAccessFile _raf = null;
 	protected SeekableByteArrayInputStream _bais = null;
@@ -26,14 +26,14 @@ public class BinaryInputStream implements AutoCloseable {
 	protected long _length = 0;
 
 	public BinaryInputStream(String Filename) throws FileNotFoundException, IOException {
-		_Filename = Filename;
-		File fd = new File(_Filename);
+		_filename = Filename;
+		File fd = new File(_filename);
 		if (!fd.exists()) {
-			throw new FileNotFoundException(_Filename + " file was not found.");
+			throw new FileNotFoundException(_filename + " file was not found.");
 		}
 		_length = fd.length();
 
-		_raf = new RandomAccessFile(_Filename, "r");
+		_raf = new RandomAccessFile(_filename, "r");
 		_fis = new FileInputStream(_raf.getFD());
 		_bis = new BufferedInputStream(_fis);
 		_dis = new SeekableDataInputStream(_bis);

@@ -11,16 +11,16 @@ import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
  * 
  */
 public class DataRow {
-	protected String[] _ColumnNames = null;
-	protected ColumnTypes[] _ColumnTypes = null;
-	protected DataType[] _DataTypes = null;
-	protected Object[] _Values = null;
+	protected String[] _columnNames = null;
+	protected ColumnTypes[] _columnTypes = null;
+	protected DataType[] _dataTypes = null;
+	protected Object[] _values = null;
 
 	public DataRow(int nNumberOfColumns) {
-		_ColumnNames = new String[nNumberOfColumns];
-		_ColumnTypes = new ColumnTypes[nNumberOfColumns];
-		_DataTypes = new DataType[nNumberOfColumns];
-		_Values = new Object[nNumberOfColumns];
+		_columnNames = new String[nNumberOfColumns];
+		_columnTypes = new ColumnTypes[nNumberOfColumns];
+		_dataTypes = new DataType[nNumberOfColumns];
+		_values = new Object[nNumberOfColumns];
 	}
 
 	public void DefineColumn(int nColumnIndex, String sColumnName, String sDataType) {
@@ -36,49 +36,49 @@ public class DataRow {
 	}
 
 	public void DefineColumn(int nColumnIndex, String sColumnName, ColumnTypes ColumnType, DataType DataType, Object oGlobalValue) {
-		_ColumnNames[nColumnIndex] = sColumnName;
-		_ColumnTypes[nColumnIndex] = ColumnType;
-		_DataTypes[nColumnIndex] = DataType;
-		_Values[nColumnIndex] = oGlobalValue;
+		_columnNames[nColumnIndex] = sColumnName;
+		_columnTypes[nColumnIndex] = ColumnType;
+		_dataTypes[nColumnIndex] = DataType;
+		_values[nColumnIndex] = oGlobalValue;
 	}
 
 	public Object[] getValues() {
-		return _Values;
+		return _values;
 	}
 
 	public void setValues(Object[] values) {
-		_Values = values;
+		_values = values;
 	}
 
 	public String[] getColumnNames() {
-		return _ColumnNames;
+		return _columnNames;
 	}
 
 	public DataType[] getDataTypes() {
-		return _DataTypes;
+		return _dataTypes;
 	}
 
 	public String getColumnName(int i) {
-		return _ColumnNames[i];
+		return _columnNames[i];
 	}
 
 	public ColumnTypes getColumnType(int i) {
-		return _ColumnTypes[i];
+		return _columnTypes[i];
 	}
 
 	public Object getValue(int i) {
-		return _Values[i];
+		return _values[i];
 	}
 
 	public int getColumnCount() {
-		return _ColumnNames.length;
+		return _columnNames.length;
 	}
 
 	public DataType getDataType(int i) {
-		return _DataTypes[i];
+		return _dataTypes[i];
 	}
 
 	public void setDataType(int i, DataType adjustedDataType) {
-		_DataTypes[i] = adjustedDataType;
+		_dataTypes[i] = adjustedDataType;
 	}
 }

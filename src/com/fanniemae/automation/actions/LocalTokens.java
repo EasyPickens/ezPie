@@ -18,7 +18,7 @@ public class LocalTokens extends Action {
 
 	@Override
 	public String execute() {
-		_Session.addTokens("Local", _Action);
+		_session.addTokens("Local", _action);
 		return "";
 	}
 

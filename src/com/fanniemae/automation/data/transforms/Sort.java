@@ -26,7 +26,7 @@ public class Sort extends Index {
 
 	protected DataStream writeSortedFile(DataStream inputStream, DataStream indexStream, int memoryLimit) {
 		DataStream outputStream = null;
-		String sortedFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
+		String sortedFilename = FileUtilities.getRandomFilename(_session.getStagingPath());
 		int rowCount = 0;
 		try (DataReader dr = new DataReader(inputStream); DataReader drIndex = new DataReader(indexStream); DataWriter dw = new DataWriter(sortedFilename, memoryLimit)) {
 			String[] columnNames = dr.getColumnNames();
@@ -48,7 +48,7 @@ public class Sort extends Index {
 			outputStream = dw.getDataStream();
 			_indexDataList = null;
 			_indexData = null;
-			_Session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
+			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
 		} catch (Exception ex) {
 			throw new RuntimeException("Error while trying to write final sorted file.", ex);
 		}

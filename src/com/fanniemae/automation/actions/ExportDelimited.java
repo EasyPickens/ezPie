@@ -24,69 +24,69 @@ import com.fanniemae.automation.datafiles.lowlevel.DataFileEnums.DataType;
  */
 public class ExportDelimited extends Action {
 
-	protected String _OutputFilename;
-	protected String _Delimiter = "|";
-	protected String _DataSetID;
+	protected String _outputFilename;
+	protected String _delimiter = "|";
+	protected String _dataSetID;
 
-	protected DataStream _DataStream;
+	protected DataStream _dataStream;
 
-	protected int _OutputLength;
-	protected String[] _OutputColumnNames;
-	protected int[] _OutputColumnIndexes;
-	protected DataType[] _OutputColumnDataTypes;
+	protected int _outputLength;
+	protected String[] _outputColumnNames;
+	protected int[] _outputColumnIndexes;
+	protected DataType[] _outputColumnDataTypes;
 	protected boolean _trimSpaces = false;
 	protected boolean _roundDoubles = false;
 	protected boolean _appendData = false;
 
-	protected boolean _WriteColumnNames = true;
+	protected boolean _writeColumnNames = true;
 
 	public ExportDelimited(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_OutputFilename = _Session.getAttribute(action, "Filename");
-		if (StringUtilities.isNullOrEmpty(_OutputFilename))
+		_outputFilename = _session.getAttribute(action, "Filename");
+		if (StringUtilities.isNullOrEmpty(_outputFilename))
 			throw new RuntimeException("Missing required output filename.");
-		_Session.addLogMessage("", "OutputFilename", _OutputFilename);
+		_session.addLogMessage("", "OutputFilename", _outputFilename);
 
-		_Delimiter = _Session.getAttribute(action, "Delimiter", "|");
-		_Session.addLogMessage("", "Delimiter", _Delimiter);
+		_delimiter = _session.getAttribute(action, "Delimiter", "|");
+		_session.addLogMessage("", "Delimiter", _delimiter);
 
-		String trimSpaces = _Session.getAttribute(action, "TrimSpaces");
+		String trimSpaces = _session.getAttribute(action, "TrimSpaces");
 		_trimSpaces = StringUtilities.toBoolean(trimSpaces, false);
 		if (StringUtilities.isNotNullOrEmpty(trimSpaces)) {
-			_Session.addLogMessage("", "TrimSpaces", _trimSpaces ? "True" : "False");
+			_session.addLogMessage("", "TrimSpaces", _trimSpaces ? "True" : "False");
 		}
 
-		String appendData = _Session.getAttribute(action, "Append");
+		String appendData = _session.getAttribute(action, "Append");
 		_appendData = StringUtilities.toBoolean(appendData, false);
 		if (StringUtilities.isNotNullOrEmpty(appendData)) {
-			_Session.addLogMessage("", "Append", _appendData ? "True" : "False");
+			_session.addLogMessage("", "Append", _appendData ? "True" : "False");
 		}
 		
-		String roundDoubles = _Session.getAttribute(action, "RoundDoubles");
+		String roundDoubles = _session.getAttribute(action, "RoundDoubles");
 		_roundDoubles = StringUtilities.toBoolean(roundDoubles, false);
 		if (StringUtilities.isNotNullOrEmpty(roundDoubles)) {
-			_Session.addLogMessage("", "RoundDoubles", _roundDoubles ? "True" : "False");
+			_session.addLogMessage("", "RoundDoubles", _roundDoubles ? "True" : "False");
 		}
 
-		_DataSetID = _Session.getAttribute(action, "DataSetID");
-		_WriteColumnNames = StringUtilities.toBoolean(_Session.getAttribute(action, "IncludeColumnNames"), true);
+		_dataSetID = _session.getAttribute(action, "DataSetID");
+		_writeColumnNames = StringUtilities.toBoolean(_session.getAttribute(action, "IncludeColumnNames"), true);
 	}
 
 	@Override
 	public String execute() {
-		_DataStream = _Session.getDataStream(_DataSetID);
+		_dataStream = _session.getDataStream(_dataSetID);
 
-		try (DataReader dr = new DataReader(_DataStream); FileWriter fw = new FileWriter(_OutputFilename, _appendData)) {
+		try (DataReader dr = new DataReader(_dataStream); FileWriter fw = new FileWriter(_outputFilename, _appendData)) {
 			defineOutputColumns(dr.getColumnNames());
-			_OutputColumnDataTypes = dr.getDataTypes();
+			_outputColumnDataTypes = dr.getDataTypes();
 
-			if (!_appendData && _WriteColumnNames) {
+			if (!_appendData && _writeColumnNames) {
 				// Write Column Headers
-				for (int i = 0; i < _OutputLength; i++) {
+				for (int i = 0; i < _outputLength; i++) {
 					if (i > 0)
 						fw.append(',');
-					fw.append(wrapString(_OutputColumnNames[i]));
+					fw.append(wrapString(_outputColumnNames[i]));
 				}
 				fw.append(System.lineSeparator());
 			}
@@ -96,20 +96,20 @@ public class ExportDelimited extends Action {
 			while (!dr.eof()) {
 				Object[] dataRow = dr.getDataRow();
 
-				for (int i = 0; i < _OutputLength; i++) {
+				for (int i = 0; i < _outputLength; i++) {
 					if (i > 0)
 						fw.append(',');
 
-					if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.DateData) {
-						fw.append(DateUtilities.toIsoString((Date) dataRow[_OutputColumnIndexes[i]]));
-					} else if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.StringData) {
-						fw.append(wrapString(dataRow[_OutputColumnIndexes[i]]));
-					} else if (_OutputColumnDataTypes[_OutputColumnIndexes[i]] == DataType.DoubleData && _roundDoubles) {
-						fw.append(doubleFormat(dataRow[_OutputColumnIndexes[i]]));
-					} else if (dataRow[_OutputColumnIndexes[i]] == null) {
+					if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.DateData) {
+						fw.append(DateUtilities.toIsoString((Date) dataRow[_outputColumnIndexes[i]]));
+					} else if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.StringData) {
+						fw.append(wrapString(dataRow[_outputColumnIndexes[i]]));
+					} else if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.DoubleData && _roundDoubles) {
+						fw.append(doubleFormat(dataRow[_outputColumnIndexes[i]]));
+					} else if (dataRow[_outputColumnIndexes[i]] == null) {
 						fw.append("");
 					} else {
-						fw.append(dataRow[_OutputColumnIndexes[i]].toString());
+						fw.append(dataRow[_outputColumnIndexes[i]].toString());
 					}
 				}
 				fw.append(System.lineSeparator());
@@ -117,46 +117,46 @@ public class ExportDelimited extends Action {
 			}
 			fw.close();
 			dr.close();
-			_Session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
-			_Session.addLogMessage("", "Completed", String.format("Data saved to %s", _OutputFilename));
+			_session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
+			_session.addLogMessage("", "Completed", String.format("Data saved to %s", _outputFilename));
 		} catch (Exception e) {
 			RuntimeException ex = new RuntimeException("Error while trying to export the data into a delimited file.", e);
 			throw ex;
 		}
 
-		return _OutputFilename;
+		return _outputFilename;
 	}
 
 	protected void defineOutputColumns(String[] fileColumns) {
 		List<String> inputColumnNames = Arrays.asList(fileColumns);
 
-		NodeList outputColumnNodes = XmlUtilities.selectNodes(_Action, "Column");
+		NodeList outputColumnNodes = XmlUtilities.selectNodes(_action, "Column");
 		int numberOfOutputColumns = outputColumnNodes.getLength();
 
 		if (numberOfOutputColumns > 0) {
-			_OutputColumnNames = new String[numberOfOutputColumns];
-			_OutputColumnIndexes = new int[numberOfOutputColumns];
+			_outputColumnNames = new String[numberOfOutputColumns];
+			_outputColumnIndexes = new int[numberOfOutputColumns];
 
 			for (int i = 0; i < numberOfOutputColumns; i++) {
 				Element columnElement = (Element) outputColumnNodes.item(i);
 
-				String inputName = _Session.getAttribute(columnElement, "Name");
-				String alais = _Session.getAttribute(columnElement, "Alias");
+				String inputName = _session.getAttribute(columnElement, "Name");
+				String alais = _session.getAttribute(columnElement, "Alias");
 
-				_OutputColumnNames[i] = StringUtilities.isNotNullOrEmpty(alais) ? alais : inputName;
-				_OutputColumnIndexes[i] = inputColumnNames.indexOf(inputName);
+				_outputColumnNames[i] = StringUtilities.isNotNullOrEmpty(alais) ? alais : inputName;
+				_outputColumnIndexes[i] = inputColumnNames.indexOf(inputName);
 			}
 		} else {
 			numberOfOutputColumns = inputColumnNames.size();
-			_OutputColumnNames = new String[numberOfOutputColumns];
-			_OutputColumnIndexes = new int[numberOfOutputColumns];
+			_outputColumnNames = new String[numberOfOutputColumns];
+			_outputColumnIndexes = new int[numberOfOutputColumns];
 
 			for (int i = 0; i < numberOfOutputColumns; i++) {
-				_OutputColumnNames[i] = inputColumnNames.get(i);
-				_OutputColumnIndexes[i] = i;
+				_outputColumnNames[i] = inputColumnNames.get(i);
+				_outputColumnIndexes[i] = i;
 			}
 		}
-		_OutputLength = _OutputColumnIndexes.length;
+		_outputLength = _outputColumnIndexes.length;
 	}
 
 	protected String wrapString(Object objectValue) {
@@ -176,7 +176,7 @@ public class ExportDelimited extends Action {
 			wrapDoubleQuotes = true;
 		}
 
-		if (value.contains(_Delimiter)) {
+		if (value.contains(_delimiter)) {
 			wrapDoubleQuotes = true;
 		}
 
