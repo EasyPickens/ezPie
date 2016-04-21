@@ -26,6 +26,10 @@ public class JobManager {
 	public JobManager(String settingsFilename, String jobFilename) {
 		_session = new SessionManager(settingsFilename, jobFilename);
 	}
+	
+	public String getLogFilename() {
+		return _session.getLogFilename();
+	}
 
 	public String runJob() {
 		Action act;

@@ -204,60 +204,62 @@ public class SqlConnector extends DataConnector {
 		if (nodeParameters == null) {
 			return;
 		}
-		java.util.Calendar oCalendar;
-		String sNullValue = ((Element) nodeParameters).getAttribute("NullValue");
+		
+		java.util.Date javaDate;
+		//java.util.Calendar oCalendar;
+		String nullValue = ((Element) nodeParameters).getAttribute("NullValue");
 
-		NodeList nlParameters = XmlUtilities.selectNodes(_dataSource, "SPParameters/SPParameter");
+		NodeList parameterList = XmlUtilities.selectNodes(_dataSource, "SPParameters/SPParameter");
 
-		if ((nlParameters != null) && (nlParameters.getLength() > 0)) {
-			int iLength = nlParameters.getLength();
+		if ((parameterList != null) && (parameterList.getLength() > 0)) {
+			int iLength = parameterList.getLength();
 			for (int i = 0; i < iLength; i++) {
-				int iParam = i + 1;
+				int paramNumber = i + 1;
 				// String sName = ((Element)
 				// nlParameters.item(i)).getAttribute("Name").trim();
-				String sValue = ((Element) nlParameters.item(i)).getAttribute("Value");
-				String sParamType = ((Element) nlParameters.item(i)).getAttribute("SqlParamType").trim();
-				if (sValue.equals(sNullValue)) {
-					_pstmt.setNull(iParam, DataUtilities.dbStringTypeToJavaSqlType(sParamType));
+				String value = ((Element) parameterList.item(i)).getAttribute("Value");
+				String paramType = ((Element) parameterList.item(i)).getAttribute("SqlParamType").trim();
+				if (value.equals(nullValue)) {
+					_pstmt.setNull(paramNumber, DataUtilities.dbStringTypeToJavaSqlType(paramType));
 				}
 
-				switch (DataUtilities.dbStringTypeToJavaSqlType(sParamType)) {
+				switch (DataUtilities.dbStringTypeToJavaSqlType(paramType)) {
 				case Types.BIGINT:
-					_pstmt.setLong(iParam, Long.parseLong(sValue));
+					_pstmt.setLong(paramNumber, Long.parseLong(value));
 					break;
 				case Types.BOOLEAN:
-					_pstmt.setBoolean(iParam, Boolean.parseBoolean(sValue));
+					_pstmt.setBoolean(paramNumber, Boolean.parseBoolean(value));
 					break;
 				case Types.DECIMAL:
-					_pstmt.setBigDecimal(iParam, new BigDecimal(sValue));
+					_pstmt.setBigDecimal(paramNumber, new BigDecimal(value));
 					break;
 				case Types.DATE:
-					oCalendar = javax.xml.bind.DatatypeConverter.parseDateTime(sValue);
-					_pstmt.setDate(iParam, new java.sql.Date(oCalendar.getTimeInMillis()));
+					javaDate = StringUtilities.toDate(value);
+					_pstmt.setDate(paramNumber, new java.sql.Date(javaDate.getTime()));
 					break;
 				case Types.DOUBLE:
-					_pstmt.setDouble(iParam, Double.parseDouble(sValue));
+					_pstmt.setDouble(paramNumber, Double.parseDouble(value));
 					break;
 				case Types.INTEGER:
-					_pstmt.setInt(iParam, Integer.parseInt(sValue));
+					_pstmt.setInt(paramNumber, Integer.parseInt(value));
 					break;
 				case Types.TIME:
-					oCalendar = javax.xml.bind.DatatypeConverter.parseDateTime(sValue);
-					_pstmt.setTime(iParam, new java.sql.Time(oCalendar.getTimeInMillis()));
+					javaDate = StringUtilities.toDate(value);
+					_pstmt.setTime(paramNumber, new java.sql.Time(javaDate.getTime()));
 					break;
 				case Types.TIMESTAMP:
-					oCalendar = javax.xml.bind.DatatypeConverter.parseDateTime(sValue);
-					_pstmt.setTimestamp(iParam, new java.sql.Timestamp(oCalendar.getTimeInMillis()));
+					javaDate = StringUtilities.toDate(value);
+					_pstmt.setTimestamp(paramNumber, new java.sql.Timestamp(javaDate.getTime()));
 					break;
 				case Types.CHAR:
 				case Types.LONGNVARCHAR:
 				case Types.LONGVARCHAR:
 				case Types.NVARCHAR:
 				case Types.VARCHAR:
-					_pstmt.setString(iParam, sValue);
+					_pstmt.setString(paramNumber, value);
 					break;
 				default:
-					_pstmt.setString(iParam, sValue);
+					_pstmt.setString(paramNumber, value);
 					break;
 				}
 

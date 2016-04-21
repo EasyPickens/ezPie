@@ -107,6 +107,10 @@ public class SessionManager {
 	public String getLogPath() {
 		return _logPath;
 	}
+	
+	public String getLogFilename() {
+		return _logFilename;
+	}
 
 	public int getMemoryLimit() {
 		return _memoryLimit;
