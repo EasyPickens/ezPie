@@ -119,15 +119,15 @@ public class SessionManager {
 	public String getLineSeparator() {
 		return System.lineSeparator();
 	}
-
+	
 	public String getAttribute(Node ele, String name) {
 		return getAttribute(ele, name, "");
 	}
-
+	
 	public String getAttribute(Element ele, String name) {
 		return getAttribute(ele, name, "");
 	}
-
+	
 	public String getAttribute(Node ele, String name, String defaultValue) {
 		return getAttribute((Element) ele, name, defaultValue);
 	}
@@ -209,6 +209,10 @@ public class SessionManager {
 
 	public void addTokens(String tokenType, Node node) {
 		_tokenizer.addTokens(tokenType, node);
+	}
+	
+	public void addToken(String tokenType, String key, String value) {
+		_tokenizer.addToken(tokenType, key, value);
 	}
 
 	public void addLogMessagePreserveLayout(String logGroup, String event, String description) {

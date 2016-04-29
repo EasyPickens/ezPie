@@ -11,6 +11,7 @@ import com.fanniemae.devtools.pie.actions.DataSet;
 import com.fanniemae.devtools.pie.actions.LocalTokens;
 import com.fanniemae.devtools.pie.actions.RunCommand;
 import com.fanniemae.devtools.pie.actions.SvnCheckout;
+import com.fanniemae.devtools.pie.actions.WebClient;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
 /**
@@ -67,6 +68,10 @@ public class JobManager {
 					break;
 				case "Directory" :
 					act = new Directory(_session, eleOperation);
+					act.execute();
+					break;
+				case "WebClient":
+					act = new WebClient(_session, eleOperation);
 					act.execute();
 					break;
 				default:

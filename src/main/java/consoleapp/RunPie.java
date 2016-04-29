@@ -14,7 +14,8 @@ public class RunPie {
 		String sSettings = "C:\\Developers\\Code\\TestDirectory\\_Settings.xml";
 		// String sjob = "test.xml";
 		// String sjob = "CMFT_Monthly_Scores.xml";
-		String sjob = "CMFT_Monthly_v2.xml";
+		//String sjob = "CMFT_Monthly_v2.xml";
+		String sjob = "HighlightDownload.xml";
 		// String sjob = "JoinTest.xml";
 		// String sjob = "ReportTest.xml";
 		System.out.println("Initializing job manager");
