@@ -17,6 +17,7 @@ import com.fanniemae.devtools.pie.data.connectors.DataConnector;
 import com.fanniemae.devtools.pie.data.connectors.DataSetConnector;
 import com.fanniemae.devtools.pie.data.connectors.DelimitedConnector;
 import com.fanniemae.devtools.pie.data.connectors.DirectoryConnector;
+import com.fanniemae.devtools.pie.data.connectors.RestConnector;
 import com.fanniemae.devtools.pie.data.connectors.SqlConnector;
 import com.fanniemae.devtools.pie.data.transforms.DataTransform;
 import com.fanniemae.devtools.pie.datafiles.DataWriter;
@@ -145,6 +146,8 @@ public class DataEngine {
 			return new DelimitedConnector(_session, _dataSource, false);
 		case "dataset":
 			return new DataSetConnector(_session, _dataSource, false);
+		case "rest":
+			return new RestConnector(_session, _dataSource, false);
 		}
 		return null;
 	}
