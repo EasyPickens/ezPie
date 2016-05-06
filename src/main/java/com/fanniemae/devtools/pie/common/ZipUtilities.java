@@ -13,6 +13,7 @@ import java.util.Deque;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -24,20 +25,32 @@ public class ZipUtilities {
 	protected static String TABLE_FOOTER = "<tr><td colspan=\"3\" style=\"text-align: right;\">Total Size:</td><td style=\"text-align: right;\">%,d bytes</td></tr></table>";
 
 	public static String[] zip(String directory, String zipFilename) throws IOException {
+		return zip(directory, zipFilename, null, null);
+	}
+	
+	public static String[] zip(String directory, String zipFilename, String includeFilter) throws IOException {
+		return zip(directory, zipFilename, includeFilter, null);
+	}
+	
+	public static String[] zip(String directory, String zipFilename, String includeFilter, String excludeFilter) throws IOException {
 		File sourceDir = new File(directory);
 		File zipFile = new File(zipFilename);
-		return zip(sourceDir, zipFile);
+		return zip(sourceDir, zipFile, includeFilter, excludeFilter);
 	}
 
-	public static String[] zip(File directory, File zipfile) throws IOException {
+	public static String[] zip(File directory, File zipfile, String includeFilter, String excludeFilter) throws IOException {
 		List<String> filelist = new ArrayList<String>();
 		filelist.add(TABLE_HEADER);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		long totalSize = 0L;
+		
+		Pattern includePattern = setupFilter(includeFilter);
+		Pattern excludePattern = setupFilter(excludeFilter);
+		
 		URI base = directory.toURI();
 		Deque<File> queue = new LinkedList<File>();
 		queue.push(directory);
-
+		
 		try (OutputStream out = new FileOutputStream(zipfile, false); ZipOutputStream zout = new ZipOutputStream(out)) {
 			int row = 0;
 			ZipEntry ze;
@@ -52,6 +65,11 @@ public class ZipUtilities {
 						ze.setTime(file.lastModified());
 						zout.putNextEntry(ze);
 					} else {
+						if ((excludePattern != null) && excludePattern.matcher(name).matches()) 
+							continue;
+						else if ((includePattern != null) && !includePattern.matcher(name).matches()) 
+							continue;
+						
 						ze = new ZipEntry(name);
 						ze.setTime(file.lastModified());
 						zout.putNextEntry(ze);
@@ -71,29 +89,48 @@ public class ZipUtilities {
 		filelist.add(String.format(TABLE_FOOTER, totalSize));
 		return filelist.toArray(new String[filelist.size()]);
 	}
-
+	
 	public static String[] unzip(String zipFilename, String directory) throws IOException {
-		File zipFile = new File(zipFilename);
-		File destDirectory = new File(directory);
-		return unzip(zipFile, destDirectory);
+		return unzip(zipFilename, directory, null, null);
+	}
+	
+	public static String[] unzip(String zipFilename, String directory, String includeFilter) throws IOException {
+		return unzip(zipFilename, directory, includeFilter, null);
 	}
 
-	public static String[] unzip(File zipfile, File directory) throws IOException {
+	public static String[] unzip(String zipFilename, String directory, String includeFilter, String excludeFilter) throws IOException {
+		File zipFile = new File(zipFilename);
+		File destDirectory = new File(directory);
+		return unzip(zipFile, destDirectory, includeFilter, excludeFilter);
+	}
+
+	public static String[] unzip(File zipfile, File directory, String includeFilter, String excludeFilter) throws IOException {
 		List<String> filelist = new ArrayList<String>();
 		filelist.add(TABLE_HEADER);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		long totalSize = 0L;
+		
+		Pattern includePattern = setupFilter(includeFilter);
+		Pattern excludePattern = setupFilter(excludeFilter);
+		
 		try (ZipFile zfile = new ZipFile(zipfile)) {
 			Enumeration<? extends ZipEntry> entries = zfile.entries();
 			int row = 0;
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
+				
 				File file = new File(directory, entry.getName());
 				if (entry.isDirectory()) {
 					file.mkdirs();
 					file.setLastModified(entry.getTime());
 				} else {
 					file.getParentFile().mkdirs();
+					
+					String name = entry.getName();
+					if ((excludePattern != null) && excludePattern.matcher(name).matches()) 
+						continue;
+					else if ((includePattern != null) && !includePattern.matcher(name).matches()) 
+						continue;
 
 					try (InputStream in = zfile.getInputStream(entry)) {
 						copy(in, file);
@@ -135,5 +172,13 @@ public class ZipUtilities {
 			copy(in, out);
 			out.close();
 		}
+	}
+	
+	private static Pattern setupFilter(String filter) {
+		Pattern pattern = null;
+		if (StringUtilities.isNotNullOrEmpty(filter)) {
+			pattern = Pattern.compile("(?i)" + filter.replace(".", "\\.").replace("*", ".*"));
+		}
+		return pattern;
 	}
 }

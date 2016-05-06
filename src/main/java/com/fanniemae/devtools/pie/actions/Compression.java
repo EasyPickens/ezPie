@@ -73,12 +73,12 @@ public class Compression extends Action {
 	public String execute() {
 		try {
 			if (_zip) {
-				String filelist = ArrayUtilities.toString(ZipUtilities.zip(_sourcePath, _zipFilename));
+				String filelist = ArrayUtilities.toString(ZipUtilities.zip(_sourcePath, _zipFilename, _includeFilter, _excludeFilter));
 				_session.addLogMessageHtml("", "Files Compressed", filelist);
 				_session.addLogMessage("", "Zipped Size", String.format("%,d bytes", FileUtilities.getLength(_zipFilename)));
 				_session.addToken("File", _id, _zipFilename);
 			} else {
-				String[] list = ZipUtilities.unzip(_zipFilename, _destinationPath);
+				String[] list = ZipUtilities.unzip(_zipFilename, _destinationPath, _includeFilter, _excludeFilter);
 				String filelist = ArrayUtilities.toString(list);
 				_session.addLogMessageHtml("", "Files Decompressed", filelist);
 				_session.addLogMessage("", "Count", String.format("%,d files", list.length - 2));
