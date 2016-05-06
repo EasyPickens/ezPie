@@ -180,6 +180,14 @@ public class SessionManager {
 	public void addLogMessage(String logGroup, String event, String description, String cargo) {
 		_logger.addMessage(logGroup, event, description, cargo);
 	}
+	
+	public void addLogMessageHtml(String logGroup, String event, String description) {
+		addLogMessageHtml(logGroup, event, description, "");
+	}
+	
+	public void addLogMessageHtml(String logGroup, String event, String description, String cargo) {
+		_logger.addHtmlMessage(logGroup, event, description, cargo);
+	}
 
 	public void addErrorMessage(Exception ex) {
 		_logger.addErrorMessage(ex);

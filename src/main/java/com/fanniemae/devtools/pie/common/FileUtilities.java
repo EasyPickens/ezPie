@@ -31,6 +31,11 @@ public class FileUtilities {
 		File f = new File(fileName);
 		return f.exists() && f.isFile();
 	}
+	
+	public static long getLength(String fileName) {
+		File f = new File(fileName);
+		return f.exists() ? f.length() : 0L;
+	}
 
 	public static boolean isInvalidFile(String fileName) {
 		return !isValidFile(fileName);

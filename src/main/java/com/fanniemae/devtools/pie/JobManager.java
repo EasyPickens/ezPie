@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.actions.Action;
+import com.fanniemae.devtools.pie.actions.Compression;
 import com.fanniemae.devtools.pie.actions.Directory;
 import com.fanniemae.devtools.pie.actions.ExportDelimited;
 import com.fanniemae.devtools.pie.actions.LogComment;
@@ -72,6 +73,11 @@ public class JobManager {
 					break;
 				case "WebClient":
 					act = new WebClient(_session, eleOperation);
+					act.execute();
+					break;
+				case "Zip":
+				case "UnZip":
+					act = new Compression(_session, eleOperation);
 					act.execute();
 					break;
 				default:

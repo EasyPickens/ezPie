@@ -70,11 +70,15 @@ public class LogManager {
 	}
 
 	public void addMessagePreserveLayout(String logGroup, String event, String description) {
-		updateLog(false, logGroup, event, description, "", true);
+		updateLog(false, logGroup, event, description, "", true, false);
 	}
 
 	public void addMessage(String logGroup, String event, String description, String cargo) {
-		updateLog(false, logGroup, event, description, cargo, false);
+		updateLog(false, logGroup, event, description, cargo, false, false);
+	}
+	
+	public void addHtmlMessage(String logGroup, String event, String description, String cargo) {
+		updateLog(false, logGroup, event, description, cargo, false, true);
 	}
 
 	public void addErrorMessage(Exception ex) {
@@ -123,7 +127,7 @@ public class LogManager {
 			fos.write(String.format(_basicLine, "", "JAVA Architecture", System.getProperty("sun.arch.data.model") + " bit", elapsedTime()).getBytes());
 			fos.write(String.format(_basicLine, "", "JAVA Home", System.getProperty("java.home"), elapsedTime()).getBytes());
 			fos.write(String.format(_basicLine, "", "JAVA Vendor", System.getProperty("java.vendor"), elapsedTime()).getBytes());
-			fos.write(String.format(_basicLine, "", "JAVA Class Path", System.getProperty("java.class.path"), elapsedTime()).getBytes());
+			fos.write(String.format(_longTextLine, "", "JAVA Class Path", System.getProperty("java.class.path").replace(";", ";<br />"), elapsedTime()).getBytes());
 			fos.write(String.format(_basicLine, "", "JVM Maximum Memory", String.format("%,d Megabytes", oRuntime.maxMemory() / 1048576), elapsedTime()).getBytes());
 			fos.write(String.format(_basicLine, "", "JVM Total Allocated Memory", String.format("%,d Megabytes reserved", oRuntime.totalMemory() / 1048576), elapsedTime()).getBytes());
 			fos.write(String.format(_basicLine, "", "JVM Used Memory", String.format("%,d Megabytes", (oRuntime.totalMemory() - oRuntime.freeMemory()) / 1048576), elapsedTime()).getBytes());
@@ -170,10 +174,10 @@ public class LogManager {
 	}
 
 	protected void updateLog(Boolean isError, String logGroup, String event, String description) {
-		updateLog(isError, logGroup, event, description, "", false);
+		updateLog(isError, logGroup, event, description, "", false, false);
 	}
 
-	protected void updateLog(Boolean isError, String logGroup, String event, String description, String cargo, Boolean preserveLayout) {
+	protected void updateLog(Boolean isError, String logGroup, String event, String description, String cargo, Boolean preserveLayout, Boolean isHTML) {
 		// Skip blank description messages
 		if (description == null)
 			return;
@@ -181,7 +185,9 @@ public class LogManager {
 			return;
 
 		// Encode the description line and preserve any CRLFs.
-		if (preserveLayout) {
+		if (isHTML) {
+			// do nothing
+		} else if (preserveLayout) {
 			description = StringEscapeUtils.escapeHtml3(description).replace(" ", "&nbsp;").replace("\n", "<br />");
 		} else {
 			description = StringEscapeUtils.escapeHtml3(description).replace("\n", "<br />");
@@ -197,7 +203,7 @@ public class LogManager {
 			if (isError)
 				raf.write(String.format(_exceptionRow, logGroup, event, description, elapsedTime()).getBytes());
 			else if ((description != null) && (description.length() > 300)) 
-				raf.write(String.format(this._longTextLine, logGroup, event, description, elapsedTime()).getBytes());
+				raf.write(String.format(_longTextLine, logGroup, event, description, elapsedTime()).getBytes());
 			else
 				raf.write(String.format(_basicLine, logGroup, event, description, elapsedTime()).getBytes());
 

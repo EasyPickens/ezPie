@@ -28,6 +28,13 @@ public class ReportBuilder {
 		_sb.append(System.lineSeparator());
 	}
 	
+	public void appendArray(String[] lines) {
+		for(int i=0;i<lines.length; i++) {
+			_sb.append(lines[i]);
+			_sb.append(System.lineSeparator());
+		}
+	}
+	
 	public String toString() {
 		return _sb.toString();
 	}
