@@ -44,8 +44,8 @@ public class RestConnector extends DataConnector {
 	protected Element _conn;
 	protected String _connID;
 	protected String _url;
-	protected String _basicUsername;
-	protected String _basicPassword;
+	protected String _username;
+	protected String _password;
 	protected String _proxyHost;
 	protected int _proxyPort;
 	protected String _proxyUsername;
@@ -62,8 +62,8 @@ public class RestConnector extends DataConnector {
 		_connID = _session.getAttribute(dataSource, "ConnectionID");
 		_session.addLogMessage("", "ConnectionID", _connID);
 		_conn = _session.getConnection(_connID);
-		_basicUsername = _session.getAttribute(_conn, "BasicUsername");
-		_basicPassword = _session.getAttribute(_conn, "BasicPassword");
+		_username = _session.getAttribute(_conn, "Username");
+		_password = _session.getAttribute(_conn, "Password");
 		_proxyHost = _session.getAttribute(_conn, "ProxyHost");
 		_proxyPort = StringUtilities.toInteger(_session.getAttribute(_conn, "ProxyPort"));
 		_proxyUsername = _session.getAttribute(_conn, "ProxyUsername");
@@ -87,8 +87,8 @@ public class RestConnector extends DataConnector {
 				setProxyAuthentication();
 			}
 			
-			if(!_basicUsername.trim().isEmpty()){
-				String userpass =_basicUsername + ":" + _basicPassword;
+			if(!_username.trim().isEmpty()){
+				String userpass =_username + ":" + _password;
 				String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
 				connection.setRequestProperty ("Authorization", basicAuth);
 			}
@@ -125,8 +125,7 @@ public class RestConnector extends DataConnector {
 				writer.write(jsonString); 
 			}
 			
-			_session.addLogMessage("", "RestConnector", String.format(jsonString));
-			_session.addLogMessage("", "RestConnector", String.format("file://" + jsonFilename));
+			_session.addLogMessage("", "RestConnector", String.format("View Response"), "file://" + jsonFilename);
 			
 			int numColumns = _columns.getLength();
 			_session.addLogMessage("", "RestConnector", String.format("%,d columns found", numColumns));

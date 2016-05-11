@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.actions.Action;
+import com.fanniemae.devtools.pie.actions.ComponentScan;
 import com.fanniemae.devtools.pie.actions.Compression;
 import com.fanniemae.devtools.pie.actions.Directory;
 import com.fanniemae.devtools.pie.actions.ExportDelimited;
@@ -78,6 +79,10 @@ public class JobManager {
 				case "Zip":
 				case "UnZip":
 					act = new Compression(_session, eleOperation);
+					act.execute();
+					break;
+				case "ComponentScan":
+					act = new ComponentScan(_session, eleOperation);
 					act.execute();
 					break;
 				default:
