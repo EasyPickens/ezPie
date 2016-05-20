@@ -82,6 +82,10 @@ public class JobManager {
 					act = new Compression(_session, eleOperation);
 					act.execute();
 					break;
+				case "ComponentScan":
+					act = new ComponentScan(_session, eleOperation);
+					act.execute();
+					break;					
 				case "Git":
 					act = new Git(_session, eleOperation);
 					act.execute();
