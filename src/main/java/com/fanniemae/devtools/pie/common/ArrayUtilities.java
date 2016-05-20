@@ -53,6 +53,20 @@ public class ArrayUtilities {
 		rb.appendArray(lines);
 		return rb.toString();
 	}
+	
+	public static String toCommandLine(String[] arguments) {
+		if ((arguments == null) || (arguments.length == 0))
+			return "";
+
+		StringBuilder sb = new StringBuilder();
+		int iLen = arguments.length;
+		for (int i = 0; i < iLen; i++) {
+			if (i > 0)
+				sb.append(' ');
+			sb.append(arguments[i]);
+		}
+		return sb.toString();
+	}
 
 	public static String[] returnMatches(String[] items, String match) {
 		return filter(items, match, false);

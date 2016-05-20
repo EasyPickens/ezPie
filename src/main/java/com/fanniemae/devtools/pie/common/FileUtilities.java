@@ -26,12 +26,21 @@ public class FileUtilities {
 	public static boolean isInvalidDirectory(String filePath) {
 		return !isValidDirectory(filePath);
 	}
+	
+	public static boolean isEmptyDirectory(String filePath) {
+		File f = new File(filePath);
+		return f.exists() && f.isDirectory() & (f.list().length == 0);
+	}	
+	
+	public static boolean isNotEmptyDirectory(String filePath) {
+		return !isEmptyDirectory(filePath);
+	}
 
 	public static boolean isValidFile(String fileName) {
 		File f = new File(fileName);
 		return f.exists() && f.isFile();
 	}
-	
+
 	public static long getLength(String fileName) {
 		File f = new File(fileName);
 		return f.exists() ? f.length() : 0L;
@@ -121,7 +130,18 @@ public class FileUtilities {
 	}
 
 	public static String writeRandomTextFile(String path, String contents) {
-		String sFilename = getRandomFilename(path, "txt");
+		return writeRandomFile(path, "txt", contents);
+	}
+	
+	public static Boolean isGitRepository(String path) {
+		if (path == null) return false;
+		
+		String repoPath = !path.endsWith(File.separator) ? path + File.separator : path;
+		return isValidDirectory(repoPath);
+	}
+
+	public static String writeRandomFile(String path, String extension, String contents) {
+		String sFilename = getRandomFilename(path, extension);
 		try (FileWriter fw = new FileWriter(sFilename); BufferedWriter bw = new BufferedWriter(fw);) {
 			bw.write(contents);
 			bw.close();
@@ -136,5 +156,4 @@ public class FileUtilities {
 		String sFilename = CryptoUtilities.hashValue(datasetXML);
 		return String.format("%s%s.%s", filePath, sFilename, fileExtension);
 	}
-
 }

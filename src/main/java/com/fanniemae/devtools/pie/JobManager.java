@@ -8,6 +8,7 @@ import com.fanniemae.devtools.pie.actions.ComponentScan;
 import com.fanniemae.devtools.pie.actions.Compression;
 import com.fanniemae.devtools.pie.actions.Directory;
 import com.fanniemae.devtools.pie.actions.ExportDelimited;
+import com.fanniemae.devtools.pie.actions.Git;
 import com.fanniemae.devtools.pie.actions.LogComment;
 import com.fanniemae.devtools.pie.actions.DataSet;
 import com.fanniemae.devtools.pie.actions.LocalTokens;
@@ -81,8 +82,8 @@ public class JobManager {
 					act = new Compression(_session, eleOperation);
 					act.execute();
 					break;
-				case "ComponentScan":
-					act = new ComponentScan(_session, eleOperation);
+				case "Git":
+					act = new Git(_session, eleOperation);
 					act.execute();
 					break;
 				default:

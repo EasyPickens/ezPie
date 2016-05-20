@@ -34,7 +34,7 @@ public class RunCommand extends Action {
 
 	protected int _timeout = 0;
 	protected int _exitCode = 0;
-	
+
 	public RunCommand(SessionManager session, Element action) {
 		this(session, action, false);
 	}
@@ -45,29 +45,36 @@ public class RunCommand extends Action {
 		if (!action.getNodeName().equals("RunCommand"))
 			return;
 
-		String sWorkDirectory = _session.getAttribute(action, "WorkDirectory");
-		String sCmdLine = _session.getAttribute(action, "CommandLine");
-		String sWaitForExit = _session.getAttribute(action, "WaitForExit");
-		String sTimeout = _session.getAttribute(action, "Timeout");
+		String workDirectory = _session.getAttribute(action, "WorkDirectory");
+		String cmdLine = _session.getAttribute(action, "CommandLine");
+		String waitForExit = _session.getAttribute(action, "WaitForExit");
+		String timeout = _session.getAttribute(action, "Timeout");
+		Boolean makeBatchFile = StringUtilities.toBoolean(_session.getAttribute(action, "MakeBatchFile"), false);
 
-		if (StringUtilities.isNullOrEmpty(sWorkDirectory))
+		if (StringUtilities.isNullOrEmpty(workDirectory))
 			throw new RuntimeException("No WorkDirectory value specified.");
-		if (StringUtilities.isNullOrEmpty(sCmdLine))
+		if (StringUtilities.isNullOrEmpty(cmdLine))
 			throw new RuntimeException("No CommandLine value specified.");
 
-		_workDirectory = sWorkDirectory;
-		_commandLine = sCmdLine;
-		_waitForExit = StringUtilities.toBoolean(sWaitForExit, true);
-		_timeout = parseTimeout(sTimeout);
+		_workDirectory = workDirectory;
+		_commandLine = cmdLine;
+		_waitForExit = StringUtilities.toBoolean(waitForExit, true);
+		_timeout = parseTimeout(timeout);
 
 		_session.addLogMessage("", "Work Directory", _workDirectory);
 		_session.addLogMessage("", "Command Line", _commandLine);
-		if (StringUtilities.isNotNullOrEmpty(sWaitForExit))
+		if (StringUtilities.isNotNullOrEmpty(waitForExit))
 			_session.addLogMessage("", "Wait For Exit", _waitForExit.toString());
-		if (StringUtilities.isNotNullOrEmpty(sTimeout))
+		if (StringUtilities.isNotNullOrEmpty(timeout))
 			_session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _timeout));
 
-		_arguments = parseCommandLine(_commandLine);
+		if (makeBatchFile) {
+			String batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", cmdLine);
+			_session.addLogMessage("", "Created Batch File", batchFilename);
+			_arguments = new String[] { batchFilename };
+		} else {
+			_arguments = parseCommandLine(_commandLine);
+		}
 	}
 
 	@Override
@@ -98,7 +105,9 @@ public class RunCommand extends Action {
 				}
 				if (_waitForExit)
 					p.waitFor();
-
+				
+				bw.flush();
+				bw.close();
 				_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
 			} catch (InterruptedException ex) {
 				_session.addErrorMessage(ex);
@@ -108,6 +117,9 @@ public class RunCommand extends Action {
 					commandTimer.cancel();
 					if (p.exitValue() != 0)
 						throw new RuntimeException(String.format("External command timed out. Update timeout limit (currently %d) or disable it.", _timeout));
+				} else {
+					if (p.exitValue() != 0)
+						throw new RuntimeException(String.format("External command returned an error code of %d.  View console output for error details.", p.exitValue()));
 				}
 			}
 		} catch (IOException ex) {

@@ -16,7 +16,11 @@ public class RunPie {
 		// String sjob = "CMFT_Monthly_Scores.xml";
 		//String sjob = "CMFT_Monthly_v2.xml";
 		//String sjob = "HighlightDownload.xml";
-		String sjob = "ZipTest.xml";
+		//String sjob = "ZipTest.xml";
+		//String sjob = "AIP_All_Rules.xml";
+		//String sjob = "GitTest.xml";
+		String sjob = "GitPIE.xml";
+		//String sjob = "AIP_Rules_Criteria.xml";
 		// String sjob = "JoinTest.xml";
 		// String sjob = "ReportTest.xml";
 		System.out.println("Initializing job manager");

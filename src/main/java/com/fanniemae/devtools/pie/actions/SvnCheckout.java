@@ -11,6 +11,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.SessionManager;
+import com.fanniemae.devtools.pie.common.ArrayUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
@@ -120,23 +121,9 @@ public class SvnCheckout extends RunCommand {
 		for (Entry<String, String> kvp : _directoryURLs.entrySet()) {
 			sCurrentPath = _workDirectory + File.separator + kvp.getKey();
 			_arguments = new String[] { "svn", "checkout", StringUtilities.wrapValue(kvp.getValue()), StringUtilities.wrapValue(sCurrentPath) };
-			_session.addLogMessage("", "Command Line", createCommandLine(_arguments));
+			_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
 			super.execute();
 		}
 		return "";
-	}
-
-	protected String createCommandLine(String[] arguments) {
-		if ((arguments == null) || (arguments.length == 0))
-			return "";
-
-		StringBuilder sb = new StringBuilder();
-		int iLen = arguments.length;
-		for (int i = 0; i < iLen; i++) {
-			if (i > 0)
-				sb.append(' ');
-			sb.append(arguments[i]);
-		}
-		return sb.toString();
 	}
 }
