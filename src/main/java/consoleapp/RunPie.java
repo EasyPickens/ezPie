@@ -19,7 +19,8 @@ public class RunPie {
 		// String job = "ZipTest.xml";
 		// String job = "AIP_All_Rules.xml";
 		// String job = "GitTest.xml";
-		String job = "GitPIE.xml";
+		//String job = "GitPIE.xml";
+		String job = "Git_PAM.xml";
 		// String job = "AIP_Rules_Criteria.xml";
 		// String job = "JoinTest.xml";
 		// String job = "ReportTest.xml";
@@ -28,7 +29,7 @@ public class RunPie {
 			System.out.println("Initializing PIE JobManager");
 			JobManager jobManager = new JobManager(sSettings, job);
 			logFilename = jobManager.getLogFilename();
-			System.out.println("Running job definition");
+			System.out.println("Running job definition " + job);
 			jobManager.runJob();
 			System.out.println("Job defintion processing completed.");
 		} catch (Exception ex) {
