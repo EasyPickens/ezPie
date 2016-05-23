@@ -11,8 +11,8 @@ import com.fanniemae.devtools.pie.common.ReportBuilder;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
-///   <Git LocalPath="">
-///      <Clone RemoteRepository="" PLinkPath="" />
+///   <Git LocalPath="" PLinkPath="">
+///      <Clone RemoteRepository="" />
 ///      <Commit Message=""/>  git commit -m "message"
 ///      <Push RemoteRepo="" RemoteBranch="" IncludeTags="" /> git push <remote name> <branch name> --tags
 ///      <Pull /> git pull --rebase
@@ -52,7 +52,7 @@ public class Git extends RunCommand {
 			throw new RuntimeException("No Git actions defined.");
 		}
 
-		String message;
+		//String message;
 		String tag;
 		String remoteRepo;
 		ReportBuilder sbCommands = new ReportBuilder();
@@ -67,6 +67,7 @@ public class Git extends RunCommand {
 					throw new RuntimeException("Missing RemoteRepository information.");
 				}
 				if (FileUtilities.isNotEmptyDirectory(_localPath) && FileUtilities.isGitRepository(_localPath)) {
+					sbCommands.appendLine("git clean -df");
 					sbCommands.appendLine("git reset --hard");
 					sbCommands.appendLine("git pull --rebase");
 				} else if (FileUtilities.isNotEmptyDirectory(_localPath)) {
@@ -76,14 +77,15 @@ public class Git extends RunCommand {
 				}				
 				break;
 			case "Commit":
-				message = _session.getAttribute(nodeCmds.item(i), "Message");
-				if (StringUtilities.isNullOrEmpty(message)) {
-					throw new RuntimeException("No commit message defined.");
-				}
-				sbCommands.appendFormatLine("git commit -m  \"%s\"", message);
-				break;
+//				message = _session.getAttribute(nodeCmds.item(i), "Message");
+//				if (StringUtilities.isNullOrEmpty(message)) {
+//					throw new RuntimeException("No commit message defined.");
+//				}
+//				sbCommands.appendFormatLine("git commit -m  \"%s\"", message);
+//				break;				
+				throw new RuntimeException("Commit support not currently available.");
 			case "Push":
-				//remoteRepo = _session.getAttribute(nodeCmds.item(i), "RemoteRepository");
+//				remoteRepo = _session.getAttribute(nodeCmds.item(i), "RemoteRepository");
 				throw new RuntimeException("Push support not currently available.");
 			case "Pull":
 				sbCommands.appendLine("git pull --rebase");
@@ -101,17 +103,18 @@ public class Git extends RunCommand {
 				sbCommands.appendFormatLine("git reset %s", hard);
 				break;
 			case "AddTag":
-				tag = _session.getAttribute(nodeCmds.item(i), "Tag");
-				if (StringUtilities.isNullOrEmpty(tag)) {
-					throw new RuntimeException("No Tag value defined.");
-				}
-
-				message = _session.getAttribute(nodeCmds.item(i), "Message");
-				if (StringUtilities.isNullOrEmpty(message)) {
-					throw new RuntimeException("Missing Message associated with this tag.");
-				}
-				sbCommands.appendFormatLine("git tag -a %s -m \"%s\"", tag, message);
-				break;
+//				tag = _session.getAttribute(nodeCmds.item(i), "Tag");
+//				if (StringUtilities.isNullOrEmpty(tag)) {
+//					throw new RuntimeException("No Tag value defined.");
+//				}
+//
+//				message = _session.getAttribute(nodeCmds.item(i), "Message");
+//				if (StringUtilities.isNullOrEmpty(message)) {
+//					throw new RuntimeException("Missing Message associated with this tag.");
+//				}
+//				sbCommands.appendFormatLine("git tag -a %s -m \"%s\"", tag, message);
+//				break;
+				throw new RuntimeException("AddTag support not currently available.");				
 			}
 		}
 		

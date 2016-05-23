@@ -12,29 +12,36 @@ public class RunPie {
 
 	protected static void runJobManager() {
 		String sSettings = "C:\\Developers\\Code\\TestDirectory\\_Settings.xml";
-		// String sjob = "test.xml";
-		// String sjob = "CMFT_Monthly_Scores.xml";
-		//String sjob = "CMFT_Monthly_v2.xml";
-		//String sjob = "HighlightDownload.xml";
-		//String sjob = "ZipTest.xml";
-		//String sjob = "AIP_All_Rules.xml";
-		//String sjob = "GitTest.xml";
-		String sjob = "GitPIE.xml";
-		//String sjob = "AIP_Rules_Criteria.xml";
-		// String sjob = "JoinTest.xml";
-		// String sjob = "ReportTest.xml";
-		System.out.println("Initializing job manager");
-		JobManager jobManager = new JobManager(sSettings, sjob);
-		String logFilename = jobManager.getLogFilename();
-		System.out.println("Running job");
-		jobManager.runJob();
-		System.out.println("Job request completed.");
-		viewlog(logFilename);		
-	}
-	
-	protected static void viewlog(String logFilename) {
+		// String job = "test.xml";
+		// String job = "CMFT_Monthly_Scores.xml";
+		// String job = "CMFT_Monthly_v2.xml";
+		// String job = "HighlightDownload.xml";
+		// String job = "ZipTest.xml";
+		// String job = "AIP_All_Rules.xml";
+		// String job = "GitTest.xml";
+		String job = "GitPIE.xml";
+		// String job = "AIP_Rules_Criteria.xml";
+		// String job = "JoinTest.xml";
+		// String job = "ReportTest.xml";
+		String logFilename = null;
 		try {
-			Runtime.getRuntime().exec(new String[] {"C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",logFilename});
+			System.out.println("Initializing PIE JobManager");
+			JobManager jobManager = new JobManager(sSettings, job);
+			logFilename = jobManager.getLogFilename();
+			System.out.println("Running job definition");
+			jobManager.runJob();
+			System.out.println("Job defintion processing completed.");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		viewlog(logFilename);
+	}
+
+	protected static void viewlog(String logFilename) {
+		if (logFilename == null)
+			return;
+		try {
+			Runtime.getRuntime().exec(new String[] { "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe", logFilename });
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
