@@ -35,6 +35,9 @@ public class TokenManager {
 			case "Constants":
 				loadTokenValues("Constants", nl.item(i));
 				break;
+			case "Git":
+				loadTokenValues("Git",nl.item(i));
+				break;
 			}
 		}
 	}
@@ -84,6 +87,9 @@ public class TokenManager {
 
 			if (_tokens.containsKey(sGroup) && _tokens.get(sGroup).containsKey(sKey)) {
 				sValue = sValue.replace(sFullToken, _tokens.get(sGroup).get(sKey));
+			} else {
+				// if the token is not found, it evaulates to empty string.
+				sValue = sValue.replace(sFullToken, "");
 			}
 		}
 		return sValue;

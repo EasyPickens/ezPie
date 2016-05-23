@@ -41,6 +41,10 @@ public class Git extends RunCommand {
 
 		// Using public/private keys requires a key store.
 		_plinkPath = _session.getAttribute(action, "PLinkPath").trim();
+		if (StringUtilities.isNullOrEmpty(_plinkPath)) {
+			_plinkPath=_session.resolveTokens("@Git.PLinkPath~").trim();
+		}
+		
 		if (StringUtilities.isNotNullOrEmpty(_plinkPath) && FileUtilities.isInvalidFile(_plinkPath)) {
 			throw new RuntimeException(String.format("Plink.exe file not found for PLinkPath %s.", _plinkPath));
 		}
@@ -49,15 +53,26 @@ public class Git extends RunCommand {
 		NodeList nodeCmds = XmlUtilities.selectNodes(action, "*");
 		int length = nodeCmds.getLength();
 		if (length == 0) {
-			throw new RuntimeException("No Git actions defined.");
+			if (FileUtilities.isEmptyDirectory(_localPath)) {
+				throw new RuntimeException("No Git actions defined.");
+			}
+			// default to a reset and pull.
+			Element reset = action.getOwnerDocument().createElement("Reset");
+			reset.setAttribute("Hard", "True");
+			action.appendChild(reset);
+			action.appendChild(action.getOwnerDocument().createElement("Pull"));
+			nodeCmds = XmlUtilities.selectNodes(action, "*");
+			length = nodeCmds.getLength();
 		}
 
-		//String message;
+		// String message;
 		String tag;
 		String remoteRepo;
 		ReportBuilder sbCommands = new ReportBuilder();
 		if (StringUtilities.isNotNullOrEmpty(_plinkPath)) {
 			sbCommands.appendFormatLine("SET GIT_SSH=%s", _plinkPath);
+		} else {
+			_session.addLogMessage("", "**NOTE", "If using SSH and seeing errors, you may need to set PLinkPath in the settings file.  It should be the full path to the plink.exe file.");
 		}
 		for (int i = 0; i < length; i++) {
 			switch (nodeCmds.item(i).getNodeName()) {
@@ -73,19 +88,19 @@ public class Git extends RunCommand {
 				} else if (FileUtilities.isNotEmptyDirectory(_localPath)) {
 					throw new RuntimeException(String.format("Git clone requires an empty destination directory. %s is not an empty directory.", _localPath));
 				} else {
-				sbCommands.appendFormatLine("git clone --verbose %s %s", StringUtilities.wrapValue(remoteRepo), StringUtilities.wrapValue(_localPath));
-				}				
+					sbCommands.appendFormatLine("git clone --verbose %s %s", StringUtilities.wrapValue(remoteRepo), StringUtilities.wrapValue(_localPath));
+				}
 				break;
 			case "Commit":
-//				message = _session.getAttribute(nodeCmds.item(i), "Message");
-//				if (StringUtilities.isNullOrEmpty(message)) {
-//					throw new RuntimeException("No commit message defined.");
-//				}
-//				sbCommands.appendFormatLine("git commit -m  \"%s\"", message);
-//				break;				
+				// message = _session.getAttribute(nodeCmds.item(i), "Message");
+				// if (StringUtilities.isNullOrEmpty(message)) {
+				// throw new RuntimeException("No commit message defined.");
+				// }
+				// sbCommands.appendFormatLine("git commit -m \"%s\"", message);
+				// break;
 				throw new RuntimeException("Commit support not currently available.");
 			case "Push":
-//				remoteRepo = _session.getAttribute(nodeCmds.item(i), "RemoteRepository");
+				// remoteRepo = _session.getAttribute(nodeCmds.item(i), "RemoteRepository");
 				throw new RuntimeException("Push support not currently available.");
 			case "Pull":
 				sbCommands.appendLine("git pull --rebase");
@@ -100,28 +115,29 @@ public class Git extends RunCommand {
 				break;
 			case "Reset":
 				String hard = _session.getAttribute(nodeCmds.item(i), "Hard").toLowerCase().equals("true") ? "--hard" : "";
+				sbCommands.appendLine("git clean -df");
 				sbCommands.appendFormatLine("git reset %s", hard);
 				break;
 			case "AddTag":
-//				tag = _session.getAttribute(nodeCmds.item(i), "Tag");
-//				if (StringUtilities.isNullOrEmpty(tag)) {
-//					throw new RuntimeException("No Tag value defined.");
-//				}
-//
-//				message = _session.getAttribute(nodeCmds.item(i), "Message");
-//				if (StringUtilities.isNullOrEmpty(message)) {
-//					throw new RuntimeException("Missing Message associated with this tag.");
-//				}
-//				sbCommands.appendFormatLine("git tag -a %s -m \"%s\"", tag, message);
-//				break;
-				throw new RuntimeException("AddTag support not currently available.");				
+				// tag = _session.getAttribute(nodeCmds.item(i), "Tag");
+				// if (StringUtilities.isNullOrEmpty(tag)) {
+				// throw new RuntimeException("No Tag value defined.");
+				// }
+				//
+				// message = _session.getAttribute(nodeCmds.item(i), "Message");
+				// if (StringUtilities.isNullOrEmpty(message)) {
+				// throw new RuntimeException("Missing Message associated with this tag.");
+				// }
+				// sbCommands.appendFormatLine("git tag -a %s -m \"%s\"", tag, message);
+				// break;
+				throw new RuntimeException("AddTag support not currently available.");
 			}
 		}
-		
+
 		_session.addLogMessage("", "Git Commands", sbCommands.toString());
 		_batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", sbCommands.toString());
 		_session.addLogMessage("", "Batch File", _batchFilename);
-		_arguments = new String[] {_batchFilename};
+		_arguments = new String[] { _batchFilename };
 	}
 
 	@Override
