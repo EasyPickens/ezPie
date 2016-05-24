@@ -10,6 +10,7 @@ import com.fanniemae.devtools.pie.actions.Directory;
 import com.fanniemae.devtools.pie.actions.ExportDelimited;
 import com.fanniemae.devtools.pie.actions.Git;
 import com.fanniemae.devtools.pie.actions.LogComment;
+import com.fanniemae.devtools.pie.actions.Maven;
 import com.fanniemae.devtools.pie.actions.DataSet;
 import com.fanniemae.devtools.pie.actions.LocalTokens;
 import com.fanniemae.devtools.pie.actions.RunCommand;
@@ -88,6 +89,10 @@ public class JobManager {
 					break;					
 				case "Git":
 					act = new Git(_session, eleOperation);
+					act.execute();
+					break;
+				case "Maven":
+					act = new Maven(_session, eleOperation);
 					act.execute();
 					break;
 				default:
