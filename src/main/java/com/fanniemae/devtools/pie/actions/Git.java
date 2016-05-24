@@ -32,18 +32,20 @@ public class Git extends RunCommand {
 
 		_localPath = _session.getAttribute(action, "LocalPath").trim();
 		if (StringUtilities.isNullOrEmpty(_localPath)) {
-			throw new RuntimeException("No LocalPath specified for Git actions.");
+			throw new RuntimeException("No LocalPath specified for Git action.");
 		} else if (FileUtilities.isInvalidDirectory(_localPath)) {
 			File file = new File(_localPath);
 			file.mkdirs();
 		}
 		_workDirectory = _localPath;
+		_session.addLogMessage("", "Local Path", _workDirectory);
 
 		// Using public/private keys requires a key store.
 		_plinkPath = _session.getAttribute(action, "PLinkPath").trim();
 		if (StringUtilities.isNullOrEmpty(_plinkPath)) {
 			_plinkPath=_session.resolveTokens("@Git.PLinkPath~").trim();
 		}
+		_session.addLogMessage("", "PLink Path", _plinkPath);
 		
 		if (StringUtilities.isNotNullOrEmpty(_plinkPath) && FileUtilities.isInvalidFile(_plinkPath)) {
 			throw new RuntimeException(String.format("Plink.exe file not found for PLinkPath %s.", _plinkPath));

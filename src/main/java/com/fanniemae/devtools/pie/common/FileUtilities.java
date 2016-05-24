@@ -26,12 +26,12 @@ public class FileUtilities {
 	public static boolean isInvalidDirectory(String filePath) {
 		return !isValidDirectory(filePath);
 	}
-	
+
 	public static boolean isEmptyDirectory(String filePath) {
 		File f = new File(filePath);
 		return f.exists() && f.isDirectory() & (f.list().length == 0);
-	}	
-	
+	}
+
 	public static boolean isNotEmptyDirectory(String filePath) {
 		return !isEmptyDirectory(filePath);
 	}
@@ -61,6 +61,16 @@ public class FileUtilities {
 		}
 
 		return fi.delete();
+	}
+
+	public static String addDirectory(String path, String directory) {
+		if (!path.endsWith(File.separator))
+			path = path + File.separator;
+
+		if (directory.startsWith(File.separator)) {
+			directory = directory.substring(1);
+		}
+		return path + directory;
 	}
 
 	public static String formatPath(String path, String defaultPath, String attributeName) {
@@ -132,12 +142,21 @@ public class FileUtilities {
 	public static String writeRandomTextFile(String path, String contents) {
 		return writeRandomFile(path, "txt", contents);
 	}
-	
+
 	public static Boolean isGitRepository(String path) {
-		if (path == null) return false;
-		
+		if (path == null)
+			return false;
+
 		String repoPath = !path.endsWith(File.separator) ? path + File.separator : path;
-		return isValidDirectory(repoPath);
+		return isValidDirectory(repoPath+".git");
+	}
+	
+	public static Boolean isSvnRepository(String path) {
+		if (path == null)
+			return false;
+
+		String repoPath = !path.endsWith(File.separator) ? path + File.separator : path;
+		return isValidDirectory(repoPath+".svn");
 	}
 
 	public static String writeRandomFile(String path, String extension, String contents) {

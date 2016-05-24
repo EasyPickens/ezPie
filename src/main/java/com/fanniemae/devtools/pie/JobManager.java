@@ -14,7 +14,7 @@ import com.fanniemae.devtools.pie.actions.Maven;
 import com.fanniemae.devtools.pie.actions.DataSet;
 import com.fanniemae.devtools.pie.actions.LocalTokens;
 import com.fanniemae.devtools.pie.actions.RunCommand;
-import com.fanniemae.devtools.pie.actions.SvnCheckout;
+import com.fanniemae.devtools.pie.actions.Svn;
 import com.fanniemae.devtools.pie.actions.WebClient;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
@@ -67,7 +67,7 @@ public class JobManager {
 					act.execute();
 					break;
 				case "SvnCheckout":
-					act = new SvnCheckout(_session, eleOperation);
+					act = new Svn(_session, eleOperation);
 					act.execute();
 					break;
 				case "Directory" :
@@ -91,6 +91,10 @@ public class JobManager {
 					act = new Git(_session, eleOperation);
 					act.execute();
 					break;
+				case "Svn":
+					act = new Svn(_session, eleOperation);
+					act.execute();
+					break;					
 				case "Maven":
 					act = new Maven(_session, eleOperation);
 					act.execute();
