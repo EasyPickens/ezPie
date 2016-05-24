@@ -16,7 +16,13 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
  * @author Richard Monson
  * @since 2016-01-04
  * 
+ * <Svn LocalPath="">
+ *    <Clone URL="" />
+ *    <Pull />
+ *    <Reset />
+ * </Svn>
  */
+
 public class Svn extends RunCommand {
 
 	protected String _batchFilename;
@@ -44,18 +50,18 @@ public class Svn extends RunCommand {
 		for (int i = 0; i < length; i++) {
 			switch (nodeCmds.item(i).getNodeName()) {
 			case "Clone":
-				String repoUrl = _session.getAttribute(nodeCmds.item(i), "URL");
+				String repoURL = _session.getAttribute(nodeCmds.item(i), "URL");
 				String subDirectory = _session.getAttribute(nodeCmds.item(i), "DirectoryName");
-				if (StringUtilities.isNullOrEmpty(repoUrl)) {
+				if (StringUtilities.isNullOrEmpty(repoURL)) {
 					throw new RuntimeException("Svn Checkout requires a URL to remote SVN repository. Missing the URL.");
 				}
 				String localPath = _workDirectory;
 				if (StringUtilities.isNullOrEmpty(subDirectory)) {
-					int iPos = repoUrl.lastIndexOf('/');
-					if ((iPos > -1) && (iPos < repoUrl.length() - 1)) {
-						subDirectory = repoUrl.substring(iPos + 1);
+					int iPos = repoURL.lastIndexOf('/');
+					if ((iPos > -1) && (iPos < repoURL.length() - 1)) {
+						subDirectory = repoURL.substring(iPos + 1);
 					} else {
-						throw new RuntimeException(String.format("Could not parse SVN repository URL (%s) for directory name.", repoUrl));
+						throw new RuntimeException(String.format("Could not parse SVN repository URL (%s) for directory name.", repoURL));
 					}
 				}
 				localPath = FileUtilities.addDirectory(_workDirectory, subDirectory);
@@ -67,7 +73,7 @@ public class Svn extends RunCommand {
 				} else if (FileUtilities.isNotEmptyDirectory(localPath)) {
 					throw new RuntimeException(String.format("Svn Checkout requires an empty destination directory. %s is not an empty directory.", localPath));
 				} else {
-					sbCommands.appendFormatLine("svn checkout %s %s", repoUrl, StringUtilities.wrapValue(localPath));
+					sbCommands.appendFormatLine("svn checkout %s %s", repoURL, StringUtilities.wrapValue(localPath));
 				}
 				break;
 			case "Pull":

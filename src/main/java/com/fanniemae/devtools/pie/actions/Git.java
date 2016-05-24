@@ -11,15 +11,18 @@ import com.fanniemae.devtools.pie.common.ReportBuilder;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
-///   <Git LocalPath="" PLinkPath="">
-///      <Clone RemoteRepository="" />
-///      <Commit Message=""/>  git commit -m "message"
-///      <Push RemoteRepo="" RemoteBranch="" IncludeTags="" /> git push <remote name> <branch name> --tags
-///      <Pull /> git pull --rebase
-///      <Checkout Branch="" Tag="" />
-///      <Reset Hard="True/False" />
-///      <AddTag Tag="" Message="" /> git tag -a v1.4 -m "message"
-///   </Git>
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-05-19
+ * 
+ * <Git LocalPath="" [PLinkPath]>
+ *    <Clone URL="" />
+ *    <Pull />
+ *    <Checkout Branch="" [Tag] />
+ *    <Reset [Hard] />
+ * </Git>
+ */
 
 public class Git extends RunCommand {
 
@@ -69,7 +72,7 @@ public class Git extends RunCommand {
 
 		// String message;
 		String tag;
-		String remoteRepo;
+		String repoURL;
 		ReportBuilder sbCommands = new ReportBuilder();
 		if (StringUtilities.isNotNullOrEmpty(_plinkPath)) {
 			sbCommands.appendFormatLine("SET GIT_SSH=%s", _plinkPath);
@@ -79,9 +82,9 @@ public class Git extends RunCommand {
 		for (int i = 0; i < length; i++) {
 			switch (nodeCmds.item(i).getNodeName()) {
 			case "Clone":
-				remoteRepo = _session.getAttribute(nodeCmds.item(i), "RemoteRepository");
-				if (StringUtilities.isNullOrEmpty(remoteRepo)) {
-					throw new RuntimeException("Missing RemoteRepository information.");
+				repoURL = _session.getAttribute(nodeCmds.item(i), "URL");
+				if (StringUtilities.isNullOrEmpty(repoURL)) {
+					throw new RuntimeException("Missing URL to remote repository.");
 				}
 				if (FileUtilities.isNotEmptyDirectory(_localPath) && FileUtilities.isGitRepository(_localPath)) {
 					sbCommands.appendLine("git clean -df");
@@ -90,20 +93,9 @@ public class Git extends RunCommand {
 				} else if (FileUtilities.isNotEmptyDirectory(_localPath)) {
 					throw new RuntimeException(String.format("Git clone requires an empty destination directory. %s is not an empty directory.", _localPath));
 				} else {
-					sbCommands.appendFormatLine("git clone --verbose %s %s", StringUtilities.wrapValue(remoteRepo), StringUtilities.wrapValue(_localPath));
+					sbCommands.appendFormatLine("git clone --verbose %s %s", StringUtilities.wrapValue(repoURL), StringUtilities.wrapValue(_localPath));
 				}
 				break;
-			case "Commit":
-				// message = _session.getAttribute(nodeCmds.item(i), "Message");
-				// if (StringUtilities.isNullOrEmpty(message)) {
-				// throw new RuntimeException("No commit message defined.");
-				// }
-				// sbCommands.appendFormatLine("git commit -m \"%s\"", message);
-				// break;
-				throw new RuntimeException("Commit support not currently available.");
-			case "Push":
-				// remoteRepo = _session.getAttribute(nodeCmds.item(i), "RemoteRepository");
-				throw new RuntimeException("Push support not currently available.");
 			case "Pull":
 				sbCommands.appendLine("git pull --rebase");
 				break;
@@ -120,19 +112,6 @@ public class Git extends RunCommand {
 				sbCommands.appendLine("git clean -df");
 				sbCommands.appendFormatLine("git reset %s", hard);
 				break;
-			case "AddTag":
-				// tag = _session.getAttribute(nodeCmds.item(i), "Tag");
-				// if (StringUtilities.isNullOrEmpty(tag)) {
-				// throw new RuntimeException("No Tag value defined.");
-				// }
-				//
-				// message = _session.getAttribute(nodeCmds.item(i), "Message");
-				// if (StringUtilities.isNullOrEmpty(message)) {
-				// throw new RuntimeException("Missing Message associated with this tag.");
-				// }
-				// sbCommands.appendFormatLine("git tag -a %s -m \"%s\"", tag, message);
-				// break;
-				throw new RuntimeException("AddTag support not currently available.");
 			}
 		}
 
@@ -141,11 +120,4 @@ public class Git extends RunCommand {
 		_session.addLogMessage("", "Batch File", _batchFilename);
 		_arguments = new String[] { _batchFilename };
 	}
-
-	@Override
-	public String execute() {
-		super.execute();
-		return "";
-	}
-
 }
