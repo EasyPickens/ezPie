@@ -14,11 +14,11 @@ public class Maven extends RunCommand {
 	public Maven(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_workDirectory = _session.getAttribute(action, "ProjectPath").trim();
+		_workDirectory = _session.getAttribute(action, "LocalPath").trim();
 		if (StringUtilities.isNullOrEmpty(_workDirectory)) {
-			throw new RuntimeException("No ProjectPath specified for Maven action.");
+			throw new RuntimeException("No LocalPath specified for Maven action.");
 		} else if (FileUtilities.isInvalidDirectory(_workDirectory)) {
-			throw new RuntimeException(String.format("ProjectPath %s does not exist.", _workDirectory));
+			throw new RuntimeException(String.format("LocalPath %s does not exist.", _workDirectory));
 		}
 
 		String pomFile = _workDirectory + "POM.xml";
