@@ -9,6 +9,7 @@ import com.fanniemae.devtools.pie.actions.Compression;
 import com.fanniemae.devtools.pie.actions.Directory;
 import com.fanniemae.devtools.pie.actions.ExportDelimited;
 import com.fanniemae.devtools.pie.actions.Git;
+import com.fanniemae.devtools.pie.actions.HighlightScan;
 import com.fanniemae.devtools.pie.actions.LogComment;
 import com.fanniemae.devtools.pie.actions.Maven;
 import com.fanniemae.devtools.pie.actions.DataSet;
@@ -97,6 +98,10 @@ public class JobManager {
 					break;					
 				case "Maven":
 					act = new Maven(_session, eleOperation);
+					act.execute();
+					break;
+				case "HighlightScan":
+					act = new HighlightScan(_session, eleOperation);
 					act.execute();
 					break;
 				default:
