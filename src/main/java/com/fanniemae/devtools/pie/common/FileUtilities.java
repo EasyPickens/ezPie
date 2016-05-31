@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 public class FileUtilities {
 
 	public static boolean isValidDirectory(String filePath) {
+		if (filePath == null) return false;
 		File f = new File(filePath);
 		return f.exists() && f.isDirectory();
 	}
@@ -28,6 +29,7 @@ public class FileUtilities {
 	}
 
 	public static boolean isEmptyDirectory(String filePath) {
+		if (filePath == null) return false;
 		File f = new File(filePath);
 		return f.exists() && f.isDirectory() & (f.list().length == 0);
 	}
@@ -37,11 +39,13 @@ public class FileUtilities {
 	}
 
 	public static boolean isValidFile(String fileName) {
+		if (fileName == null) return false;
 		File f = new File(fileName);
 		return f.exists() && f.isFile();
 	}
 
 	public static long getLength(String fileName) {
+		if (fileName == null) return 0L;
 		File f = new File(fileName);
 		return f.exists() ? f.length() : 0L;
 	}

@@ -26,21 +26,19 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
 
 public class Git extends RunCommand {
 
-	protected String _localPath;
 	protected String _plinkPath;
 	protected String _batchFilename;
 
 	public Git(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_localPath = _session.getAttribute(action, "LocalPath").trim();
-		if (StringUtilities.isNullOrEmpty(_localPath)) {
+		_workDirectory = _session.getAttribute(action, "LocalPath").trim();
+		if (StringUtilities.isNullOrEmpty(_workDirectory)) {
 			throw new RuntimeException("No LocalPath specified for Git action.");
-		} else if (FileUtilities.isInvalidDirectory(_localPath)) {
-			File file = new File(_localPath);
+		} else if (FileUtilities.isInvalidDirectory(_workDirectory)) {
+			File file = new File(_workDirectory);
 			file.mkdirs();
 		}
-		_workDirectory = _localPath;
 		_session.addLogMessage("", "Local Path", _workDirectory);
 
 		// Using public/private keys requires a key store.
@@ -58,7 +56,7 @@ public class Git extends RunCommand {
 		NodeList nodeCmds = XmlUtilities.selectNodes(action, "*");
 		int length = nodeCmds.getLength();
 		if (length == 0) {
-			if (FileUtilities.isEmptyDirectory(_localPath)) {
+			if (FileUtilities.isEmptyDirectory(_workDirectory)) {
 				throw new RuntimeException("No Git actions defined.");
 			}
 			// default to a reset and pull.
@@ -86,14 +84,14 @@ public class Git extends RunCommand {
 				if (StringUtilities.isNullOrEmpty(repoURL)) {
 					throw new RuntimeException("Missing URL to remote repository.");
 				}
-				if (FileUtilities.isNotEmptyDirectory(_localPath) && FileUtilities.isGitRepository(_localPath)) {
+				if (FileUtilities.isNotEmptyDirectory(_workDirectory) && FileUtilities.isGitRepository(_workDirectory)) {
 					sbCommands.appendLine("git clean -df");
 					sbCommands.appendLine("git reset --hard");
 					sbCommands.appendLine("git pull --rebase");
-				} else if (FileUtilities.isNotEmptyDirectory(_localPath)) {
-					throw new RuntimeException(String.format("Git clone requires an empty destination directory. %s is not an empty directory.", _localPath));
+				} else if (FileUtilities.isNotEmptyDirectory(_workDirectory)) {
+					throw new RuntimeException(String.format("Git clone requires an empty destination directory. %s is not an empty directory.", _workDirectory));
 				} else {
-					sbCommands.appendFormatLine("git clone --verbose %s %s", StringUtilities.wrapValue(repoURL), StringUtilities.wrapValue(_localPath));
+					sbCommands.appendFormatLine("git clone --verbose %s %s", StringUtilities.wrapValue(repoURL), StringUtilities.wrapValue(_workDirectory));
 				}
 				break;
 			case "Pull":
@@ -105,7 +103,7 @@ public class Git extends RunCommand {
 					throw new RuntimeException("Missing required branch name to checkout.");
 				}
 				tag = _session.getAttribute(nodeCmds.item(1), "Tag");
-				sbCommands.appendFormat("git checkout %s %s", StringUtilities.wrapValue(branch), tag);
+				sbCommands.appendFormatLine("git checkout %s %s", StringUtilities.wrapValue(branch), tag);
 				break;
 			case "Reset":
 				String hard = _session.getAttribute(nodeCmds.item(i), "Hard").toLowerCase().equals("true") ? "--hard" : "";

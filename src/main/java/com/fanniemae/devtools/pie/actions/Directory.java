@@ -70,6 +70,8 @@ public class Directory extends Action {
 	public String execute() {
 		try {
 			switch (_actionType) {
+			case "Copy":
+				return copyDirectory();
 			case "Delete":
 				return deleteDirectory();
 			case "Create":
@@ -151,6 +153,19 @@ public class Directory extends Action {
 		_session.addLogMessage("", "Destination Path", _destinationPath);
 		_session.addLogMessage("", "Process", "Moving directory");
 		FileUtils.moveDirectoryToDirectory(new File(_path), new File(_destinationPath), true);
+		return "";
+	}
+	
+	protected String copyDirectory() throws IOException {
+		if (StringUtilities.isNullOrEmpty(_destinationPath)) {
+			throw new RuntimeException(String.format("%s is missing a value for DestinationPath.", _actionName));
+		}
+		if (FileUtilities.isValidDirectory(_destinationPath)) {
+			throw new RuntimeException(String.format("Destination directory (%s) already exists.", _destinationPath));
+		}
+		_session.addLogMessage("", "Destination Path", _destinationPath);
+		_session.addLogMessage("", "Process", "Copy directory");
+		FileUtils.copyDirectory(new File(_path), new File(_destinationPath), true);
 		return "";
 	}
 
