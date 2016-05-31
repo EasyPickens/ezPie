@@ -119,7 +119,11 @@ public class JobManager {
 				case "Rename":
 					act = new Rename(_session, eleOperation);
 					act.execute();
-					break;					
+					break;
+				case "HighlightScan":
+					act = new HighlightScan(_session, eleOperation);
+					act.execute();
+					break;
 				default:
 					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}
