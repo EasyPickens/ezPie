@@ -310,4 +310,44 @@ public class StringUtilities {
 		}
 		return values;
 	}
+	
+	public static int periodToSeconds(String value) {
+		if (StringUtilities.isNullOrEmpty(value))
+			return -1;
+
+		char cUnits = 's';
+
+		int iStart = 0;
+		int iSeconds = 0;
+		int iPosition = 0;
+		int iCurrentValue = 0;
+
+		value = value.toLowerCase();
+		String[] aNumbers = value.split("d|h|m|s");
+		for (int i = 0; i < aNumbers.length; i++) {
+			if (StringUtilities.isNullOrEmpty(aNumbers[i]))
+				continue;
+
+			iPosition = value.indexOf(aNumbers[i], iStart) + aNumbers[i].length();
+			iStart = iPosition + 1;
+			cUnits = (iPosition < value.length()) ? value.charAt(iPosition) : 's';
+			iCurrentValue = StringUtilities.toInteger(aNumbers[i], 0);
+
+			switch (cUnits) {
+			case 'd':
+				iSeconds += iCurrentValue * 86400;
+				break;
+			case 'h':
+				iSeconds += iCurrentValue * 3600;
+				break;
+			case 'm':
+				iSeconds += iCurrentValue * 60;
+				break;
+			case 's':
+				iSeconds += iCurrentValue;
+				break;
+			}
+		}
+		return (iSeconds < 1) ? -1 : iSeconds;
+	}
 }
