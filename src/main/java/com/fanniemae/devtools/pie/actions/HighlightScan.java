@@ -65,18 +65,25 @@ public class HighlightScan extends Action {
 	
 	protected void findCastExtractionFiles(Node nodeStep){
 		_oracleDeliveryToolPath = _session.getAttribute(nodeStep, "OracleDeliveryToolPath");
+		if (_oracleDeliveryToolPath == null) {
+			throw new RuntimeException("HLAgentPath not found in definition");
+		}
+		_session.addLogMessage("", "HighlightScan", "Looking for .castextraction files.");
 		checkForCASTDBFiles();
 	}
 	
 	protected void runHighlightAgent(Node nodeStep){
 		_hlAgentPath = _session.getAttribute(nodeStep, "HLAgentPath");
+		if (_hlAgentPath == null) {
+			throw new RuntimeException("HLAgentPath not found in definition");
+		}
+		_session.addLogMessage("", "HighlightScan", "Running Highlight Agent at " + _hlAgentPath);
 		try {
 			this.robot = new Robot();
 		} catch (AWTException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		createResultsFolder();
 		startAgent();
 		discoverFiles();
 		scanFiles();
@@ -84,6 +91,28 @@ public class HighlightScan extends Action {
 		saveResults();
 		goToFolder();
 		this.process.destroy();
+	}
+    
+	private void checkForCASTDBFiles(){
+		File dir = new File(_destination+"\\Analyzed");
+		checkForCASTDBFiles(dir);	
+	}
+	
+	private void checkForCASTDBFiles(File dir){
+		File[] directoryListing = dir.listFiles();
+		if (directoryListing != null) {
+		    for (File child : directoryListing) {
+				if (child.isDirectory()) {
+					checkForCASTDBFiles(child);
+	            } else if(child.isFile()){
+					if(FilenameUtils.getExtension(child.getName()).equals("castextraction")){
+						_session.addLogMessage("", "HighlightScan", "Found .castextraction files.");
+						_session.addLogMessage("", "HighlightScan", "Running Oracle DB Delivery Tool at " + _oracleDeliveryToolPath + " . Please do not type/click anywhere, until the program is done executing.");
+			    		changeOracleExtractExtension(child);
+			    	}
+	            }
+		    }
+		}
 	}
 	
     private void changeOracleExtractExtension(File castExtractionFile){
@@ -107,111 +136,51 @@ public class HighlightScan extends Action {
         sleep(15000);
         //navigating to input text
         for(int i=0;i<3;i++){
-            robot.keyPress(KeyEvent.VK_TAB);
-            sleep(200);
-            robot.keyRelease(KeyEvent.VK_TAB);
+        	keyPressRelease(KeyEvent.VK_TAB, 200);
             sleep(200);
         }
         
         //select populated target folder path
-        robot.keyPress(KeyEvent.VK_CONTROL);
-        robot.keyPress(KeyEvent.VK_A);
-        sleep(500);
-        robot.keyRelease(KeyEvent.VK_CONTROL);
-        robot.keyRelease(KeyEvent.VK_A);
+        keyPressReleaseControlA(500);
         
         //entering target folder path
         Keyboard keyboard = new Keyboard(robot);
         keyboard.type(castExtractionFile.getParent() + "\\deliveryResults");
         
         //navigate to options
-        robot.keyPress(KeyEvent.VK_SHIFT);
-        robot.keyPress(KeyEvent.VK_TAB);
-        sleep(200);
-        robot.keyRelease(KeyEvent.VK_SHIFT);
-        robot.keyRelease(KeyEvent.VK_TAB);
-        robot.keyPress(KeyEvent.VK_RIGHT);
-        sleep(200);
-        robot.keyRelease(KeyEvent.VK_RIGHT);
+        keyPressReleaseShiftTab(200);
+        keyPressRelease(KeyEvent.VK_RIGHT, 500);
         for(int i=0;i<2;i++){
-            robot.keyPress(KeyEvent.VK_TAB);
-            sleep(200);
-            robot.keyRelease(KeyEvent.VK_TAB);
+        	keyPressRelease(KeyEvent.VK_TAB, 200);
             sleep(200);
         }
         
         //select populated extraction file path
-        robot.keyPress(KeyEvent.VK_CONTROL);
-        robot.keyPress(KeyEvent.VK_A);
-        sleep(500);
-        robot.keyRelease(KeyEvent.VK_CONTROL);
-        robot.keyRelease(KeyEvent.VK_A);
+        keyPressReleaseControlA(500);
         
         //entering target folder path that contains .castextraction file
         keyboard.type(castExtractionFile.getPath());
         sleep(500);
-        robot.keyPress(KeyEvent.VK_TAB);
-        sleep(200);
-        robot.keyRelease(KeyEvent.VK_TAB);
+        keyPressRelease(KeyEvent.VK_TAB, 200);
         sleep(500);
 
         //navigate to menu bar to select Application/Run Application since tabbing to 'Run Application' button
         //and pressing enter does not execute run
-        robot.keyPress(KeyEvent.VK_ALT);
-        sleep(500);
-        robot.keyRelease(KeyEvent.VK_ALT);
+        keyPressRelease(KeyEvent.VK_ALT, 500);
         sleep(500);
         for(int i=0;i<2;i++){
-            robot.keyPress(KeyEvent.VK_RIGHT);
-            sleep(200);
-            robot.keyRelease(KeyEvent.VK_RIGHT);
+        	keyPressRelease(KeyEvent.VK_RIGHT, 200);
         }
-        robot.keyPress(KeyEvent.VK_ENTER);
-        robot.keyRelease(KeyEvent.VK_ENTER);
-        robot.keyPress(KeyEvent.VK_DOWN);
-        robot.keyRelease(KeyEvent.VK_DOWN);
-        robot.keyPress(KeyEvent.VK_ENTER);
-        robot.keyRelease(KeyEvent.VK_ENTER);
+        keyPressRelease(KeyEvent.VK_ENTER, 200);
+        keyPressRelease(KeyEvent.VK_DOWN, 500);
+        keyPressRelease(KeyEvent.VK_ENTER, 200);
 
         sleep(5000);
         process.destroy();
     }
-    
-	private void checkForCASTDBFiles(){
-		File dir = new File(_destination+"\\Analyzed");
-		checkForCASTDBFiles(dir);	
-	}
-	
-	private void checkForCASTDBFiles(File dir){
-		File[] directoryListing = dir.listFiles();
-		if (directoryListing != null) {
-		    for (File child : directoryListing) {
-				if (child.isDirectory()) {
-					checkForCASTDBFiles(child);
-	            } else if(child.isFile()){
-					if(FilenameUtils.getExtension(child.getName()).equals("castextraction")){
-						System.out.println("\n\n-------------------------------");
-			    		System.out.println("Found extracted oracle data.");
-			    		System.out.println("Running Oracle DB Delivery Tool. Please do not type/click anywhere, until the program is done executing.");
-			    		changeOracleExtractExtension(child);
-			    	}
-	            }
-		    }
-		}
-	}
-	
-	private void createResultsFolder(){	
-		File dir = new File(_destination+"\\Results");
-		if (!dir.exists()) {
-			System.out.println("\n\n-------------------------------");
-			System.out.println("Creating Results folder: "+_destination+"Results");
-        	dir.mkdir();
-        }
-	}
 	
 	private void startAgent(){
-    	System.out.println("\n\n-------------------------------");
-		System.out.println("Starting Highlight Agent. Please do not type/click anywhere, until the program is done executing.");
+		_session.addLogMessage("", "HighlightScan", "Starting Highlight Agent. Please do not type/click anywhere, until the program is done executing.");
 		sleep(3000);
 		try {
 			this.process = new ProcessBuilder(_hlAgentPath).start();
@@ -245,25 +214,17 @@ public class HighlightScan extends Action {
         }
         //navigating to input text
         for(int i=0;i<3;i++){
-        	this.robot.keyPress(KeyEvent.VK_TAB);
-            sleep(200);
-            this.robot.keyRelease(KeyEvent.VK_TAB);
+        	keyPressRelease(KeyEvent.VK_TAB, 200);
             sleep(200);
         }
         //entering path to analyzed folder
-        robot.keyPress(KeyEvent.VK_CONTROL);
-        robot.keyPress(KeyEvent.VK_A);
-        sleep(500);
-        robot.keyRelease(KeyEvent.VK_CONTROL);
-        robot.keyRelease(KeyEvent.VK_A);
+        keyPressReleaseControlA(500);
         Keyboard keyboard = new Keyboard(this.robot);
         keyboard.type(_destination+"\\Analyzed");
         sleep(200);
         
         //add folder path
-        this.robot.keyPress(KeyEvent.VK_ENTER);
-        sleep(500);
-        this.robot.keyRelease(KeyEvent.VK_ENTER);
+        keyPressRelease(KeyEvent.VK_ENTER, 500);
         sleep(500);
         
         //click on 'Discover Files'
@@ -271,17 +232,12 @@ public class HighlightScan extends Action {
         while(!atButtonLocation){
         	yy += 5;
         	Color color = this.robot.getPixelColor(xx, yy);
-        	if(checkIfColorInRange(color, buttonColorOnDiscoverPage, 10))
+        	if(checkIfColorInRange(color, buttonColorOnDiscoverPage, 10)){
         		atButtonLocation = true;
+        	}
         }
      
-        this.robot.mouseMove(xx, yy);
-        this.robot.mousePress(InputEvent.BUTTON1_MASK);
-        this.robot.delay(1000); // Click one second
-        this.robot.mouseRelease(InputEvent.BUTTON1_MASK);
-        this.robot.mousePress(InputEvent.BUTTON1_MASK);
-        this.robot.delay(1000); // Click one second
-        this.robot.mouseRelease(InputEvent.BUTTON1_MASK);
+        moveMouseAndClick(xx, yy);
         
 	}
 	
@@ -298,21 +254,19 @@ public class HighlightScan extends Action {
         while(!onScanFilesPage){
         	yy += 1;
         	Color color = this.robot.getPixelColor(xx, yy);
-        	if(checkIfColorInRange(color, uniqueColorScanResultsPage, 10))
+        	if(checkIfColorInRange(color, uniqueColorScanResultsPage, 10)){
         		onScanFilesPage = true;
+        		for(int i=0;i<3;i++){
+        			moveMouseAndClick(xx, yy);
+        		}
+        	}
         	if(yy > 300)
         		yy = 0;
         }
         
         //select 'Scan Files'
-		this.robot.keyPress(KeyEvent.VK_SHIFT);
-		this.robot.keyPress(KeyEvent.VK_TAB);
-        sleep(200);
-        this.robot.keyRelease(KeyEvent.VK_SHIFT);
-        this.robot.keyRelease(KeyEvent.VK_TAB);
-        this.robot.keyPress(KeyEvent.VK_ENTER);
-        sleep(200);
-        this.robot.keyRelease(KeyEvent.VK_ENTER);
+        keyPressReleaseShiftTab(200);
+        keyPressRelease(KeyEvent.VK_ENTER, 200);
         sleep(10000);
 	}
 	
@@ -328,10 +282,7 @@ public class HighlightScan extends Action {
         	if(color.equals(uniqueColorScanResultsPage)){
         		onScanFilesPage = true;
         		for(int i=0;i<3;i++){
-	        		this.robot.mouseMove(xx, yy);
-	    	        this.robot.mousePress(InputEvent.BUTTON1_MASK);
-	    	        this.robot.delay(1000); // Click one second
-	    	        this.robot.mouseRelease(InputEvent.BUTTON1_MASK);
+        			moveMouseAndClick(xx, yy);
         		}
         	}
         	if(yy > 300)
@@ -339,44 +290,26 @@ public class HighlightScan extends Action {
         }
         
       //select 'Confirm Results'
-	  this.robot.keyPress(KeyEvent.VK_SHIFT);
-	  this.robot.keyPress(KeyEvent.VK_TAB);
-      sleep(200);
-      this.robot.keyRelease(KeyEvent.VK_SHIFT);
-      this.robot.keyRelease(KeyEvent.VK_TAB);
-      this.robot.keyPress(KeyEvent.VK_ENTER);
-      sleep(200);
-      this.robot.keyRelease(KeyEvent.VK_ENTER);
+      keyPressReleaseShiftTab(200);
+      keyPressRelease(KeyEvent.VK_ENTER, 200);
       sleep(5000);
         
 	}
 	
 	private void saveResults(){
       //select 'Save Results'
-	  this.robot.keyPress(KeyEvent.VK_SHIFT);
-	  this.robot.keyPress(KeyEvent.VK_TAB);
-      sleep(200);
-      this.robot.keyRelease(KeyEvent.VK_SHIFT);
-      this.robot.keyRelease(KeyEvent.VK_TAB);
-      this.robot.keyPress(KeyEvent.VK_ENTER);
-      sleep(200);
-      this.robot.keyRelease(KeyEvent.VK_ENTER);
+	  keyPressReleaseShiftTab(200);
+      keyPressRelease(KeyEvent.VK_ENTER, 200);
       sleep(2000);
       
       //navigate to Folder input text 
-	  this.robot.keyPress(KeyEvent.VK_TAB);
-      sleep(500);
-      this.robot.keyRelease(KeyEvent.VK_TAB);
+      keyPressRelease(KeyEvent.VK_TAB, 500);
       sleep(500);
 
-      robot.keyPress(KeyEvent.VK_BACK_SPACE);
-      sleep(100);
-      robot.keyRelease(KeyEvent.VK_BACK_SPACE); 
+      keyPressRelease(KeyEvent.VK_BACK_SPACE, 200); 
       
-      for(int i=0;i<50;i++){
-          robot.keyPress(KeyEvent.VK_DELETE);
-          sleep(100);
-          robot.keyRelease(KeyEvent.VK_DELETE);      
+      for(int i=0;i<100;i++){
+    	  keyPressRelease(KeyEvent.VK_DELETE, 100);      
       }
       sleep(100);
       
@@ -387,24 +320,46 @@ public class HighlightScan extends Action {
       
       //press 'OK'
       for(int i=0;i<2;i++){
-          robot.keyPress(KeyEvent.VK_TAB);
-          sleep(200);
-          robot.keyRelease(KeyEvent.VK_TAB);
+    	  keyPressRelease(KeyEvent.VK_TAB, 200);
           sleep(200);
       }
-      this.robot.keyPress(KeyEvent.VK_ENTER);
-      sleep(200);
-      this.robot.keyRelease(KeyEvent.VK_ENTER);
+      keyPressRelease(KeyEvent.VK_ENTER, 200);
       sleep(5000);
       
 	}
 	
 	private void goToFolder(){
-		robot.keyPress(KeyEvent.VK_TAB);
-        sleep(200);
-        robot.keyRelease(KeyEvent.VK_TAB);
-        this.robot.keyPress(KeyEvent.VK_ENTER);
-        sleep(200);
+		keyPressRelease(KeyEvent.VK_TAB, 200);
+		keyPressRelease(KeyEvent.VK_ENTER, 200);
+	}
+	
+	private void moveMouseAndClick(int xx, int yy){
+		this.robot.mouseMove(xx, yy);
+        this.robot.mousePress(InputEvent.BUTTON1_MASK);
+        this.robot.delay(1000); // Click one second
+        this.robot.mouseRelease(InputEvent.BUTTON1_MASK);
+	}
+	
+	private void keyPressRelease(int keyEvent, int delay){
+		this.robot.keyPress(keyEvent);
+	    sleep(delay);
+	    this.robot.keyRelease(keyEvent);
+	}
+	
+	private void keyPressReleaseShiftTab(int delay){
+	    this.robot.keyPress(KeyEvent.VK_SHIFT);
+	    this.robot.keyPress(KeyEvent.VK_TAB);
+        sleep(delay);
+        this.robot.keyRelease(KeyEvent.VK_SHIFT);
+        this.robot.keyRelease(KeyEvent.VK_TAB);
+	}
+	
+	private void keyPressReleaseControlA(int delay){
+        robot.keyPress(KeyEvent.VK_CONTROL);
+        robot.keyPress(KeyEvent.VK_A);
+        sleep(delay);
+        robot.keyRelease(KeyEvent.VK_CONTROL);
+        robot.keyRelease(KeyEvent.VK_A);
 	}
 	
     private void sleep(int milliseconds){
@@ -415,10 +370,5 @@ public class HighlightScan extends Action {
 			e.printStackTrace();
 		}
     }
-	
-	
-	private static String specialTrim(String input){
-		return input.toLowerCase().replaceAll("[^a-zA-Z0-9]+", "").trim();
-	}
 
 }

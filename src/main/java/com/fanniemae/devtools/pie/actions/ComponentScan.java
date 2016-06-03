@@ -129,7 +129,7 @@ public class ComponentScan extends Action{
 	protected String sendRESTRequest(boolean post, String urlStr, String body){
 		try{
 			URL url = new URL(urlStr);
-			_session.addLogMessage("", "RestConnector", "REST URL : " + url.toString());
+			_session.addLogMessage("", "ComponentScan", "REST URL : " + url.toString());
 			HttpURLConnection connection;
 			
 			if(_proxyHost.trim().isEmpty()){
@@ -153,14 +153,14 @@ public class ComponentScan extends Action{
 				wr.writeBytes(body);
 				wr.flush();
 				wr.close();
-				_session.addLogMessage("", "RestConnector", "Post parameters : " + body);
+				_session.addLogMessage("", "ComponentScan", "Post parameters : " + body);
 			} else { 
 				connection.setRequestMethod("GET");
 			}
 
 			int responseCode = connection.getResponseCode();
 	
-			_session.addLogMessage("", "RestConnector", String.format("Response Code: %,d", responseCode));
+			_session.addLogMessage("", "ComponentScan", String.format("Response Code: %,d", responseCode));
 			
 			String responseStr;
 			try(BufferedReader in = new BufferedReader(
@@ -188,7 +188,7 @@ public class ComponentScan extends Action{
 				writer.write(jsonString); 
 			}
 			
-			_session.addLogMessage("", "RestConnector", String.format("View Response"), "file://" + jsonFilename);
+			_session.addLogMessage("", "ComponentScan", String.format("View Response"), "file://" + jsonFilename);
 			
 			return responseStr;
 		} catch (JSONException | IOException ex){
