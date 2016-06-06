@@ -23,14 +23,14 @@ public class Delete extends FileSystemAction {
 	public Delete(SessionManager session, Element action) {
 		super(session, action);
 
-		_source = _session.getAttribute(action, "Source");
+		_source = _session.getAttribute(action, "Path");
 		if (StringUtilities.isNullOrEmpty(_source)) {
-			throw new RuntimeException(String.format("%s action requires a source directory or file.", _actionName));
+			throw new RuntimeException(String.format("%s action requires a Path to a directory or file.", _actionName));
 		} else {
 			_isFile = FileUtilities.isValidFile(_source);
 			_isDirectory = FileUtilities.isValidDirectory(_source);
 			if (!_isFile && !_isDirectory) {
-				throw new RuntimeException(String.format("%s action requires a source value to an existing directory or file. %s is not a valid file or directory.", _actionName, _source));
+				throw new RuntimeException(String.format("%s action requires a Path to an existing directory or file. %s is not a valid file or directory.", _actionName, _source));
 			}
 		}
 		_session.addLogMessage("", "Source", _source);

@@ -12,6 +12,7 @@ import com.fanniemae.devtools.pie.actions.ExportDelimited;
 import com.fanniemae.devtools.pie.actions.Git;
 import com.fanniemae.devtools.pie.actions.HighlightScan;
 import com.fanniemae.devtools.pie.actions.LogComment;
+import com.fanniemae.devtools.pie.actions.MakeDirectory;
 import com.fanniemae.devtools.pie.actions.Maven;
 import com.fanniemae.devtools.pie.actions.Move;
 import com.fanniemae.devtools.pie.actions.Rename;
@@ -122,6 +123,10 @@ public class JobManager {
 					break;
 				case "HighlightScan":
 					act = new HighlightScan(_session, eleOperation);
+					act.execute();
+					break;
+				case "MakeDirectory":
+					act = new MakeDirectory(_session, eleOperation);
 					act.execute();
 					break;
 				default:

@@ -19,14 +19,17 @@ public class RunPie {
 		// String job = "ZipTest.xml";
 		// String job = "AIP_All_Rules.xml";
 		// String job = "GitTest.xml";
-		//String job = "GitPIE.xml";
-		//String job = "Git_PAM.xml";
-		//String job = "SVN_Test.xml";
-		String job = "FileDirectory_Test.xml";
-		//String job = "WireGateway.xml";
+		// String job = "GitPIE.xml";
+		// String job = "Git_PAM.xml";
+		// String job = "SVN_Test.xml";
+		// String job = "WireGateway.xml";
 		// String job = "AIP_Rules_Criteria.xml";
 		// String job = "JoinTest.xml";
 		// String job = "ReportTest.xml";
+		String job = "FileDirectory_Test.xml";
+		// String job = "AIP_AFP_Export.xml";
+		// String job = "Backup_Fnma_Apps.xml";
+		// String job = "Monthly_CQA_Report.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
