@@ -169,6 +169,9 @@ public class WebClient extends Action {
 	protected void navigate(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
 		String comment = _session.getAttribute(nodeStep, "Comment");
+		if (StringUtilities.isNotNullOrEmpty(comment)) {
+			_session.addLogMessage("", "", comment);
+		}
 		String url = _session.getAttribute(nodeStep, "URL");
 		if (StringUtilities.isNullOrEmpty(url)) {
 			throw new RuntimeException("Navigation step element is missing the required destination URL.");
@@ -248,16 +251,25 @@ public class WebClient extends Action {
 		if (StringUtilities.isNullOrEmpty(value)) {
 			value = "";
 		}
+		
+		HtmlInput field;
+		if (StringUtilities.isNotNullOrEmpty(xpath)) {
+			validateWebState(xpath, nodeStep.getNodeName());
+			field = _htmlelement.getFirstByXPath(xpath);
+		} else {
+			validateWebState("//", nodeStep.getNodeName());
+			field = (HtmlInput) _htmlelement;
+		}
+		
+		if (field == null) {
+			throw new RuntimeException(String.format("WebClient InputTextFromSelected did not find a matching input field for the XPath %s", xpath));
+		}	
 
 		_session.addLogMessage("", "InputTextFromSelected", String.format("Locating HTML input field from selected element at %s and inputing text.", xpath));
 		if (StringUtilities.isNotNullOrEmpty(comment)) {
 			_session.addLogMessage("", "", comment);
 		}
-
-		HtmlInput field = _htmlelement.getFirstByXPath(xpath);
-		if (field == null) {
-			throw new RuntimeException(String.format("WebClient InputTextFromSelected did not find a matching input field for the XPath %s", xpath));
-		}		
+		
 		field.setValueAttribute(value);
 	}
 	

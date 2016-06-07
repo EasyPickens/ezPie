@@ -1,7 +1,11 @@
 package com.fanniemae.devtools.pie.actions;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 
+import org.apache.commons.io.IOCase;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
@@ -18,8 +22,16 @@ public class Compression extends Action {
 	protected String _zipFilename;
 	protected String _sourcePath;
 	protected String _destinationPath;
-	protected String _includeFilter = null;
-	protected String _excludeFilter = null;
+	
+	protected String _includeFileFilter = null;
+	protected String _excludeFileFilter = null;
+	protected String _includeDirectoryFilter = null;
+	protected String _excludeDirectoryFilter = null;
+
+	protected FileFilter _includeFiles;
+	protected FileFilter _excludeFiles;
+	protected FileFilter _includeDirectories;
+	protected FileFilter _excludeDirectories;
 
 	public Compression(SessionManager session, Element action) {
 		super(session, action, true);
@@ -54,31 +66,48 @@ public class Compression extends Action {
 			_session.addLogMessage("", "Destination Path", _destinationPath);
 		}
 		
-		String includeFilter = _session.getAttribute(action, "IncludeFilter");
-		String excludeFilter = _session.getAttribute(action, "ExcludeFilter");
-		_includeFilter = StringUtilities.isNullOrEmpty(includeFilter) ? null : includeFilter;
-		_excludeFilter = StringUtilities.isNullOrEmpty(excludeFilter) ? null : excludeFilter;
+		_includeFileFilter = _session.getAttribute(action, "IncludeFiles");
+		if (StringUtilities.isNotNullOrEmpty(_includeFileFilter)) {
+			String[] filter = StringUtilities.split(_includeFileFilter);
+			_includeFiles = new WildcardFileFilter(filter, IOCase.INSENSITIVE);
+			_session.addLogMessage("", "IncludeFiles", _includeFileFilter);
+		}
+
+		_includeDirectoryFilter = _session.getAttribute(action, "IncludeDirectories");
+		if (StringUtilities.isNotNullOrEmpty(_includeDirectoryFilter)) {
+			String[] filter = StringUtilities.split(_includeDirectoryFilter);
+			_includeDirectories = new WildcardFileFilter(filter, IOCase.INSENSITIVE);
+			_session.addLogMessage("", "IncludeDirectories", _includeDirectoryFilter);
+		}
+
+		_excludeFileFilter = _session.getAttribute(action, "ExcludeFiles");
+		if (StringUtilities.isNotNullOrEmpty(_excludeFileFilter)) {
+			String[] filter = StringUtilities.split(_excludeFileFilter);
+			_excludeFiles = new WildcardFileFilter(filter, IOCase.INSENSITIVE);
+			_session.addLogMessage("", "ExcludeFiles", _excludeFileFilter);
+		}
+
+		_excludeDirectoryFilter = _session.getAttribute(action, "ExcludeDirectories");
+		if (StringUtilities.isNotNullOrEmpty(_excludeDirectoryFilter)) {
+			String[] filter = StringUtilities.split(_excludeDirectoryFilter);
+			_excludeDirectories = new WildcardFileFilter(filter, IOCase.INSENSITIVE);
+			_session.addLogMessage("", "ExcludeDirectories", _excludeDirectoryFilter);
+		}
+
 		_deep = _session.getAttribute(action, "Deep").toLowerCase().equals("false") ? false : true;
-		
-		if (StringUtilities.isNotNullOrEmpty(_includeFilter)) {
-			_session.addLogMessage("", "Include Filter", _includeFilter);
-		}
-		
-		if (StringUtilities.isNotNullOrEmpty(_excludeFilter)) {
-			_session.addLogMessage("", "Exclude Filter", _excludeFilter);
-		}
+	
 	}
 
 	@Override
 	public String execute() {
 		try {
 			if (_zip) {
-				String filelist = ArrayUtilities.toString(ZipUtilities.zip(_sourcePath, _zipFilename, _includeFilter, _excludeFilter));
+				String filelist = ArrayUtilities.toString(ZipUtilities.zip(_sourcePath, _zipFilename, _includeFiles, _excludeFiles, _includeDirectories, _excludeDirectories));
 				_session.addLogMessageHtml("", "Files Compressed", filelist);
 				_session.addLogMessage("", "Zipped Size", String.format("%,d bytes", FileUtilities.getLength(_zipFilename)));
 				_session.addToken("File", _id, _zipFilename);
 			} else {
-				String[] list = ZipUtilities.unzip(_zipFilename, _destinationPath, _includeFilter, _excludeFilter);
+				String[] list = ZipUtilities.unzip(_zipFilename, _destinationPath, _includeFiles, _excludeFiles, _includeDirectories, _excludeDirectories);
 				String filelist = ArrayUtilities.toString(list);
 				_session.addLogMessageHtml("", "Files Decompressed", filelist);
 				_session.addLogMessage("", "Count", String.format("%,d files", list.length - 2));

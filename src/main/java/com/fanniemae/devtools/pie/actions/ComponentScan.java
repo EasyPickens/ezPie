@@ -49,6 +49,9 @@ public class ComponentScan extends Action{
 	public ComponentScan(SessionManager session, Element action) {
 		super(session, action);
 		_connID = _session.getAttribute(action, "ConnectionID");
+		if(_connID == null){
+			throw new RuntimeException(String.format("%s connection element not found in the settings file.", _connID));
+		}
 		_session.addLogMessage("", "ConnectionID", _connID);
 		_conn = _session.getConnection(_connID);
 		_username = _session.getAttribute(_conn, "Username");
@@ -58,16 +61,18 @@ public class ComponentScan extends Action{
 		_proxyUsername = _session.getAttribute(_conn, "ProxyUsername");
 		_proxyPassword = _session.getAttribute(_conn, "ProxyPassword");
 		_url = _session.getAttribute(_conn, "URL");
-		_cliPath = _session.getAttribute(_conn, "CLIPath");
-		try {
-			File cli = new File(_cliPath);
-			_workDirectory = cli.getParent();
-		} catch (Exception ex) {
-			throw new RuntimeException(String.format("CLI Path Error %s", ex.getMessage()), ex);
+		if(_url == null){
+			throw new RuntimeException(String.format("%s URL element not found in the settings file.", _assetID));
 		}
+
 		_assetID = _session.getAttribute(action, "AssetID");
+		if(_assetID == null){
+			throw new RuntimeException(String.format("%s AssetID element not found in the definition file.", _assetID));
+		}
 		_appName = _session.getAttribute(action, "AppName");
-		_zipPath = _session.getAttribute(action, "ZipPath");
+		if(_appName == null){
+			throw new RuntimeException(String.format("%s AppName element not found in the definition file.", _appName));
+		}
 	}
 
 	@Override
@@ -101,14 +106,6 @@ public class ComponentScan extends Action{
 				throw new RuntimeException(String.format("Error while sending POST request to create application: %s", ex.getMessage()), ex);
 			}
 		}
-		//Run CLM jar
-		RunCommand command = new RunCommand(_session, _action);
-		String commandStr = "java -jar "+ _cliPath +" -i " + applicationID + " -s " + _url + " " + _zipPath;
-		command._arguments = command.parseCommandLine(commandStr);
-		command._workDirectory = _workDirectory;
-		_session.addLogMessage("", "Work Directory", _workDirectory);
-		_session.addLogMessage("", "Command Line", commandStr);
-		command.execute();
 		
 		return null;
 	}

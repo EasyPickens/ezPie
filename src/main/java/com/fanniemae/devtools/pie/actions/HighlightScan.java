@@ -20,7 +20,7 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
 public class HighlightScan extends Action {
 	
 	protected String _destination;
-	protected String _oracleDeliveryToolPath;
+	protected String _dbDeliveryToolPath;
 	protected String _hlAgentPath;
 	protected String _source;
 	protected Process process = null;
@@ -35,7 +35,7 @@ public class HighlightScan extends Action {
 
 	public HighlightScan(SessionManager session, Element action) {
 		super(session, action);
-		_destination = _session.getAttribute(action, "DestinationFolder");
+		_destination = _session.getAttribute(action, "Destination");
 	}
 
 	@Override
@@ -64,8 +64,8 @@ public class HighlightScan extends Action {
 	}
 	
 	protected void findCastExtractionFiles(Node nodeStep){
-		_oracleDeliveryToolPath = _session.getAttribute(nodeStep, "OracleDeliveryToolPath");
-		if (_oracleDeliveryToolPath == null) {
+		_dbDeliveryToolPath = _session.getAttribute(nodeStep, "DBDeliveryToolPath");
+		if (_dbDeliveryToolPath == null) {
 			throw new RuntimeException("HLAgentPath not found in definition");
 		}
 		_session.addLogMessage("", "HighlightScan", "Looking for .castextraction files.");
@@ -107,7 +107,7 @@ public class HighlightScan extends Action {
 	            } else if(child.isFile()){
 					if(FilenameUtils.getExtension(child.getName()).equals("castextraction")){
 						_session.addLogMessage("", "HighlightScan", "Found .castextraction files.");
-						_session.addLogMessage("", "HighlightScan", "Running Oracle DB Delivery Tool at " + _oracleDeliveryToolPath + " . Please do not type/click anywhere, until the program is done executing.");
+						_session.addLogMessage("", "HighlightScan", "Running CAST DB Delivery Tool at " + _dbDeliveryToolPath + " . Please do not type/click anywhere, until the program is done executing.");
 			    		changeOracleExtractExtension(child);
 			    	}
 	            }
@@ -116,7 +116,7 @@ public class HighlightScan extends Action {
 	}
 	
     private void changeOracleExtractExtension(File castExtractionFile){
-    	ProcessBuilder pb = new ProcessBuilder("java", "-jar", _oracleDeliveryToolPath);
+    	ProcessBuilder pb = new ProcessBuilder("java", "-jar", _dbDeliveryToolPath);
     	Process process = null;
     	try {
 			process = pb.start();
