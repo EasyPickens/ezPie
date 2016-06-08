@@ -174,6 +174,20 @@ public class FileUtilities {
 		}
 		return sFilename;
 	}
+	
+	public static String combine(String path, String filename) {
+		if (StringUtilities.isNullOrEmpty(path)) {
+			throw new RuntimeException("No path value defined.");
+		}
+		if (StringUtilities.isNullOrEmpty(filename)) {
+			throw new RuntimeException("No filename value defined.");
+		}
+		if (!path.endsWith(File.separator)) {
+			return path + File.separator + filename;
+		} else {
+			return path + filename;
+		}
+	}
 
 	private static String getHashFilename(String filePath, String datasetXML, String fileExtension) {
 		String sFilename = CryptoUtilities.hashValue(datasetXML);
