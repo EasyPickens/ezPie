@@ -21,6 +21,7 @@ import com.fanniemae.devtools.pie.actions.Delete;
 import com.fanniemae.devtools.pie.actions.LocalTokens;
 import com.fanniemae.devtools.pie.actions.RunCommand;
 import com.fanniemae.devtools.pie.actions.Svn;
+import com.fanniemae.devtools.pie.actions.VersionFile;
 import com.fanniemae.devtools.pie.actions.WebClient;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
@@ -127,6 +128,10 @@ public class JobManager {
 					break;
 				case "MakeDirectory":
 					act = new MakeDirectory(_session, eleOperation);
+					act.execute();
+					break;
+				case "VersionFile":
+					act = new VersionFile(_session, eleOperation);
 					act.execute();
 					break;
 				default:

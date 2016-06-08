@@ -26,10 +26,12 @@ public class RunPie {
 		// String job = "AIP_Rules_Criteria.xml";
 		// String job = "JoinTest.xml";
 		// String job = "ReportTest.xml";
-		String job = "FileDirectory_Test.xml";
+		// String job = "FileDirectory_Test.xml";
 		// String job = "AIP_AFP_Export.xml";
 		// String job = "Backup_Fnma_Apps.xml";
 		// String job = "Monthly_CQA_Report.xml";
+		// String job = "REPORT_EFP_YTD.xml";
+		String job = "VersionFile_Test.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
