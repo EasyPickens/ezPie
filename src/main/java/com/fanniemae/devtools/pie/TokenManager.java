@@ -49,6 +49,9 @@ public class TokenManager {
 
 		aTokenValues.put(key, value);
 		_tokens.put(tokenType, aTokenValues);
+		if (key.toLowerCase().equals("password")) return;
+		String sLogMessage = String.format("%s token value added.\n%s", tokenType, key+"="+value);
+		_logger.addMessage("", "@" + tokenType, sLogMessage);
 	}
 
 	public void addTokens(String tokenType, Node nodeTokenValues) {
@@ -114,7 +117,7 @@ public class TokenManager {
 			Node xA = aAttributes.item(i);
 			String sName = xA.getNodeName();
 			String sValue = xA.getNodeValue();
-			if (sName.equals("ID")) continue;
+			if (sName.equals("ID") || sName.toLowerCase().equals("password")) continue;
 			iUpdateCount++;
 			aKeyValues.put(sName, sValue);
 			sb.append(String.format("%s = %s \n", sName, sValue));

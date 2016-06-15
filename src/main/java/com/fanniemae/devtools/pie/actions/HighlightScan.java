@@ -274,12 +274,12 @@ public class HighlightScan extends Action {
 		//wait until application is done scanning, by seeing when unique color is viewable
 		int xx = (int) Math.round(Toolkit.getDefaultToolkit().getScreenSize().getWidth() / 2);
         int yy = 0;
-        
+
         boolean onScanFilesPage = false;
         while(!onScanFilesPage){
         	yy += 1;
         	Color color = this.robot.getPixelColor(xx, yy);
-        	if(color.equals(uniqueColorScanResultsPage)){
+        	if(checkIfColorInRange(color, uniqueColorScanResultsPage, 10)){
         		onScanFilesPage = true;
         		for(int i=0;i<3;i++){
         			moveMouseAndClick(xx, yy);

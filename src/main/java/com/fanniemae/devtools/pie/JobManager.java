@@ -41,6 +41,10 @@ public class JobManager {
 	public String getLogFilename() {
 		return _session.getLogFilename();
 	}
+	
+	public SessionManager getSession() {
+		return _session;
+	}
 
 	public String runJob() {
 		Action act;
@@ -140,4 +144,5 @@ public class JobManager {
 			throw ex;
 		}
 	}
+	
 }

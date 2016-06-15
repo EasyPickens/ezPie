@@ -11,7 +11,7 @@ public class RunPie {
 	}
 
 	protected static void runJobManager() {
-		String sSettings = "C:\\Developers\\Code\\TestDirectory\\_Settings.xml";
+		String sSettings = "C:\\Developers\\Test\\_Settings.xml";
 		// String job = "test.xml";
 		// String job = "CMFT_Monthly_Scores.xml";
 		// String job = "CMFT_Monthly_v2.xml";
@@ -26,7 +26,9 @@ public class RunPie {
 		// String job = "AIP_Rules_Criteria.xml";
 		// String job = "JoinTest.xml";
 		// String job = "ReportTest.xml";
-		String job = "FileDirectory_Test.xml";
+		// String job = "clmDefinition.xml";
+		String job = "clm.xml";
+		// String job = "FileDirectory_Test.xml";
 		// String job = "AIP_AFP_Export.xml";
 		// String job = "Backup_Fnma_Apps.xml";
 		// String job = "Monthly_CQA_Report.xml";

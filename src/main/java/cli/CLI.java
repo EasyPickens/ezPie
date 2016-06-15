@@ -1,6 +1,7 @@
 package cli;
 
 import java.io.IOException;
+import java.util.List;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -50,7 +51,7 @@ public class CLI {
 				help();
 			}
 			
-			runJobManager();
+			runJobManager(cmd);
 
 		} catch (ParseException e) {
 			
@@ -58,11 +59,16 @@ public class CLI {
 		}
 	}
 	
-	protected void runJobManager(){
+	protected void runJobManager(CommandLine cmd){
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
 			JobManager jobManager = new JobManager(_settings, _job);
+			List<String> args = cmd.getArgList();
+			for(int i = 0; i < args.size(); i++){
+				String[] keyValuePair = args.get(i).split("=");
+				jobManager.getSession().addToken("Local", keyValuePair[0], keyValuePair[1]);
+			}
 			logFilename = jobManager.getLogFilename();
 			viewlog(logFilename);
 			System.out.println("Running job definition " + _job);
