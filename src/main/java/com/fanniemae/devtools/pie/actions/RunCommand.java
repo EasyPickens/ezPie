@@ -123,7 +123,6 @@ public class RunCommand extends Action {
 				}
 			}
 		} catch (IOException ex) {
-			_session.addErrorMessage(ex);
 			throw new RuntimeException("Error while running external command.", ex);
 		}
 		_session.addLogMessage("", "Command", "Completed");
