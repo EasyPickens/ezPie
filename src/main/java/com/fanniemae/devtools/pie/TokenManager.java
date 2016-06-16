@@ -117,9 +117,10 @@ public class TokenManager {
 			Node xA = aAttributes.item(i);
 			String sName = xA.getNodeName();
 			String sValue = xA.getNodeValue();
-			if (sName.equals("ID") || sName.toLowerCase().equals("password")) continue;
+			if (sName.equals("ID")) continue;
 			iUpdateCount++;
 			aKeyValues.put(sName, sValue);
+			if(sName.toLowerCase().equals("password")) continue;
 			sb.append(String.format("%s = %s \n", sName, sValue));
 		}
 		_tokens.put(sTokenType, aKeyValues);
