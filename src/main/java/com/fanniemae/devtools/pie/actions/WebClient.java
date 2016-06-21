@@ -49,9 +49,7 @@ public class WebClient extends Action {
 		_connID = _session.getAttribute(action, "ConnectionID");
 		_session.addLogMessage("", "ConnectionID", _connID);
 		_conn = _session.getConnection(_connID);
-		if (_conn == null) {
-			throw new RuntimeException(String.format("%s connection element not found in the settings file.", _connID));
-		}
+
 	}
 
 	@Override
@@ -108,6 +106,7 @@ public class WebClient extends Action {
 			case "ClickElementFromSelected":
 				clickElementFromSelected(nodeStep);
 				break;
+			case "ClickButton":
 			case "ClickElement":
 				clickElement(nodeStep);
 				break;
