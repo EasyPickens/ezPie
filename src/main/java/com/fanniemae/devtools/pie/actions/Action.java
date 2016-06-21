@@ -37,7 +37,7 @@ public abstract class Action {
 		if (_idRequired && StringUtilities.isNullOrEmpty(_id)) {
 			throw new RuntimeException(String.format("%s is missing a required ID value.", _action.getNodeName()));
 		} else if (StringUtilities.isNullOrEmpty(_id)) {
-			_session.addLogMessage(_actionName, "Process", String.format("Starting to process the %s operation.", _actionName));
+			_session.addLogMessage(_actionName, "Process", String.format("Starting to process the %s action.", _actionName));
 		} else {
 			_session.addLogMessage(_actionName, "ID", _id);
 		}

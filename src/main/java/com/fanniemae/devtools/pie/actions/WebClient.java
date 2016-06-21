@@ -46,12 +46,13 @@ public class WebClient extends Action {
 		super(session, action, false);
 
 		_javascriptWait = StringUtilities.toInteger(_session.getAttribute(action, "JavascriptWait"), 30);
-		_connID = _session.getAttribute(action, "ConnectionID");
-		_session.addLogMessage("", "ConnectionID", _connID);
-		_conn = _session.getConnection(_connID);
-		if (_conn == null) {
-			throw new RuntimeException(String.format("%s connection element not found in the settings file.", _connID));
-		}
+		_connID = this.optionalAttribute("ConnectionID", null);
+//		_connID = _session.getAttribute(action, "ConnectionID");
+//		_session.addLogMessage("", "ConnectionID", _connID);
+//		_conn = _session.getConnection(_connID);
+//		if (_conn == null) {
+//			throw new RuntimeException(String.format("%s connection element not found in the settings file.", _connID));
+//		}
 	}
 
 	@Override
@@ -59,6 +60,18 @@ public class WebClient extends Action {
 		// Get a list of web client steps
 		try (final com.gargoylesoftware.htmlunit.WebClient webClient = connect()) {
 			_webClient = webClient;
+//			webClient.getOptions().setCssEnabled(true);
+//			webClient.getOptions().setRedirectEnabled(false);
+//			webClient.getOptions().setAppletEnabled(false);
+//			webClient.getOptions().setJavaScriptEnabled(false);
+//			webClient.getOptions().setPopupBlockerEnabled(true);
+//			webClient.getOptions().setTimeout(10000);
+//			webClient.getOptions().setActiveXNative(false);
+//			webClient.getOptions().setUseInsecureSSL(true);
+//
+//			webClient.getOptions().setThrowExceptionOnFailingStatusCode(true);
+//			webClient.getOptions().setThrowExceptionOnScriptError(true);
+//			webClient.getOptions().setPrintContentOnFailingStatusCode(true);
 			webActions(_action);
 		} catch (Exception ex) {
 			throw new RuntimeException(String.format("WebClient error %s", ex.getMessage()), ex);
@@ -108,6 +121,7 @@ public class WebClient extends Action {
 			case "ClickElementFromSelected":
 				clickElementFromSelected(nodeStep);
 				break;
+			case "ClickButton":
 			case "ClickElement":
 				clickElement(nodeStep);
 				break;

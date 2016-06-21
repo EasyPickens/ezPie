@@ -39,7 +39,7 @@ public class Encryption {
 	private Encryption() {
 	}
 
-	// Just run this once to enable support for 256 (Only if you don't have rights to JDK/JRE to add export file).
+	// Just run this once to enable support for 256 (Only if you don't have rights to JDK/JRE to add JCE file).
 	public static void checkEncryptionStrength(SessionManager session) {
 		try {
 			if ("AIX".equals(System.getProperty("os.name"))) {

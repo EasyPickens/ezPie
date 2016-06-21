@@ -20,6 +20,8 @@ public class CastScan extends RunCommand {
 	protected String _version;
 	protected String _castFolder;
 
+	protected DateFormat _dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
 	public CastScan(SessionManager session, Element action) {
 		super(session, action, false);
 
@@ -35,8 +37,8 @@ public class CastScan extends RunCommand {
 		// If empty child element, build default pattern
 		NodeList castCommands = XmlUtilities.selectNodes(_action, "*");
 		if (castCommands.getLength() == 0) {
-			// Default to Package, analyze, snapshot -- need to add consolidate once working
-			defaultRescan();
+			// Default to Package, analyze, snapshot -- consolidate added once rest tested
+			defaultRescanPattern();
 		}
 	}
 
@@ -46,8 +48,8 @@ public class CastScan extends RunCommand {
 		int length = castActions.getLength();
 		for (int i = 0; i < length; i++) {
 			Element castAction = (Element) (castActions.item(i));
-			String nodeName = castAction.getNodeName(); 
-			_session.addLogMessage(nodeName, "Process", "Starting to process");
+			String nodeName = castAction.getNodeName();
+			_session.addLogMessage(nodeName, String.format("%s Step", _actionName), String.format("Starting the %s step of %s", nodeName, _actionName));
 			switch (nodeName) {
 			case "PackageCode":
 				packageCode(castAction);
@@ -62,16 +64,16 @@ public class CastScan extends RunCommand {
 				publishResults(castAction);
 				break;
 			default:
-				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastScan does not currently support this child action.");
+				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastScan does not currently support this processing step.");
 			}
 		}
 		return "";
 	}
 
 	protected void packageCode(Element castAction) {
-		String templateName = requiredAttribute(castAction, "TemplateName");
-		String datePackaged = requiredAttribute(castAction, "DatePackaged");
-		String logFile = requiredAttribute(castAction, "LogFile");
+		String templateName = optionalAttribute(castAction, "TemplateName", "default_template");
+		String datePackaged = optionalAttribute(castAction, "DatePackaged", _dateFormat.format(new Date()));
+		String logFile = optionalAttribute(castAction, "LogFile", FileUtilities.getRandomFilename(_session.getLogPath(), "txt"));
 
 		//@formatter:off
 		_arguments = new String[] { "CAST-MS-CLI.exe", "AutomateDelivery", 
@@ -85,13 +87,15 @@ public class CastScan extends RunCommand {
 		_workDirectory = _castFolder;
 		_timeout = 0;
 		_waitForExit = true;
-		
+
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
-		//super.execute();
+		makeBatchFile();
+		super.execute();
+		_session.addLogMessage("", "CAST Log File", "View code package and deliver log", "file://" + logFile);
 	}
 
 	protected void analyzeCode(Element castAction) {
-		String logFile = requiredAttribute(castAction, "LogFile");
+		String logFile = optionalAttribute(castAction, "LogFile", FileUtilities.getRandomFilename(_session.getLogPath(), "txt"));
 
 		//@formatter:off
 		_arguments = new String[] { "CAST-MS-CLI.exe", "RunAnalysis", 
@@ -104,18 +108,22 @@ public class CastScan extends RunCommand {
 		_waitForExit = true;
 
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
-		// super.execute();
+		makeBatchFile();
+		super.execute();
+		_session.addLogMessage("", "CAST Log File", "View code analysis log", "file://" + logFile);
 	}
 
 	protected void generateSnapshot(Element castAction) {
-		String snapshotName = requiredAttribute(castAction, "SnapshotName");
-		String captureDate = requiredAttribute(castAction, "SnapshotDate");
-		String logFile = requiredAttribute(castAction, "LogFile");
+		String defaultDate = _dateFormat.format(new Date());
+		String snapshotName = optionalAttribute(castAction, "SnapshotName", defaultDate);
+		String captureDate = optionalAttribute(castAction, "SnapshotDate", defaultDate);
+		String logFile = optionalAttribute(castAction, "LogFile", FileUtilities.getRandomFilename(_session.getLogPath(), "txt"));
 
 		//@formatter:off
 		_arguments = new String[] { "CAST-MS-CLI.exe", "GenerateSnapshot", 
 				                    "-connectionProfile", _connectionProfile, 
 				                    "-appli", StringUtilities.wrapValue(_applicationName),
+				                    "-skipAnalysisJob", "TRUE",
 				                    "-version", StringUtilities.wrapValue(_version), 
 				                    "-snapshot", StringUtilities.wrapValue(snapshotName),
 				                    "-captureDate", StringUtilities.wrapValue(captureDate),
@@ -126,31 +134,25 @@ public class CastScan extends RunCommand {
 		_waitForExit = true;
 
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
-		// super.execute();
+		makeBatchFile();
+		super.execute();
+		_session.addLogMessage("", "CAST Log File", "View generate snapshot log", "file://" + logFile);
 	}
 
 	protected void publishResults(Element castAction) {
 		throw new RuntimeException("CAST PublishResults action not currently supported.");
 	}
 
-	protected void defaultRescan() {
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	protected void defaultRescanPattern() {
 		// Default to Package, analyze, snapshot
 		Element packageCode = _action.getOwnerDocument().createElement("PackageCode");
-		packageCode.setAttribute("TemplateName", "default_template");
-		packageCode.setAttribute("DatePackaged", dateFormat.format(new Date()));
-		packageCode.setAttribute("LogFile", FileUtilities.getRandomFilename(_session.getLogPath(), "txt"));
 		_action.appendChild(packageCode);
 
 		Element analyzeCode = _action.getOwnerDocument().createElement("AnalyzeCode");
-		analyzeCode.setAttribute("LogFile", FileUtilities.getRandomFilename(_session.getLogPath(), "txt"));
 		_action.appendChild(analyzeCode);
 
-		dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 		Element generateSnapshot = _action.getOwnerDocument().createElement("GenerateSnapshot");
-		generateSnapshot.setAttribute("SnapshotName", String.format("Computed on %s", dateFormat.format(new Date())));
-		generateSnapshot.setAttribute("SnapshotDate", dateFormat.format(new Date()));
-		generateSnapshot.setAttribute("LogFile", FileUtilities.getRandomFilename(_session.getLogPath(), "txt"));
 		_action.appendChild(generateSnapshot);
 	}
+
 }
