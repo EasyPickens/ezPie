@@ -32,8 +32,9 @@ public class RunPie {
 		// String job = "Monthly_CQA_Report.xml";
 		// String job = "REPORT_EFP_YTD.xml";
 		//String job = "VersionFile_Test.xml";
-		String job = "Evas_Rescan.xml";
+		// String job = "Evas_Rescan.xml";
 		//String job = "AIP_OnBoard.xml";
+		String job = "SVN_Test.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
