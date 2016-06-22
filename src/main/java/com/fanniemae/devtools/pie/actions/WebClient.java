@@ -46,13 +46,7 @@ public class WebClient extends Action {
 		super(session, action, false);
 
 		_javascriptWait = StringUtilities.toInteger(_session.getAttribute(action, "JavascriptWait"), 30);
-		_connID = this.optionalAttribute("ConnectionID", null);
-//		_connID = _session.getAttribute(action, "ConnectionID");
-//		_session.addLogMessage("", "ConnectionID", _connID);
-//		_conn = _session.getConnection(_connID);
-//		if (_conn == null) {
-//			throw new RuntimeException(String.format("%s connection element not found in the settings file.", _connID));
-//		}
+		_connID = optionalAttribute("ConnectionID", null);
 	}
 
 	@Override
@@ -60,18 +54,6 @@ public class WebClient extends Action {
 		// Get a list of web client steps
 		try (final com.gargoylesoftware.htmlunit.WebClient webClient = connect()) {
 			_webClient = webClient;
-//			webClient.getOptions().setCssEnabled(true);
-//			webClient.getOptions().setRedirectEnabled(false);
-//			webClient.getOptions().setAppletEnabled(false);
-//			webClient.getOptions().setJavaScriptEnabled(false);
-//			webClient.getOptions().setPopupBlockerEnabled(true);
-//			webClient.getOptions().setTimeout(10000);
-//			webClient.getOptions().setActiveXNative(false);
-//			webClient.getOptions().setUseInsecureSSL(true);
-//
-//			webClient.getOptions().setThrowExceptionOnFailingStatusCode(true);
-//			webClient.getOptions().setThrowExceptionOnScriptError(true);
-//			webClient.getOptions().setPrintContentOnFailingStatusCode(true);
 			webActions(_action);
 		} catch (Exception ex) {
 			throw new RuntimeException(String.format("WebClient error %s", ex.getMessage()), ex);
@@ -97,8 +79,8 @@ public class WebClient extends Action {
 			return webClient;
 		}
 	}
-	
-	protected void webActions(Node node){
+
+	protected void webActions(Node node) {
 		NodeList nl = XmlUtilities.selectNodes(node, "*");
 		int steps = nl.getLength();
 		_session.addLogMessage("", "WebClient", String.format("%,d steps found", steps));
@@ -141,16 +123,16 @@ public class WebClient extends Action {
 				uploadFile(nodeStep);
 				break;
 			case "FoundElementText":
-				if(foundElementText(nodeStep))
+				if (foundElementText(nodeStep))
 					webActions(nodeStep);
 				break;
 			case "DidNotFindElementText":
-				if(!foundElementText(nodeStep))
+				if (!foundElementText(nodeStep))
 					webActions(nodeStep);
 				break;
 			}
 		}
-	}	
+	}
 
 	private boolean foundElementText(Node nodeStep) {
 		String comment = _session.getAttribute(nodeStep, "Comment");
@@ -161,14 +143,14 @@ public class WebClient extends Action {
 		if (StringUtilities.isNullOrEmpty(value)) {
 			value = "";
 		}
-		
+
 		_session.addLogMessage("", "FoundElementText", String.format("Locating HTML form at %s", xpath));
 		if (StringUtilities.isNotNullOrEmpty(comment)) {
 			_session.addLogMessage("", "", comment);
 		}
-		
-		String function = xpath+ "[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')) = '" + value.toLowerCase() + "']]";
-		
+
+		String function = xpath + "[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')) = '" + value.toLowerCase() + "']]";
+
 		HtmlElement element = _htmlpage.getFirstByXPath(function);
 
 		if (element == null) {
@@ -202,32 +184,32 @@ public class WebClient extends Action {
 			throw new RuntimeException(String.format("WebClient navigation error for %s. %s", url, ex.getMessage()), ex);
 		}
 	}
-	
+
 	protected void selectElement(Node nodeStep) {
 		String comment = _session.getAttribute(nodeStep, "Comment");
 		String xpath = _session.getAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
-		
+
 		String value = _session.getAttribute(nodeStep, "Value");
 		if (StringUtilities.isNullOrEmpty(value)) {
 			value = "";
 		}
-		
+
 		String childXpath = _session.getAttribute(nodeStep, "ChildXPath");
 		if (StringUtilities.isNullOrEmpty(childXpath)) {
 			childXpath = "";
 		}
 
-		while(childXpath.startsWith("/")){
+		while (childXpath.startsWith("/")) {
 			childXpath = childXpath.substring(1);
 		}
-		
-		String function = value.equals("")? xpath : xpath + "[" + (!childXpath.equals("")? childXpath + "//" : "" ) + "text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')) = '" + value.toLowerCase() + "']]";
+
+		String function = value.equals("") ? xpath : xpath + "[" + (!childXpath.equals("") ? childXpath + "//" : "") + "text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')) = '" + value.toLowerCase() + "']]";
 		_session.addLogMessage("", "SelectElement", String.format("Locating HTML element at %s", function));
 		if (StringUtilities.isNotNullOrEmpty(comment)) {
 			_session.addLogMessage("", "", comment);
 		}
-		
+
 		_htmlelement = _htmlpage.getFirstByXPath(function);
 		if (_htmlelement == null) {
 			throw new RuntimeException(String.format("WebClient SelectElement did not find an HTML element at %s", function));
@@ -252,10 +234,10 @@ public class WebClient extends Action {
 		HtmlInput field = _htmlpage.getFirstByXPath(xpath);
 		if (field == null) {
 			throw new RuntimeException(String.format("WebClient InputText did not find a matching form field for the XPath %s", xpath));
-		}		
+		}
 		field.setValueAttribute(value);
 	}
-	
+
 	protected void inputTextFromSelected(Node nodeStep) {
 		String comment = _session.getAttribute(nodeStep, "Comment");
 		String xpath = _session.getAttribute(nodeStep, "XPath");
@@ -265,7 +247,7 @@ public class WebClient extends Action {
 		if (StringUtilities.isNullOrEmpty(value)) {
 			value = "";
 		}
-		
+
 		HtmlInput field;
 		if (StringUtilities.isNotNullOrEmpty(xpath)) {
 			validateWebState(xpath, nodeStep.getNodeName());
@@ -274,19 +256,19 @@ public class WebClient extends Action {
 			validateWebState("//", nodeStep.getNodeName());
 			field = (HtmlInput) _htmlelement;
 		}
-		
+
 		if (field == null) {
 			throw new RuntimeException(String.format("WebClient InputTextFromSelected did not find a matching input field for the XPath %s", xpath));
-		}	
+		}
 
 		_session.addLogMessage("", "InputTextFromSelected", String.format("Locating HTML input field from selected element at %s and inputing text.", xpath));
 		if (StringUtilities.isNotNullOrEmpty(comment)) {
 			_session.addLogMessage("", "", comment);
 		}
-		
+
 		field.setValueAttribute(value);
 	}
-	
+
 	protected void clickElementFromSelected(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
 		String comment = _session.getAttribute(nodeStep, "Comment");
@@ -299,16 +281,16 @@ public class WebClient extends Action {
 			validateWebState("//", nodeStep.getNodeName());
 			element = _htmlelement;
 		}
-		
+
 		if (element == null) {
 			throw new RuntimeException(String.format("WebClient ClickElementFromSelected did not find a matching element for the XPath %s (wait up to %,d seconds)", xpath, jswait));
-		}		
+		}
 
 		_session.addLogMessage("", "ClickElementFromSelected", String.format("Locating HTML element from selected element at %s and clicking.", xpath));
 		if (StringUtilities.isNotNullOrEmpty(comment)) {
 			_session.addLogMessage("", "", comment);
 		}
-		
+
 		try {
 			_htmlpage = element.click();
 			_webClient.waitForBackgroundJavaScript(jswait * 1000);
@@ -316,7 +298,7 @@ public class WebClient extends Action {
 			throw new RuntimeException(String.format("WebClient ClickElementFromSelected error while trying to submit form. %s", e.getMessage()), e);
 		}
 	}
-	
+
 	protected void clickElement(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
 		String comment = _session.getAttribute(nodeStep, "Comment");
@@ -339,7 +321,7 @@ public class WebClient extends Action {
 			throw new RuntimeException(String.format("WebClient ClickElement error while trying to click element. %s", e.getMessage()), e);
 		}
 	}
-	
+
 	protected void checkRadioFromSelected(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
 		String comment = _session.getAttribute(nodeStep, "Comment");
@@ -352,26 +334,26 @@ public class WebClient extends Action {
 			validateWebState("//", nodeStep.getNodeName());
 			radio = (HtmlRadioButtonInput) _htmlelement;
 		}
-		
+
 		if (radio == null) {
 			throw new RuntimeException(String.format("WebClient CheckRadioFromSelected did not find a matching element for the XPath %s (wait up to %,d seconds)", xpath, jswait));
-		}		
+		}
 
 		_session.addLogMessage("", "CheckRadioFromSelected", String.format("Locating HTML radio from selected element at %s and clicking.", xpath));
 		if (StringUtilities.isNotNullOrEmpty(comment)) {
 			_session.addLogMessage("", "", comment);
 		}
-		
+
 		_htmlpage = (HtmlPage) radio.setChecked(true);
 		_webClient.waitForBackgroundJavaScript(jswait * 1000);
 	}
-	
+
 	protected void selectOption(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
 		String comment = _session.getAttribute(nodeStep, "Comment");
 		String xpath = _session.getAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
-		
+
 		String value = _session.getAttribute(nodeStep, "Value");
 		if (StringUtilities.isNullOrEmpty(value)) {
 			throw new RuntimeException(String.format("WebClient SelectOption did not provide a value."));
@@ -381,17 +363,17 @@ public class WebClient extends Action {
 		if (StringUtilities.isNotNullOrEmpty(comment)) {
 			_session.addLogMessage("", "", comment);
 		}
-		
-		HtmlSelect select = (HtmlSelect) _htmlpage.getFirstByXPath(xpath);	
+
+		HtmlSelect select = (HtmlSelect) _htmlpage.getFirstByXPath(xpath);
 		if (select == null) {
 			throw new RuntimeException(String.format("WebClient SelectOption did not find a matching select for the XPath %s (wait up to %,d seconds)", xpath, jswait));
 		}
-		
-		HtmlOption option = _htmlpage.getFirstByXPath(xpath+ "/option[translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '" + value.toLowerCase() + "']");
+
+		HtmlOption option = _htmlpage.getFirstByXPath(xpath + "/option[translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '" + value.toLowerCase() + "']");
 		if (option == null) {
-			throw new RuntimeException(String.format("WebClient SelectOption did not find a matching option at %s (wait up to %,d seconds)", xpath+ "/option[translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '" + value.toLowerCase() + "']", jswait));
+			throw new RuntimeException(String.format("WebClient SelectOption did not find a matching option at %s (wait up to %,d seconds)", xpath + "/option[translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '" + value.toLowerCase() + "']", jswait));
 		}
-		
+
 		_htmlpage = select.setSelectedAttribute(option, true);
 		_webClient.waitForBackgroundJavaScript(jswait * 1000);
 	}
@@ -465,47 +447,47 @@ public class WebClient extends Action {
 			throw new RuntimeException(String.format("WebClient navigation error for %s. %s", url, ex.getMessage()), ex);
 		}
 	}
-	
+
 	protected void uploadFile(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
 		String comment = _session.getAttribute(nodeStep, "Comment");
 		String xpath = _session.getAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
-		
+
 		String filePath = _session.getAttribute(nodeStep, "FilePath");
 		if (StringUtilities.isNullOrEmpty(filePath)) {
 			throw new RuntimeException("WebClient UploadFile is missing the required FilePath.");
 		}
-		
+
 		_session.addLogMessage("", "UploadFile", String.format("Locating HTML input and uploading files.", xpath));
 		if (StringUtilities.isNotNullOrEmpty(comment)) {
 			_session.addLogMessage("", "", comment);
 		}
 		File file = new File(filePath);
 
-		if(!file.exists()){
+		if (!file.exists()) {
 			throw new RuntimeException(String.format("No file/folder exists at the path %s.", filePath));
 		}
-		
+
 		HtmlFileInput input = _htmlpage.getFirstByXPath(xpath);
 		if (input == null) {
 			throw new RuntimeException(String.format("WebClient UploadFile did not find a matching element for the XPath %s", xpath));
 		}
-		
+
 		if (file.isDirectory()) {
 			File[] directoryListing = file.listFiles();
 			for (File child : directoryListing) {
-				if(child.isFile()){
-					_session.addLogMessage("", "", "UploadFile uploading file from " + filePath+"/"+child.getName());
-		        	input.setValueAttribute(child.getPath());
-		        	_webClient.waitForBackgroundJavaScript(jswait * 1000);
+				if (child.isFile()) {
+					_session.addLogMessage("", "", "UploadFile uploading file from " + filePath + "/" + child.getName());
+					input.setValueAttribute(child.getPath());
+					_webClient.waitForBackgroundJavaScript(jswait * 1000);
 				}
 			}
-        } else if(file.isFile()){
-        	_session.addLogMessage("", "", "UploadFile uploading file from " + filePath);
-        	input.setValueAttribute(filePath);
-        	_webClient.waitForBackgroundJavaScript(jswait * 1000);
-        }
+		} else if (file.isFile()) {
+			_session.addLogMessage("", "", "UploadFile uploading file from " + filePath);
+			input.setValueAttribute(filePath);
+			_webClient.waitForBackgroundJavaScript(jswait * 1000);
+		}
 
 	}
 
@@ -522,5 +504,4 @@ public class WebClient extends Action {
 			throw new RuntimeException(String.format("No HTML ELEMENT defined.  A Navigate element and SelectElement must precede the %s element.", webStep));
 		}
 	}
-
 }
