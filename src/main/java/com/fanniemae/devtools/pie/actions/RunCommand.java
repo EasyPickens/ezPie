@@ -34,7 +34,9 @@ public class RunCommand extends Action {
 	protected Boolean _waitForExit = true;
 
 	protected int _timeout = 0;
-	protected int _exitCode = 0;
+	protected int[] _exitCodes = new int[]{0};
+	protected String _acceptableErrorOutput;
+	protected boolean _ignoreErrorCode = false;
 
 	public RunCommand(SessionManager session, Element action) {
 		this(session, action, false);
@@ -90,6 +92,7 @@ public class RunCommand extends Action {
 				commandTimer = new Timer();
 				commandTimer.schedule(killer, _timeout * 1000);
 			}
+
 			try (InputStream is = p.getInputStream(); InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr); FileWriter fw = new FileWriter(sConsoleFilename); BufferedWriter bw = new BufferedWriter(fw);) {
 				String line = "";
 				boolean bAddLineBreak = false;
@@ -97,6 +100,8 @@ public class RunCommand extends Action {
 				while ((line = br.readLine()) != null) {
 					if (bAddLineBreak)
 						bw.append(System.lineSeparator());
+					if(_acceptableErrorOutput != null && _acceptableErrorOutput.equals(line.trim()))
+						_ignoreErrorCode = true;
 					bw.append(line);
 					bAddLineBreak = true;
 					iLines++;
@@ -116,9 +121,10 @@ public class RunCommand extends Action {
 					if (p.exitValue() != 0)
 						throw new RuntimeException(String.format("External command timed out. Update timeout limit (currently %d) or disable it.", _timeout));
 				} else {
-					if (p.exitValue() != 0)
+					if (!_ignoreErrorCode && ArrayUtilities.indexOf(_exitCodes, p.exitValue()) == -1)
 						throw new RuntimeException(String.format("External command returned an error code of %d.  View console output for error details.", p.exitValue()));
 				}
+				_session.addLogMessage("", "Exit Code", p.exitValue() + "");
 			}
 		} catch (IOException ex) {
 			throw new RuntimeException("Error while running external command.", ex);

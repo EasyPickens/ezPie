@@ -1,53 +1,39 @@
 package com.fanniemae.devtools.pie.actions;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.Authenticator;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.net.URL;
-
-import javax.xml.bind.DatatypeConverter;
-
-import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.SessionManager;
+import com.fanniemae.devtools.pie.common.ArrayUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
+import com.fanniemae.devtools.pie.common.RestUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
+import com.fanniemae.devtools.pie.common.ZipUtilities;
+
+import java.io.IOException;
+import org.apache.commons.io.IOCase;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.json.JSONArray;
 
-public class ComponentScan extends Action{
+public class ComponentScan extends RunCommand{
 	protected Element _conn;
 	protected String _connID;
 	protected String _url;
 	protected String _cliPath;
-	protected String _workDirectory;
-	protected String _assetID;
-	protected String _appName;
-	protected String _zipPath;
 	protected String _username;
 	protected String _password;
-	protected String _proxyHost;
-	protected int _proxyPort;
-	protected String _proxyUsername;
-	protected String _proxyPassword;
-	protected NodeList _columns;
+	protected String _sourcePath;
+	protected String _assetID;
+	protected String _appName;
+	protected String _orgName;
+	protected String _zipPath;
+	protected String _batchFilename;
+	protected static final String UNKNOWNORGID = "57eaa8da48c84eac94ed01c0884fa157";
+	protected static final String POLICYFAILUREOUTPUT = "[ERROR] The IQ Server reports policy failing due to";
 
 	public ComponentScan(SessionManager session, Element action) {
-		super(session, action);
+		super(session, action, true);
 		_connID = _session.getAttribute(action, "ConnectionID");
 		if(_connID == null){
 			throw new RuntimeException(String.format("%s connection element not found in the settings file.", _connID));
@@ -56,39 +42,74 @@ public class ComponentScan extends Action{
 		_conn = _session.getConnection(_connID);
 		_username = _session.getAttribute(_conn, "Username");
 		_password = _session.getAttribute(_conn, "Password");
-		_proxyHost = _session.getAttribute(_conn, "ProxyHost");
-		_proxyPort = StringUtilities.toInteger(_session.getAttribute(_conn, "ProxyPort"));
-		_proxyUsername = _session.getAttribute(_conn, "ProxyUsername");
-		_proxyPassword = _session.getAttribute(_conn, "ProxyPassword");
+
 		_url = _session.getAttribute(_conn, "URL");
-		if(_url == null){
+		if(StringUtilities.isNullOrEmpty(_url)){
 			throw new RuntimeException(String.format("%s URL element not found in the settings file.", _assetID));
+		}
+		_cliPath = _session.getAttribute(_conn, "CliPath");
+		if(StringUtilities.isNullOrEmpty(_cliPath)){
+			throw new RuntimeException(String.format("%s CliPath element not found in the settings file.", _sourcePath));
 		}
 
 		_assetID = _session.getAttribute(action, "AssetID");
-		if(_assetID == null){
+		if(StringUtilities.isNullOrEmpty(_assetID)){
 			throw new RuntimeException(String.format("%s AssetID element not found in the definition file.", _assetID));
 		}
 		_appName = _session.getAttribute(action, "AppName");
-		if(_appName == null){
+		if(StringUtilities.isNullOrEmpty(_appName)){
 			throw new RuntimeException(String.format("%s AppName element not found in the definition file.", _appName));
 		}
+		_sourcePath = _session.getAttribute(action, "SourcePath");
+		if(StringUtilities.isNullOrEmpty(_sourcePath)){
+			throw new RuntimeException(String.format("%s AppName element not found in the definition file.", _sourcePath));
+		}
+		
+		_orgName = _session.getAttribute(action, "Portfolio");
+		
+		_workDirectory = _session.getAttribute(action, "SourcePath").trim();
+		if (StringUtilities.isNullOrEmpty(_workDirectory)) {
+			throw new RuntimeException("No SourcePath specified for the ComponentScan action.");
+		} else if (FileUtilities.isInvalidDirectory(_workDirectory)) {
+			throw new RuntimeException(String.format("SourcePath %s does not exist.", _workDirectory));
+		}
+		
+		_zipPath = FileUtilities.getRandomFilename(_session.getStagingPath(), "zip");
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("java -jar %s -i %s -s %s -t release %s", _cliPath, _assetID, _url, _zipPath));
+
+		_session.addLogMessage("", "Command", sb.toString());
+		_batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", sb.toString());
+		_session.addLogMessage("", "Batch File", _batchFilename);
+		_arguments = new String[] { _batchFilename };
+
 	}
 
 	@Override
 	public String execute() {
-		//zip files beforehand
+		//zip files and only extract out *.jar and *.dll files
+		String[] filter = StringUtilities.split("*.jar, *.dll");
+		try {
+			String filelist = ArrayUtilities.toString(ZipUtilities.zip(_sourcePath, _zipPath,  new WildcardFileFilter(filter, IOCase.INSENSITIVE)));
+			_session.addLogMessageHtml("", "Files Compressed", filelist);
+			_session.addLogMessage("", "Created Zip file with only *.jar and *.dll files", _zipPath);
+		} catch (IOException ex) {
+			_session.addErrorMessage(ex);
+		}
 		//GET request for organization id
-		String organizationsStr = sendRESTRequest(false, _url+"/api/v2/organizations", null);	
+		String organizationsStr = RestUtilities.sendGetRequest(_url+"/api/v2/organizations", _username, _password);	
+		_session.addLogMessage("", "Rest Request", String.format("View Response"), "file://" + RestUtilities.writeResponseToFile(organizationsStr, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
 		JSONObject topJSON = new JSONObject(organizationsStr);
 		JSONArray organizations = topJSON.getJSONArray("organizations");
-		JSONObject object = (JSONObject) organizations.get(0);
-		String organizationID = (String) object.get("id");
+		String organizationID = searchOrganizations(organizations);
 		//GET request for applications
-		String applicationStr = sendRESTRequest(false, _url+"/api/v2/applications", null);	
-		topJSON = new JSONObject(applicationStr);
+		String applicationsStr = RestUtilities.sendGetRequest(_url+"/api/v2/applications", _username, _password);
+		_session.addLogMessage("", "Rest Request", String.format("View Response"), "file://" + RestUtilities.writeResponseToFile(applicationsStr, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
+		topJSON = new JSONObject(applicationsStr);
 		JSONArray applications = topJSON.getJSONArray("applications");
 		String applicationID = searchApplications(applications);
+		
 		if(applicationID == null){
 			//application doesn't exist 
 			//POST request to create application
@@ -97,8 +118,8 @@ public class ComponentScan extends Action{
 			app.put("publicId", _assetID);
 			app.put("name", _appName);
 			app.put("organizationId", organizationID);
-			
-			String responseStr = sendRESTRequest(true, _url+"/api/v2/applications", app.toString());
+			String responseStr = RestUtilities.sendPostRequest(_url+"/api/v2/applications", app.toString(), _username, _password);
+			_session.addLogMessage("", "Rest Request", String.format("View Response"), "file://" + RestUtilities.writeResponseToFile(responseStr, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
 			try{
 				topJSON = new JSONObject(responseStr);
 				topJSON.get("id");
@@ -107,7 +128,22 @@ public class ComponentScan extends Action{
 			}
 		}
 		
+		//running IQ Server Jar to do component scan
+		_acceptableErrorOutput = POLICYFAILUREOUTPUT;
+		super.execute();
+		
 		return null;
+	}
+	
+	protected String searchOrganizations(JSONArray orgs){
+		for(int i = 0; i < orgs.length(); i++){
+			JSONObject org = (JSONObject) orgs.get(i);
+			if(((String) org.get("name")).toLowerCase().equals(_orgName.toLowerCase())){
+				return (String) org.get("id");
+			}
+		}
+		//return ID for Unknown Portfolio
+		return UNKNOWNORGID;
 	}
 	
 	protected String searchApplications(JSONArray apps){
@@ -123,82 +159,4 @@ public class ComponentScan extends Action{
 		return null;
 	}
 	
-	protected String sendRESTRequest(boolean post, String urlStr, String body){
-		try{
-			URL url = new URL(urlStr);
-			_session.addLogMessage("", "ComponentScan", "REST URL : " + url.toString());
-			HttpURLConnection connection;
-			
-			if(_proxyHost.trim().isEmpty()){
-				connection = (HttpURLConnection) url.openConnection();
-			} else {
-				Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(_proxyHost, _proxyPort)); 
-				connection = (HttpURLConnection) url.openConnection(proxy);
-				setProxyAuthentication();
-			}
-			
-			if(!_username.trim().isEmpty()){
-				String userpass =_username + ":" + _password;
-				String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
-				connection.setRequestProperty ("Authorization", basicAuth);
-			}
-			if(post){
-				connection.setRequestProperty("Content-Type", "application/json");
-				connection.setRequestMethod("POST");
-				connection.setDoOutput(true);
-				DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-				wr.writeBytes(body);
-				wr.flush();
-				wr.close();
-				_session.addLogMessage("", "ComponentScan", "Post parameters : " + body);
-			} else { 
-				connection.setRequestMethod("GET");
-			}
-
-			int responseCode = connection.getResponseCode();
-	
-			_session.addLogMessage("", "ComponentScan", String.format("Response Code: %,d", responseCode));
-			
-			String responseStr;
-			try(BufferedReader in = new BufferedReader(
-			        new InputStreamReader(connection.getInputStream()))){
-				String inputLine;
-				StringBuffer responseBuffer = new StringBuffer();
-				while ((inputLine = in.readLine()) != null) {
-					responseBuffer.append(inputLine);
-				}
-				responseStr = responseBuffer.toString();
-			}
-			
-			Object responseJSON = new JSONTokener(responseStr).nextValue();
-			String jsonString = "";
-			if (responseJSON instanceof JSONObject){
-				jsonString = ((JSONObject) responseJSON).toString(2);
-			} else if (responseJSON instanceof JSONArray){
-				jsonString = ((JSONArray) responseJSON).toString(2);
-			}
-			
-			//write returned JSON to file in logs folder
-			String jsonFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
-			try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-			              new FileOutputStream(jsonFilename), "utf-8"))) {
-				writer.write(jsonString); 
-			}
-			
-			_session.addLogMessage("", "ComponentScan", String.format("View Response"), "file://" + jsonFilename);
-			
-			return responseStr;
-		} catch (JSONException | IOException ex){
-			throw new RuntimeException("Error while trying to make REST request: " + ex.getMessage(), ex);
-		}
-	}
-	
-	private void setProxyAuthentication(){
-		Authenticator authenticator = new Authenticator() {
-			public PasswordAuthentication getPasswordAuthentication() {
-				return (new PasswordAuthentication(_proxyUsername, _proxyPassword.toCharArray()));
-			}
-		};
-		Authenticator.setDefault(authenticator);
-	}
 }

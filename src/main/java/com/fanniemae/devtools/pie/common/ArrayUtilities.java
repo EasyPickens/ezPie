@@ -48,6 +48,23 @@ public class ArrayUtilities {
 		return index;
 	}
 	
+	public static int indexOf(int[] items, int target){
+		int length = items.length;
+		if (length == 0) {
+			return -1;
+		}
+
+		int index = -1;
+		for (int i = 0; i < length; i++) {
+			if(items[i] == target){
+				index = i;
+				break;
+			}
+		}
+
+		return index;
+	}
+	
 	public static String toString(String[] lines) {
 		ReportBuilder rb = new ReportBuilder();
 		rb.appendArray(lines);

@@ -1,24 +1,11 @@
 package com.fanniemae.devtools.pie.data.connectors;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.Authenticator;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.xml.bind.DatatypeConverter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,6 +20,7 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.DataFileEnums.DataType;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.DataUtilities;
+import com.fanniemae.devtools.pie.common.RestUtilities;
 
 /**
  * 
@@ -69,6 +57,8 @@ public class RestConnector extends DataConnector {
 		_proxyUsername = _session.getAttribute(_conn, "ProxyUsername");
 		_proxyPassword = _session.getAttribute(_conn, "ProxyPassword");
 		_url = _session.getAttribute(_conn, "URL");
+		if (StringUtilities.isNullOrEmpty(_url))
+			throw new RuntimeException(String.format("%s URL element not found in the definition file.", _url));
 		_columns = XmlUtilities.selectNodes(_dataSource, "*");
 		
 	}
@@ -76,56 +66,8 @@ public class RestConnector extends DataConnector {
 	@Override
 	public Boolean open() {
 		try{
-			URL url = new URL(_url);
-			HttpURLConnection connection;
-			
-			if(_proxyHost.trim().isEmpty()){
-				connection = (HttpURLConnection) url.openConnection();
-			} else {
-				Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(_proxyHost, _proxyPort)); 
-				connection = (HttpURLConnection) url.openConnection(proxy);
-				setProxyAuthentication();
-			}
-			
-			if(!_username.trim().isEmpty()){
-				String userpass =_username + ":" + _password;
-				String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
-				connection.setRequestProperty ("Authorization", basicAuth);
-			}
-		
-			connection.setRequestMethod("GET");
-			connection.setRequestProperty("Accept","*/*"); 
-			int responseCode = connection.getResponseCode();
-			_session.addLogMessage("", "RestConnector", "Connection content: " + connection.getContent().toString());
-			_session.addLogMessage("", "RestConnector", String.format("Response Code: %,d", responseCode));
-
-			String response;
-			try(BufferedReader in = new BufferedReader(
-			        new InputStreamReader(connection.getInputStream()))){
-				String inputLine;
-				StringBuffer responseBuffer = new StringBuffer();
-				while ((inputLine = in.readLine()) != null) {
-					responseBuffer.append(inputLine);
-				}
-				response = responseBuffer.toString();
-			}
-
-			Object json = new JSONTokener(response).nextValue();
-			String jsonString = "";
-			if (json instanceof JSONObject){
-				jsonString = ((JSONObject) json).toString(2);
-			} else if (json instanceof JSONArray){
-				jsonString = ((JSONArray) json).toString(2);
-			}
-			   
-			//write returned JSON to file in logs folder
-			String jsonFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
-			try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-			              new FileOutputStream(jsonFilename), "utf-8"))) {
-				writer.write(jsonString); 
-			}
-			
-			_session.addLogMessage("", "RestConnector", String.format("View Response"), "file://" + jsonFilename);
+			String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password);
+			_session.addLogMessage("", "RestConnector", String.format("View Response"), "file://" + RestUtilities.writeResponseToFile(response, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
 			
 			int numColumns = _columns.getLength();
 			_session.addLogMessage("", "RestConnector", String.format("%,d columns found", numColumns));
@@ -158,6 +100,8 @@ public class RestConnector extends DataConnector {
 				root.addChild(columns.get(n));
 			}
 			
+			Object json = new JSONTokener(response).nextValue();
+			
 			//create rows by parsing JSON and using the tree with the attributes to search for
 			ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>();
 			if (json instanceof JSONObject){
@@ -173,7 +117,7 @@ public class RestConnector extends DataConnector {
 			dataTypeRows(rows);
 
 			
-		} catch (JSONException | IOException ex){
+		} catch (JSONException ex){
 			throw new RuntimeException("Error while trying to make REST request: " + ex.getMessage(), ex);
 		}
 		return true;
@@ -322,17 +266,7 @@ public class RestConnector extends DataConnector {
 			return false;
 		}
 	}
-	
-	private void setProxyAuthentication(){
-		Authenticator authenticator = new Authenticator() {
 
-			public PasswordAuthentication getPasswordAuthentication() {
-				return (new PasswordAuthentication(_proxyUsername, _proxyPassword.toCharArray()));
-			}
-		};
-		Authenticator.setDefault(authenticator);
-	}
-	
 	private class TreeNode<T> implements Iterable<TreeNode<T>> {
 
 	    T data;
