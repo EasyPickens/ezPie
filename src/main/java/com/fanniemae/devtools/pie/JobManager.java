@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.actions.Action;
+import com.fanniemae.devtools.pie.actions.CastScan;
 import com.fanniemae.devtools.pie.actions.ComponentScan;
 import com.fanniemae.devtools.pie.actions.Compression;
 import com.fanniemae.devtools.pie.actions.Copy;
@@ -48,7 +49,7 @@ public class JobManager {
 	}
 
 	public String runJob() {
-		Action act;
+		Action act = null;
 		try {
 			NodeList nlActions = XmlUtilities.selectNodes(_session.getJobDefinition(), "*");
 			int iLen = nlActions.getLength();
@@ -58,88 +59,74 @@ public class JobManager {
 				case "RunCommand":
 					// Run external command or batch file
 					act = new RunCommand(_session, eleOperation);
-					act.execute();
 					break;
 				case "LocalTokens":
 					act = new LocalTokens(_session, eleOperation);
-					act.execute();
 					break;
 				case "DataSet":
 					// Pull data and process
 					act = new DataSet(_session, eleOperation);
-					act.execute();
 					break;
 				case "LogComment":
 					act = new LogComment(_session, eleOperation);
-					act.execute();
 					break;
 				case "Export":
 					act = new ExportDelimited(_session, eleOperation);
-					act.execute();
 					break;
 				case "SvnCheckout":
 					act = new Svn(_session, eleOperation);
-					act.execute();
 					break;
 				case "Directory" :
 					act = new Directory(_session, eleOperation);
-					act.execute();
 					break;
 				case "WebClient":
 					act = new WebClient(_session, eleOperation);
-					act.execute();
 					break;
 				case "Zip":
 				case "UnZip":
 					act = new Compression(_session, eleOperation);
-					act.execute();
 					break;
 				case "ComponentScan":
 					act = new ComponentScan(_session, eleOperation);
-					act.execute();
 					break;					
 				case "Git":
 					act = new Git(_session, eleOperation);
-					act.execute();
 					break;
 				case "Svn":
 					act = new Svn(_session, eleOperation);
-					act.execute();
 					break;					
 				case "Maven":
 					act = new Maven(_session, eleOperation);
-					act.execute();
 					break;
 				case "Copy":
 					act = new Copy(_session, eleOperation);
-					act.execute();
 					break;
 				case "Move":
 					act = new Move(_session, eleOperation);
-					act.execute();
 					break;
 				case "Delete":
 					act = new Delete(_session, eleOperation);
-					act.execute();
 					break;					
 				case "Rename":
 					act = new Rename(_session, eleOperation);
-					act.execute();
 					break;
 				case "HighlightScan":
 					act = new HighlightScan(_session, eleOperation);
-					act.execute();
 					break;
 				case "MakeDirectory":
 					act = new MakeDirectory(_session, eleOperation);
-					act.execute();
 					break;
 				case "VersionFile":
 					act = new VersionFile(_session, eleOperation);
-					act.execute();
+					break;
+				case "CastScan":
+					act = new CastScan(_session, eleOperation);
 					break;
 				default:
 					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
+				}
+				if (act != null) {
+					act.execute();
 				}
 			}
 			_session.addLogMessage("Completed", "", "Processing completed successfully.");

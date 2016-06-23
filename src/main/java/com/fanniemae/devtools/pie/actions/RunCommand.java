@@ -15,6 +15,7 @@ import java.util.TimerTask;
 import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
+import com.fanniemae.devtools.pie.common.ArrayUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 
@@ -68,12 +69,9 @@ public class RunCommand extends Action {
 		if (StringUtilities.isNotNullOrEmpty(timeout))
 			_session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _timeout));
 
+		_arguments = parseCommandLine(_commandLine);
 		if (makeBatchFile) {
-			String batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", cmdLine);
-			_session.addLogMessage("", "Created Batch File", batchFilename);
-			_arguments = new String[] { batchFilename };
-		} else {
-			_arguments = parseCommandLine(_commandLine);
+			makeBatchFile();
 		}
 	}
 
@@ -123,7 +121,6 @@ public class RunCommand extends Action {
 				}
 			}
 		} catch (IOException ex) {
-			_session.addErrorMessage(ex);
 			throw new RuntimeException("Error while running external command.", ex);
 		}
 		_session.addLogMessage("", "Command", "Completed");
@@ -210,6 +207,12 @@ public class RunCommand extends Action {
 			}
 		}
 		return (iSeconds < 1) ? -1 : iSeconds;
+	}
+	
+	protected void makeBatchFile() {
+		String batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", ArrayUtilities.toCommandLine(_arguments));
+		_session.addLogMessage("", "Created Batch File", batchFilename);
+		_arguments = new String[] { batchFilename };
 	}
 }
 
