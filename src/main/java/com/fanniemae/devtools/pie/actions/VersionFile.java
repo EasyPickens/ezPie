@@ -52,18 +52,18 @@ public class VersionFile extends Action {
 				prop.store(output, null);
 				output.close();
 			} catch (IOException ex) {
-				throw new RuntimeException(String.format("Error while writing %s version file. %s",_filename,ex.getMessage()));
+				throw new RuntimeException(String.format("Error while writing %s the version file. %s",_filename,ex.getMessage()));
 			}
 		} else {
 			if (FileUtilities.isInvalidFile(_filename)) {
-				throw new RuntimeException(String.format("Version file %s not found.", _filename));
+				throw new RuntimeException(String.format("File %s was not found.", _filename));
 			}
 			try (FileInputStream input = new FileInputStream(_filename)) {
 				prop.load(input);
 			} catch (IOException ex) {
-				throw new RuntimeException(String.format("Error while trying to read %s version file. %s", _filename, ex.getMessage()));
+				throw new RuntimeException(String.format("Error while trying to read %s the version file. %s", _filename, ex.getMessage()));
 			}
-			_session.addToken("Local", "Version", prop.getProperty("Version", ""));
+			_session.addToken("Local", _id, prop.getProperty("Version", ""));
 		}
 		return null;
 	}

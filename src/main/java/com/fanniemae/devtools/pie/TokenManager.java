@@ -95,7 +95,7 @@ public class TokenManager {
 				sValue = sValue.replace(sFullToken, "");
 			}
 		}
-		return sValue;
+		return resolveTokens(sValue, aDataRow);
 	}
 
 	protected void loadTokenValues(String sTokenType, Node xNode) {
