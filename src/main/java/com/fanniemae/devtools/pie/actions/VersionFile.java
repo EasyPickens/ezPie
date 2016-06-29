@@ -22,11 +22,7 @@ public class VersionFile extends Action {
 	public VersionFile(SessionManager session, Element action) {
 		super(session, action, true);
 
-		_path = _session.getAttribute(action, "Path");
-		
-		if (StringUtilities.isNullOrEmpty(_path)) {
-			throw new RuntimeException("VersionFile element requires a value in the Path attribute.");
-		}
+		_path = requiredAttribute("Path");
 		_session.addLogMessage("", "Path", _path);
 		_filename = FileUtilities.combine(_path, _filename);
 		_session.addLogMessage("", "Filename", _filename);

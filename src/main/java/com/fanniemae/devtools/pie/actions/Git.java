@@ -16,12 +16,7 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
  * @author Richard Monson
  * @since 2016-05-19
  * 
- * <Git LocalPath="" [PLinkPath]>
- *    <Clone URL="" />
- *    <Pull />
- *    <Checkout Branch="" [Tag] />
- *    <Reset [Hard] />
- * </Git>
+ *        <Git LocalPath="" [PLinkPath]> <Clone URL="" /> <Pull /> <Checkout Branch="" [Tag] /> <Reset [Hard] /> </Git>
  */
 
 public class Git extends RunCommand {
@@ -32,10 +27,8 @@ public class Git extends RunCommand {
 	public Git(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_workDirectory = _session.getAttribute(action, "LocalPath").trim();
-		if (StringUtilities.isNullOrEmpty(_workDirectory)) {
-			throw new RuntimeException("No LocalPath specified for Git action.");
-		} else if (FileUtilities.isInvalidDirectory(_workDirectory)) {
+		_workDirectory = requiredAttribute("LocalPath").trim();
+		if (FileUtilities.isInvalidDirectory(_workDirectory)) {
 			File file = new File(_workDirectory);
 			file.mkdirs();
 		}
@@ -44,10 +37,10 @@ public class Git extends RunCommand {
 		// Using public/private keys requires a key store.
 		_plinkPath = _session.getAttribute(action, "PLinkPath").trim();
 		if (StringUtilities.isNullOrEmpty(_plinkPath)) {
-			_plinkPath=_session.resolveTokens("@Git.PLinkPath~").trim();
+			_plinkPath = _session.resolveTokens("@Git.PLinkPath~").trim();
 		}
 		_session.addLogMessage("", "PLink Path", _plinkPath);
-		
+
 		if (StringUtilities.isNotNullOrEmpty(_plinkPath) && FileUtilities.isInvalidFile(_plinkPath)) {
 			throw new RuntimeException(String.format("Plink.exe file not found for PLinkPath %s.", _plinkPath));
 		}
@@ -80,10 +73,7 @@ public class Git extends RunCommand {
 		for (int i = 0; i < length; i++) {
 			switch (nodeCmds.item(i).getNodeName()) {
 			case "Clone":
-				repoURL = _session.getAttribute(nodeCmds.item(i), "URL");
-				if (StringUtilities.isNullOrEmpty(repoURL)) {
-					throw new RuntimeException("Missing URL to remote repository.");
-				}
+				repoURL = requiredAttribute(nodeCmds.item(i), "URL", "Missing URL to remote repository.");
 				if (FileUtilities.isNotEmptyDirectory(_workDirectory) && FileUtilities.isGitRepository(_workDirectory)) {
 					sbCommands.appendLine("git clean -df");
 					sbCommands.appendLine("git reset --hard");
@@ -98,11 +88,8 @@ public class Git extends RunCommand {
 				sbCommands.appendLine("git pull --rebase");
 				break;
 			case "Checkout":
-				String branch = _session.getAttribute(nodeCmds.item(i), "Branch");
-				if (StringUtilities.isNullOrEmpty(branch)) {
-					throw new RuntimeException("Missing required branch name to checkout.");
-				}
-				tag = _session.getAttribute(nodeCmds.item(1), "Tag");
+				String branch = requiredAttribute(nodeCmds.item(i), "Branch","Missing required branch name to checkout.");
+				tag = optionalAttribute(nodeCmds.item(1), "Tag", "");
 				sbCommands.appendFormatLine("git checkout %s %s", StringUtilities.wrapValue(branch), tag);
 				break;
 			case "Reset":

@@ -42,7 +42,7 @@ public abstract class FileSystemAction extends Action {
 	public FileSystemAction(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_includeFileFilter = _session.getAttribute(action, "IncludeFiles");
+		_includeFileFilter = optionalAttribute("IncludeFiles", null);
 		if (StringUtilities.isNotNullOrEmpty(_includeFileFilter)) {
 			_hasIncludeFileFilter = true;
 			String[] filter = StringUtilities.split(_includeFileFilter);
@@ -50,7 +50,7 @@ public abstract class FileSystemAction extends Action {
 			_session.addLogMessage("", "IncludeFiles", _includeFileFilter);
 		}
 
-		_includeDirectoryFilter = _session.getAttribute(action, "IncludeDirectories");
+		_includeDirectoryFilter = optionalAttribute("IncludeDirectories", null);
 		if (StringUtilities.isNotNullOrEmpty(_includeDirectoryFilter)) {
 			_hasIncludeDirectoryFilter = true;
 			String[] filter = StringUtilities.split(_includeDirectoryFilter);
@@ -58,7 +58,7 @@ public abstract class FileSystemAction extends Action {
 			_session.addLogMessage("", "IncludeDirectories", _includeDirectoryFilter);
 		}
 
-		_excludeFileFilter = _session.getAttribute(action, "ExcludeFiles");
+		_excludeFileFilter = optionalAttribute("ExcludeFiles", null);
 		if (StringUtilities.isNotNullOrEmpty(_excludeFileFilter)) {
 			_hasExcludeFileFilter = true;
 			String[] filter = StringUtilities.split(_excludeFileFilter);
@@ -66,7 +66,7 @@ public abstract class FileSystemAction extends Action {
 			_session.addLogMessage("", "ExcludeFiles", _excludeFileFilter);
 		}
 
-		_excludeDirectoryFilter = _session.getAttribute(action, "ExcludeDirectories");
+		_excludeDirectoryFilter = optionalAttribute("ExcludeDirectories", null);
 		if (StringUtilities.isNotNullOrEmpty(_excludeDirectoryFilter)) {
 			_hasExcludeDirectoryFilter = true;
 			String[] filter = StringUtilities.split(_excludeDirectoryFilter);
@@ -74,19 +74,19 @@ public abstract class FileSystemAction extends Action {
 			_session.addLogMessage("", "ExcludeDirectories", _excludeDirectoryFilter);
 		}
 
-		String shallow = _session.getAttribute(action, "Shallow");
+		String shallow = optionalAttribute("Shallow", null);
 		if (StringUtilities.isNotNullOrEmpty(shallow)) {
 			_shallow = StringUtilities.toBoolean(shallow, false);
 			_session.addLogMessage("", "Shallow", _shallow ? "True" : "False");
 		}
 
-		String skipHidden = _session.getAttribute(action, "SkipHidden");
+		String skipHidden = optionalAttribute("SkipHidden", null);
 		if (StringUtilities.isNotNullOrEmpty(skipHidden)) {
 			_skipHidden = StringUtilities.toBoolean(skipHidden, false);
 			_session.addLogMessage("", "SkipHidden", _skipHidden ? "True" : "False");
 		}
-		
-		String clearReadOnly = _session.getAttribute(action, "ClearReadOnly");
+
+		String clearReadOnly = optionalAttribute("ClearReadOnly", null);
 		if (StringUtilities.isNotNullOrEmpty(clearReadOnly)) {
 			_clearReadOnly = StringUtilities.toBoolean(clearReadOnly, false);
 			_session.addLogMessage("", "ClearReadOnly", _clearReadOnly ? "True" : "False");
@@ -156,7 +156,7 @@ public abstract class FileSystemAction extends Action {
 			if (_hasExcludeFileFilter && inArray(entryName, excludeFiles)) {
 				copyFile = false;
 			}
-			
+
 			// If it is still set to be copied, check against include filter
 			if (copyFile && _hasIncludeFileFilter) {
 				copyFile = inArray(entryName, includeFiles);

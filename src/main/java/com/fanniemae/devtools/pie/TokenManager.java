@@ -66,13 +66,21 @@ public class TokenManager {
 		return resolveTokens(sValue, null);
 	}
 
-	public String resolveTokens(String sValue, Object[] aDataRow) {
-		if ((sValue.indexOf("@") == -1) || (sValue.indexOf("~") == -1))
-			return sValue;
+	public String resolveTokens(String value, Object[] dataRow) {
+		if (value == null) return value;
+		
+		int tokenStart = value.indexOf("@");
+		int tokenMid = value.indexOf(".");
+		int tokenEnd = value.indexOf("~");
+		if ((tokenStart == -1) || (tokenMid == -1) || (tokenEnd == -1)) {
+			return value;
+		} else if ((tokenStart > tokenMid) || (tokenEnd < tokenMid) || (tokenStart > tokenEnd)) {
+			return value;
+		}
 
 		int iTokenSplit = 0;
 		int iTokenEnd = 0;
-		String[] aTokens = sValue.split("@");
+		String[] aTokens = value.split("@");
 
 		for (int i = 0; i < aTokens.length; i++) {
 			iTokenSplit = aTokens[i].indexOf('.');
@@ -85,17 +93,17 @@ public class TokenManager {
 			String sKey = aTokens[i].substring(iTokenSplit + 1, iTokenEnd);
 
 			// Skip data tokens if no row of data is provided.
-			if ((aDataRow == null) && sGroup.equals("Data"))
+			if ((dataRow == null) && sGroup.equals("Data"))
 				continue;
 
 			if (_tokens.containsKey(sGroup) && _tokens.get(sGroup).containsKey(sKey)) {
-				sValue = sValue.replace(sFullToken, _tokens.get(sGroup).get(sKey));
+				value = value.replace(sFullToken, _tokens.get(sGroup).get(sKey));
 			} else {
-				// if the token is not found, it evaulates to empty string.
-				sValue = sValue.replace(sFullToken, "");
+				// if the token is not found, it evaluates to empty string.
+				value = value.replace(sFullToken, "");
 			}
 		}
-		return resolveTokens(sValue, aDataRow);
+		return resolveTokens(value, dataRow);
 	}
 
 	protected void loadTokenValues(String sTokenType, Node xNode) {

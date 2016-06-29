@@ -16,11 +16,7 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
  * @author Richard Monson
  * @since 2016-01-04
  * 
- * <Svn LocalPath="">
- *    <Clone URL="" />
- *    <Pull />
- *    <Reset />
- * </Svn>
+ *        <Svn LocalPath=""> <Clone URL="" /> <Pull /> <Reset /> </Svn>
  */
 
 public class Svn extends RunCommand {
@@ -30,10 +26,8 @@ public class Svn extends RunCommand {
 	public Svn(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_workDirectory = _session.getAttribute(action, "LocalPath").trim();
-		if (StringUtilities.isNullOrEmpty(_workDirectory)) {
-			throw new RuntimeException("No LocalPath specified for Svn action.");
-		} else if (FileUtilities.isInvalidDirectory(_workDirectory)) {
+		_workDirectory = requiredAttribute(action, "LocalPath").trim();
+		if (FileUtilities.isInvalidDirectory(_workDirectory)) {
 			File file = new File(_workDirectory);
 			file.mkdirs();
 		}
@@ -50,11 +44,9 @@ public class Svn extends RunCommand {
 		for (int i = 0; i < length; i++) {
 			switch (nodeCmds.item(i).getNodeName()) {
 			case "Clone":
-				String repoURL = _session.getAttribute(nodeCmds.item(i), "URL");
-				String subDirectory = _session.getAttribute(nodeCmds.item(i), "DirectoryName");
-				if (StringUtilities.isNullOrEmpty(repoURL)) {
-					throw new RuntimeException("Svn Checkout requires a URL to remote SVN repository. Missing the URL.");
-				}
+				String repoURL = requiredAttribute(nodeCmds.item(i), "URL", "Svn Checkout requires a URL to remote SVN repository. Missing the URL.");
+				String subDirectory = optionalAttribute(nodeCmds.item(i), "DirectoryName", null);
+
 				String localPath = _workDirectory;
 				if (StringUtilities.isNullOrEmpty(subDirectory)) {
 					int iPos = repoURL.lastIndexOf('/');

@@ -43,34 +43,32 @@ public class ExportDelimited extends Action {
 	public ExportDelimited(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_outputFilename = _session.getAttribute(action, "Filename");
-		if (StringUtilities.isNullOrEmpty(_outputFilename))
-			throw new RuntimeException("Missing required output filename.");
+		_outputFilename = requiredAttribute("Filename");
 		_session.addLogMessage("", "OutputFilename", _outputFilename);
 
-		_delimiter = _session.getAttribute(action, "Delimiter", "|");
+		_delimiter = optionalAttribute("Delimiter", "|");
 		_session.addLogMessage("", "Delimiter", _delimiter);
 
-		String trimSpaces = _session.getAttribute(action, "TrimSpaces");
+		String trimSpaces = optionalAttribute("TrimSpaces", null);
 		_trimSpaces = StringUtilities.toBoolean(trimSpaces, false);
 		if (StringUtilities.isNotNullOrEmpty(trimSpaces)) {
 			_session.addLogMessage("", "TrimSpaces", _trimSpaces ? "True" : "False");
 		}
 
-		String appendData = _session.getAttribute(action, "Append");
+		String appendData = optionalAttribute("Append", null);
 		_appendData = StringUtilities.toBoolean(appendData, false);
 		if (StringUtilities.isNotNullOrEmpty(appendData)) {
 			_session.addLogMessage("", "Append", _appendData ? "True" : "False");
 		}
-		
-		String roundDoubles = _session.getAttribute(action, "RoundDoubles");
+
+		String roundDoubles = optionalAttribute("RoundDoubles", null);
 		_roundDoubles = StringUtilities.toBoolean(roundDoubles, false);
 		if (StringUtilities.isNotNullOrEmpty(roundDoubles)) {
 			_session.addLogMessage("", "RoundDoubles", _roundDoubles ? "True" : "False");
 		}
 
-		_dataSetID = _session.getAttribute(action, "DataSetID");
-		_writeColumnNames = StringUtilities.toBoolean(_session.getAttribute(action, "IncludeColumnNames"), true);
+		_dataSetID = requiredAttribute("DataSetID");
+		_writeColumnNames = StringUtilities.toBoolean(optionalAttribute("IncludeColumnNames", null), true);
 	}
 
 	@Override
@@ -185,11 +183,11 @@ public class ExportDelimited extends Action {
 		}
 		return value;
 	}
-	
+
 	protected String doubleFormat(Object value) {
 		if (value == null) {
 			return "";
 		}
-		return String.format("%.2f", (double)value);
+		return String.format("%.2f", (double) value);
 	}
 }

@@ -1,6 +1,8 @@
 package com.fanniemae.devtools.pie.actions;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 
@@ -49,6 +51,10 @@ public abstract class Action {
 		return optionalAttribute(_action, attributeName, defaultValue);
 	}
 
+	protected String optionalAttribute(Node node, String attributeName, String defaultValue) {
+		return optionalAttribute((Element)node, attributeName, defaultValue);
+	}
+	
 	protected String optionalAttribute(Element element, String attributeName, String defaultValue) {
 		String value = _session.getAttribute(element, attributeName);
 		if (StringUtilities.isNullOrEmpty(value)) {
@@ -67,9 +73,17 @@ public abstract class Action {
 		return requiredAttribute(_action, attributeName, errorMessage);
 	}
 
+	protected String requiredAttribute(Node node, String attributeName) {
+		return requiredAttribute((Element)node, attributeName);
+	}
+	
 	protected String requiredAttribute(Element element, String attributeName) {
 		String errorMessage = String.format("Missing a value for %s on the %s element.", attributeName, element.getNodeName());
 		return requiredAttribute(element, attributeName, errorMessage);
+	}
+	
+	protected String requiredAttribute(Node node, String attributeName, String errorMessage) {
+		return requiredAttribute((Element)node, attributeName, errorMessage);
 	}
 
 	protected String requiredAttribute(Element element, String attributeName, String errorMessage) {

@@ -6,7 +6,6 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.FileUtilities;
-import com.fanniemae.devtools.pie.common.StringUtilities;
 
 public class Maven extends RunCommand {
 	protected String _batchFilename;
@@ -14,10 +13,8 @@ public class Maven extends RunCommand {
 	public Maven(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_workDirectory = _session.getAttribute(action, "LocalPath").trim();
-		if (StringUtilities.isNullOrEmpty(_workDirectory)) {
-			throw new RuntimeException("No LocalPath specified for Maven action.");
-		} else if (FileUtilities.isInvalidDirectory(_workDirectory)) {
+		_workDirectory = requiredAttribute(action, "LocalPath").trim();
+		if (FileUtilities.isInvalidDirectory(_workDirectory)) {
 			throw new RuntimeException(String.format("LocalPath %s does not exist.", _workDirectory));
 		}
 

@@ -77,7 +77,7 @@ public class CastScan extends RunCommand {
 
 		//@formatter:off
 		_arguments = new String[] { "CAST-MS-CLI.exe", "AutomateDelivery", 
-				                    "-connectionProfile", _connectionProfile, 
+				                    "-connectionProfile", StringUtilities.wrapValue(_connectionProfile), 
 				                    "-appli", StringUtilities.wrapValue(_applicationName), 
 				                    "-version", StringUtilities.wrapValue(_version), 
 				                    "-fromVersion", StringUtilities.wrapValue(templateName), 
@@ -99,7 +99,7 @@ public class CastScan extends RunCommand {
 
 		//@formatter:off
 		_arguments = new String[] { "CAST-MS-CLI.exe", "RunAnalysis", 
-				                    "-connectionProfile", _connectionProfile, 
+				                    "-connectionProfile", StringUtilities.wrapValue(_connectionProfile), 
 				                    "-appli", StringUtilities.wrapValue(_applicationName), 
 				                    "-logFilePath", StringUtilities.wrapValue(logFile) };
 		//@formatter:on
@@ -121,7 +121,7 @@ public class CastScan extends RunCommand {
 
 		//@formatter:off
 		_arguments = new String[] { "CAST-MS-CLI.exe", "GenerateSnapshot", 
-				                    "-connectionProfile", _connectionProfile, 
+				                    "-connectionProfile", StringUtilities.wrapValue(_connectionProfile), 
 				                    "-appli", StringUtilities.wrapValue(_applicationName),
 				                    "-skipAnalysisJob", "TRUE",
 				                    "-version", StringUtilities.wrapValue(_version), 

@@ -6,7 +6,6 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.FileUtilities;
-import com.fanniemae.devtools.pie.common.StringUtilities;
 
 //<Delete 
 //   Source 
@@ -23,15 +22,11 @@ public class Delete extends FileSystemAction {
 	public Delete(SessionManager session, Element action) {
 		super(session, action);
 
-		_source = _session.getAttribute(action, "Path");
-		if (StringUtilities.isNullOrEmpty(_source)) {
-			throw new RuntimeException(String.format("%s action requires a Path to a directory or file.", _actionName));
-		} else {
-			_isFile = FileUtilities.isValidFile(_source);
-			_isDirectory = FileUtilities.isValidDirectory(_source);
-			if (!_isFile && !_isDirectory) {
-				throw new RuntimeException(String.format("%s action requires a Path to an existing directory or file. %s is not a valid file or directory.", _actionName, _source));
-			}
+		_source = requiredAttribute("Path", String.format("%s action requires a Path to a directory or file.", _actionName));
+		_isFile = FileUtilities.isValidFile(_source);
+		_isDirectory = FileUtilities.isValidDirectory(_source);
+		if (!_isFile && !_isDirectory) {
+			throw new RuntimeException(String.format("%s action requires a Path to an existing directory or file. %s is not a valid file or directory.", _actionName, _source));
 		}
 		_session.addLogMessage("", "Source", _source);
 		_type = (_isFile) ? "file" : "directory";

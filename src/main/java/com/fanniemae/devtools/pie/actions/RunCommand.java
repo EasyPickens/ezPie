@@ -34,7 +34,7 @@ public class RunCommand extends Action {
 	protected Boolean _waitForExit = true;
 
 	protected int _timeout = 0;
-	protected int[] _exitCodes = new int[]{0};
+	protected int[] _exitCodes = new int[] { 0 };
 	protected String _acceptableErrorOutput;
 	protected boolean _ignoreErrorCode = false;
 
@@ -48,16 +48,11 @@ public class RunCommand extends Action {
 		if (!action.getNodeName().equals("RunCommand"))
 			return;
 
-		String workDirectory = _session.getAttribute(action, "WorkDirectory");
-		String cmdLine = _session.getAttribute(action, "CommandLine");
-		String waitForExit = _session.getAttribute(action, "WaitForExit");
-		String timeout = _session.getAttribute(action, "Timeout");
-		Boolean makeBatchFile = StringUtilities.toBoolean(_session.getAttribute(action, "MakeBatchFile"), false);
-
-		if (StringUtilities.isNullOrEmpty(workDirectory))
-			throw new RuntimeException("No WorkDirectory value specified.");
-		if (StringUtilities.isNullOrEmpty(cmdLine))
-			throw new RuntimeException("No CommandLine value specified.");
+		String workDirectory = requiredAttribute("WorkDirectory");
+		String cmdLine = requiredAttribute("CommandLine");
+		String waitForExit = optionalAttribute("WaitForExit", null);
+		String timeout = optionalAttribute("Timeout", null);
+		Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
 
 		_workDirectory = workDirectory;
 		_commandLine = cmdLine;
@@ -100,7 +95,7 @@ public class RunCommand extends Action {
 				while ((line = br.readLine()) != null) {
 					if (bAddLineBreak)
 						bw.append(System.lineSeparator());
-					if(_acceptableErrorOutput != null && _acceptableErrorOutput.equals(line.trim()))
+					if (_acceptableErrorOutput != null && _acceptableErrorOutput.equals(line.trim()))
 						_ignoreErrorCode = true;
 					bw.append(line);
 					bAddLineBreak = true;
@@ -108,7 +103,7 @@ public class RunCommand extends Action {
 				}
 				if (_waitForExit)
 					p.waitFor();
-				
+
 				bw.flush();
 				bw.close();
 				_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
@@ -214,7 +209,7 @@ public class RunCommand extends Action {
 		}
 		return (iSeconds < 1) ? -1 : iSeconds;
 	}
-	
+
 	protected void makeBatchFile() {
 		String batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", ArrayUtilities.toCommandLine(_arguments));
 		_session.addLogMessage("", "Created Batch File", batchFilename);

@@ -150,6 +150,7 @@ public class SessionManager {
 			iTokenEnd = aTokens[i].indexOf('~');
 			if ((iTokenSplit == -1) || (iTokenEnd == -1))
 				continue;
+			if (iTokenSplit > iTokenEnd) continue;
 
 			String sFullToken = "@" + aTokens[i].substring(0, iTokenEnd + 1);
 			String sGroup = aTokens[i].substring(0, iTokenSplit);

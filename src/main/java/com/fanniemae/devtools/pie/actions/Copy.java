@@ -12,7 +12,6 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.FileUtilities;
-import com.fanniemae.devtools.pie.common.StringUtilities;
 
 // <Copy 
 //		Source 
@@ -33,23 +32,16 @@ public class Copy extends FileSystemAction {
 	public Copy(SessionManager session, Element action) {
 		super(session, action);
 
-		_source = _session.getAttribute(action, "Source");
-		if (StringUtilities.isNullOrEmpty(_source)) {
-			throw new RuntimeException(String.format("%s action requires a source directory or file.", _actionName));
-		} else {
-			_isFile = FileUtilities.isValidFile(_source);
-			_isDirectory = FileUtilities.isValidDirectory(_source);
-			if (!_isFile && !_isDirectory) {
-				throw new RuntimeException(String.format("%s action requires a source value to an existing directory or file. %s is not a valid file or directory.", _actionName, _source));
-			}
+		_source = requiredAttribute("Source", String.format("%s action requires a source directory or file.", _actionName));
+		_isFile = FileUtilities.isValidFile(_source);
+		_isDirectory = FileUtilities.isValidDirectory(_source);
+		if (!_isFile && !_isDirectory) {
+			throw new RuntimeException(String.format("%s action requires a source value to an existing directory or file. %s is not a valid file or directory.", _actionName, _source));
 		}
 		_session.addLogMessage("", "Source", _source);
 		_type = (_isFile) ? "file" : "directory";
 
-		_destination = _session.getAttribute(action, "Destination");
-		if (StringUtilities.isNullOrEmpty(_destination)) {
-			throw new RuntimeException(String.format("%s action requires a destination %s.", _actionName, _type));
-		}
+		_destination = requiredAttribute("Destination", String.format("%s action requires a destination %s.", _actionName, _type));
 		_session.addLogMessage("", "Destination", _destination);
 	}
 

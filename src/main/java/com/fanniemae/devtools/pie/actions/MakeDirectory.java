@@ -5,7 +5,6 @@ import java.io.File;
 import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
-import com.fanniemae.devtools.pie.common.StringUtilities;
 
 /**
  * 
@@ -19,10 +18,7 @@ public class MakeDirectory extends Action {
 
 	public MakeDirectory(SessionManager session, Element action) {
 		super(session, action, false);
-		_path = _session.getAttribute(action, "Path");
-		if (StringUtilities.isNullOrEmpty(_path)) {
-			throw new RuntimeException(String.format("%s action requires a value for the new Path.", _actionName));
-		}
+		_path = requiredAttribute("Path");
 		_session.addLogMessage("", "Path", _path);
 	}
 
