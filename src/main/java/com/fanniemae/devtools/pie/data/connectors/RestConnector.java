@@ -1,7 +1,5 @@
 package com.fanniemae.devtools.pie.data.connectors;
 
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -21,7 +19,7 @@ import com.fanniemae.devtools.pie.datafiles.lowlevel.DataFileEnums.DataType;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.DataUtilities;
 import com.fanniemae.devtools.pie.common.RestUtilities;
-
+import com.fanniemae.devtools.pie.data.utilities.TreeNode;
 /**
  * 
  * @author Tara Tritt
@@ -193,10 +191,10 @@ public class RestConnector extends DataConnector {
 	
 	private ArrayList<ArrayList<String>> buildRows(JSONObject json, ArrayList<ArrayList<String>> parentRows, TreeNode<String> column){
 		Object j= null;
-		if(column.data.equals("root")){
+		if(column.getData().equals("root")){
 			j = json;
 		} else {
-			j = json.get(column.data);
+			j = json.get(column.getData());
 		}
 		
 		if (j instanceof JSONArray) {
@@ -245,13 +243,13 @@ public class RestConnector extends DataConnector {
 	}
 	
 	private boolean searchTree(TreeNode<String> node, String[] pathParts, int index){
-		if(pathParts[index].equals(node.data)){
+		if(pathParts[index].equals(node.getData())){
 			index++;
 			if(pathParts.length <= index){
 				return true;
 			}
 			boolean found = false;
-			Iterator<TreeNode<String>> iter = node.children.iterator();
+			Iterator<TreeNode<String>> iter = node.getChildren().iterator();
 			while(iter.hasNext()){
 				TreeNode<String> next = iter.next();
 				if(searchTree(next, pathParts, index))
@@ -259,52 +257,12 @@ public class RestConnector extends DataConnector {
 			}
 			if(!found){
 				node.addChild(pathParts[index]);
-				searchTree(node.children.get(node.children.size()-1), pathParts, index);
+				searchTree(node.getChildren().get(node.getChildren().size()-1), pathParts, index);
 			}
 			return true;
 		} else {
 			return false;
 		}
-	}
-
-	private class TreeNode<T> implements Iterable<TreeNode<T>> {
-
-	    T data;
-	    TreeNode<T> parent;
-	    List<TreeNode<T>> children;
-
-	    public TreeNode(T data) {
-	        this.data = data;
-	        this.children = new LinkedList<TreeNode<T>>();
-	    }
-
-	    public TreeNode<T> addChild(T child) {
-	        TreeNode<T> childNode = new TreeNode<T>(child);
-	        childNode.parent = this;
-	        this.children.add(childNode);
-	        return childNode;
-	    }
-	    
-	    public TreeNode<T> addChild(TreeNode<T> childNode) {
-	        childNode.parent = this;
-	        this.children.add(childNode);
-	        return childNode;
-	    }
-
-		@Override
-		public Iterator<TreeNode<T>> iterator() {
-			return children.iterator();
-		}
-		
-		public void print(String path){
-			System.out.println(path + "." + this.data);
-			Iterator<TreeNode<T>> iter = this.children.iterator();
-			while(iter.hasNext()){
-				TreeNode<T> next = iter.next();
-				next.print(path+"."+this.data);
-			}
-		}
-
 	}
 
 }

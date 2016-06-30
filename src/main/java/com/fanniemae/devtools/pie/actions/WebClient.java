@@ -47,6 +47,7 @@ public class WebClient extends Action {
 
 		_javascriptWait = StringUtilities.toInteger(_session.getAttribute(action, "JavascriptWait"), 30);
 		_connID = optionalAttribute("ConnectionID", null);
+		_conn = _session.getConnection(_connID);
 	}
 
 	@Override
@@ -135,19 +136,13 @@ public class WebClient extends Action {
 	}
 
 	private boolean foundElementText(Node nodeStep) {
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = requiredAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
 
-		String value = _session.getAttribute(nodeStep, "Value");
-		if (StringUtilities.isNullOrEmpty(value)) {
-			value = "";
-		}
+		String value = requiredAttribute(nodeStep, "Value");
 
 		_session.addLogMessage("", "FoundElementText", String.format("Locating HTML form at %s", xpath));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
 
 		String function = xpath + "[text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')) = '" + value.toLowerCase() + "']]";
 
@@ -164,19 +159,11 @@ public class WebClient extends Action {
 
 	protected void navigate(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
-		String url = _session.getAttribute(nodeStep, "URL");
-		if (StringUtilities.isNullOrEmpty(url)) {
-			throw new RuntimeException("Navigation step element is missing the required destination URL.");
-		}
+		optionalAttribute(nodeStep, "Comment", null);
+		String url = requiredAttribute(nodeStep, "URL");
+
 		try {
 			_session.addLogMessage("", "Navigation", String.format("Requesting page from %s (wait up to %,d seconds)", url, jswait));
-			if (StringUtilities.isNotNullOrEmpty(comment)) {
-				_session.addLogMessage("", "", comment);
-			}
 
 			_htmlpage = _webClient.getPage(url);
 			_webClient.waitForBackgroundJavaScript(jswait * 1000);
@@ -186,19 +173,13 @@ public class WebClient extends Action {
 	}
 
 	protected void selectElement(Node nodeStep) {
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = requiredAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
 
-		String value = _session.getAttribute(nodeStep, "Value");
-		if (StringUtilities.isNullOrEmpty(value)) {
-			value = "";
-		}
+		String value = optionalAttribute(nodeStep, "Value", "");
 
-		String childXpath = _session.getAttribute(nodeStep, "ChildXPath");
-		if (StringUtilities.isNullOrEmpty(childXpath)) {
-			childXpath = "";
-		}
+		String childXpath = optionalAttribute(nodeStep, "ChildXPath", "");
 
 		while (childXpath.startsWith("/")) {
 			childXpath = childXpath.substring(1);
@@ -206,9 +187,6 @@ public class WebClient extends Action {
 
 		String function = value.equals("") ? xpath : xpath + "[" + (!childXpath.equals("") ? childXpath + "//" : "") + "text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')) = '" + value.toLowerCase() + "']]";
 		_session.addLogMessage("", "SelectElement", String.format("Locating HTML element at %s", function));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
 
 		_htmlelement = _htmlpage.getFirstByXPath(function);
 		if (_htmlelement == null) {
@@ -217,43 +195,35 @@ public class WebClient extends Action {
 	}
 
 	protected void inputText(Node nodeStep) {
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = requiredAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
 
-		String value = _session.getAttribute(nodeStep, "Value");
-		if (StringUtilities.isNullOrEmpty(value)) {
-			value = "";
-		}
+		String value = requiredAttribute(nodeStep, "Value");
 
 		_session.addLogMessage("", "InputText", String.format("Locating HTML input field at %s and inputing text.", xpath));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
 
 		HtmlInput field = _htmlpage.getFirstByXPath(xpath);
 		if (field == null) {
 			throw new RuntimeException(String.format("WebClient InputText did not find a matching form field for the XPath %s", xpath));
 		}
 		field.setValueAttribute(value);
+		_webClient.waitForBackgroundJavaScript(jswait * 1000);
 	}
 
 	protected void inputTextFromSelected(Node nodeStep) {
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = optionalAttribute(nodeStep, "XPath", "//");
 		validateWebState(xpath, nodeStep.getNodeName());
 
-		String value = _session.getAttribute(nodeStep, "Value");
-		if (StringUtilities.isNullOrEmpty(value)) {
-			value = "";
-		}
+		String value = requiredAttribute(nodeStep, "Value");
 
 		HtmlInput field;
-		if (StringUtilities.isNotNullOrEmpty(xpath)) {
-			validateWebState(xpath, nodeStep.getNodeName());
+		if (StringUtilities.isNotNullOrEmpty(xpath) && !xpath.equals("//")) {
 			field = _htmlelement.getFirstByXPath(xpath);
 		} else {
-			validateWebState("//", nodeStep.getNodeName());
 			field = (HtmlInput) _htmlelement;
 		}
 
@@ -262,23 +232,21 @@ public class WebClient extends Action {
 		}
 
 		_session.addLogMessage("", "InputTextFromSelected", String.format("Locating HTML input field from selected element at %s and inputing text.", xpath));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
 
 		field.setValueAttribute(value);
+		_webClient.waitForBackgroundJavaScript(jswait * 1000);
 	}
 
 	protected void clickElementFromSelected(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = optionalAttribute(nodeStep, "XPath", "//");
+		validateWebState(xpath, nodeStep.getNodeName());
+		
 		HtmlElement element;
-		if (StringUtilities.isNotNullOrEmpty(xpath)) {
-			validateWebState(xpath, nodeStep.getNodeName());
+		if (StringUtilities.isNotNullOrEmpty(xpath) && !xpath.equals("//")) {
 			element = _htmlelement.getFirstByXPath(xpath);
 		} else {
-			validateWebState("//", nodeStep.getNodeName());
 			element = _htmlelement;
 		}
 
@@ -287,9 +255,6 @@ public class WebClient extends Action {
 		}
 
 		_session.addLogMessage("", "ClickElementFromSelected", String.format("Locating HTML element from selected element at %s and clicking.", xpath));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
 
 		try {
 			_htmlpage = element.click();
@@ -301,14 +266,11 @@ public class WebClient extends Action {
 
 	protected void clickElement(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = requiredAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
 
 		_session.addLogMessage("", "ClickElement", String.format("Locating HTML element at %s and clicking.", xpath));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
 
 		HtmlElement element = _htmlpage.getFirstByXPath(xpath);
 		if (element == null) {
@@ -324,14 +286,14 @@ public class WebClient extends Action {
 
 	protected void checkRadioFromSelected(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = optionalAttribute(nodeStep, "XPath", "//");
+		validateWebState(xpath, nodeStep.getNodeName());
+		
 		HtmlRadioButtonInput radio;
-		if (StringUtilities.isNotNullOrEmpty(xpath)) {
-			validateWebState(xpath, nodeStep.getNodeName());
+		if (StringUtilities.isNotNullOrEmpty(xpath) && !xpath.equals("//")) {
 			radio = _htmlelement.getFirstByXPath(xpath);
 		} else {
-			validateWebState("//", nodeStep.getNodeName());
 			radio = (HtmlRadioButtonInput) _htmlelement;
 		}
 
@@ -340,9 +302,6 @@ public class WebClient extends Action {
 		}
 
 		_session.addLogMessage("", "CheckRadioFromSelected", String.format("Locating HTML radio from selected element at %s and clicking.", xpath));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
 
 		_htmlpage = (HtmlPage) radio.setChecked(true);
 		_webClient.waitForBackgroundJavaScript(jswait * 1000);
@@ -350,19 +309,13 @@ public class WebClient extends Action {
 
 	protected void selectOption(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = requiredAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
 
-		String value = _session.getAttribute(nodeStep, "Value");
-		if (StringUtilities.isNullOrEmpty(value)) {
-			throw new RuntimeException(String.format("WebClient SelectOption did not provide a value."));
-		}
+		String value = requiredAttribute(nodeStep, "Value");
 
 		_session.addLogMessage("", "SelectOption", String.format("Locating Select and selecting option.", xpath));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
 
 		HtmlSelect select = (HtmlSelect) _htmlpage.getFirstByXPath(xpath);
 		if (select == null) {
@@ -379,24 +332,16 @@ public class WebClient extends Action {
 	}
 
 	protected void readAttribute(Node nodeStep) {
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = requiredAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
 
-		String id = _session.getAttribute(nodeStep, "ID");
-		if (StringUtilities.isNullOrEmpty(id)) {
-			throw new RuntimeException("WebClient ReadNode is missing the required an ID value.  The ID is used to populate the token @WebClient.<ID>~");
-		}
+		String id = requiredAttribute(nodeStep, "ID");
 
-		String attrName = _session.getAttribute(nodeStep, "AttributeName");
-		if (StringUtilities.isNullOrEmpty(id)) {
-			throw new RuntimeException("WebClient ReadNode is missing the required an AttributeName value.");
-		}
+		String attrName = requiredAttribute(nodeStep, "AttributeName");
 
 		_session.addLogMessage("", "ReadAttribute", String.format("Locating element at %s and reading %s attribute value.", xpath, attrName));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
+
 		DomElement element = _htmlpage.getFirstByXPath(xpath);
 		if (element == null) {
 			throw new RuntimeException(String.format("WebClient ReadAttribute did not find a matching element for the XPath %s", xpath));
@@ -407,22 +352,14 @@ public class WebClient extends Action {
 
 	protected void downloadFile(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
-		String comment = _session.getAttribute(nodeStep, "Comment");
+		optionalAttribute(nodeStep, "Comment", null);
 
-		String url = _session.getAttribute(nodeStep, "URL");
-		if (StringUtilities.isNullOrEmpty(url)) {
-			throw new RuntimeException("WebClient DownloadFile element is missing the required URL.");
-		}
-
-		String filename = _session.getAttribute(nodeStep, "SaveAs");
-		if (StringUtilities.isNullOrEmpty(filename)) {
-			throw new RuntimeException("WebClient DownloadFile element SaveAs value is missing.");
-		}
+		String url = requiredAttribute(nodeStep, "URL");
+		
+		String filename = requiredAttribute(nodeStep, "SaveAs");
 
 		_session.addLogMessage("", "DownloadFile", String.format("Downloading and saving file to %s. (wait up to %,d seconds)", filename, jswait));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
+
 		try {
 			Page page = _webClient.getPage(url);
 			_webClient.waitForBackgroundJavaScript(jswait * 1000);
@@ -450,19 +387,14 @@ public class WebClient extends Action {
 
 	protected void uploadFile(Node nodeStep) {
 		int jswait = StringUtilities.toInteger(_session.getAttribute(nodeStep, "JavascriptWait"), _javascriptWait);
-		String comment = _session.getAttribute(nodeStep, "Comment");
-		String xpath = _session.getAttribute(nodeStep, "XPath");
+		optionalAttribute(nodeStep, "Comment", null);
+		String xpath = requiredAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
 
-		String filePath = _session.getAttribute(nodeStep, "FilePath");
-		if (StringUtilities.isNullOrEmpty(filePath)) {
-			throw new RuntimeException("WebClient UploadFile is missing the required FilePath.");
-		}
+		String filePath = requiredAttribute(nodeStep, "FilePath");
 
 		_session.addLogMessage("", "UploadFile", String.format("Locating HTML input and uploading files.", xpath));
-		if (StringUtilities.isNotNullOrEmpty(comment)) {
-			_session.addLogMessage("", "", comment);
-		}
+
 		File file = new File(filePath);
 
 		if (!file.exists()) {

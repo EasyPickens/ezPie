@@ -35,7 +35,7 @@ public class HighlightScan extends Action {
 
 	public HighlightScan(SessionManager session, Element action) {
 		super(session, action);
-		_destination = _session.getAttribute(action, "Destination");
+		_destination = requiredAttribute("Destination");
 	}
 
 	@Override

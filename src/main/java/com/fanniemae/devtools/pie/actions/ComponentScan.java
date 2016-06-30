@@ -2,8 +2,6 @@ package com.fanniemae.devtools.pie.actions;
 
 import org.json.JSONObject;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.ArrayUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
@@ -34,44 +32,23 @@ public class ComponentScan extends RunCommand{
 
 	public ComponentScan(SessionManager session, Element action) {
 		super(session, action, true);
-		_connID = _session.getAttribute(action, "ConnectionID");
-		if(_connID == null){
-			throw new RuntimeException(String.format("%s connection element not found in the settings file.", _connID));
-		}
+		_connID = requiredAttribute("ConnectionID");
 		_session.addLogMessage("", "ConnectionID", _connID);
+		
 		_conn = _session.getConnection(_connID);
-		_username = _session.getAttribute(_conn, "Username");
-		_password = _session.getAttribute(_conn, "Password");
+		_username = requiredAttribute(_conn, "Username");
+		_password = requiredAttribute(_conn, "Password");
+		_url = requiredAttribute(_conn, "URL");
+		_cliPath = requiredAttribute(_conn, "CliPath");
 
-		_url = _session.getAttribute(_conn, "URL");
-		if(StringUtilities.isNullOrEmpty(_url)){
-			throw new RuntimeException(String.format("%s URL element not found in the settings file.", _assetID));
-		}
-		_cliPath = _session.getAttribute(_conn, "CliPath");
-		if(StringUtilities.isNullOrEmpty(_cliPath)){
-			throw new RuntimeException(String.format("%s CliPath element not found in the settings file.", _sourcePath));
-		}
-
-		_assetID = _session.getAttribute(action, "AssetID");
-		if(StringUtilities.isNullOrEmpty(_assetID)){
-			throw new RuntimeException(String.format("%s AssetID element not found in the definition file.", _assetID));
-		}
-		_appName = _session.getAttribute(action, "AppName");
-		if(StringUtilities.isNullOrEmpty(_appName)){
-			throw new RuntimeException(String.format("%s AppName element not found in the definition file.", _appName));
-		}
-		_sourcePath = _session.getAttribute(action, "SourcePath");
-		if(StringUtilities.isNullOrEmpty(_sourcePath)){
-			throw new RuntimeException(String.format("%s AppName element not found in the definition file.", _sourcePath));
-		}
+		_assetID = requiredAttribute("AssetID");
+		_appName = requiredAttribute("AppName");
+		_sourcePath = requiredAttribute("SourcePath");	
+		_orgName = optionalAttribute("Portfolio", "unknown");
 		
-		_orgName = _session.getAttribute(action, "Portfolio");
-		
-		_workDirectory = _session.getAttribute(action, "SourcePath").trim();
-		if (StringUtilities.isNullOrEmpty(_workDirectory)) {
-			throw new RuntimeException("No SourcePath specified for the ComponentScan action.");
-		} else if (FileUtilities.isInvalidDirectory(_workDirectory)) {
-			throw new RuntimeException(String.format("SourcePath %s does not exist.", _workDirectory));
+		_workDirectory = requiredAttribute("SourcePath").trim();
+		if (FileUtilities.isInvalidDirectory(_workDirectory)) {
+			throw new RuntimeException(String.format("SourcePath %s is not a valid directory.", _workDirectory));
 		}
 		
 		_zipPath = FileUtilities.getRandomFilename(_session.getStagingPath(), "zip");
