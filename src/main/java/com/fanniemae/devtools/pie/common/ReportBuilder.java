@@ -35,6 +35,7 @@ public class ReportBuilder {
 		}
 	}
 	
+	@Override
 	public String toString() {
 		return _sb.toString();
 	}

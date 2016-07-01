@@ -9,6 +9,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.ArrayUtilities;
+import com.fanniemae.devtools.pie.common.DateUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
@@ -90,8 +91,11 @@ public class CastScan extends RunCommand {
 
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
 		makeBatchFile();
+		_session.addLogMessage("", "CAST Log File", "View packaging and delivery log", "file://" + logFile);
+		long start = System.currentTimeMillis();
 		super.execute();
-		_session.addLogMessage("", "CAST Log File", "View code package and deliver log", "file://" + logFile);
+		_session.addLogMessage("", "Completed", String.format("Time to package was %s", DateUtilities.elapsedTime(start)));
+		
 	}
 
 	protected void analyzeCode(Element castAction) {
@@ -109,8 +113,10 @@ public class CastScan extends RunCommand {
 
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
 		makeBatchFile();
-		super.execute();
 		_session.addLogMessage("", "CAST Log File", "View code analysis log", "file://" + logFile);
+		long start = System.currentTimeMillis();
+		super.execute();
+		_session.addLogMessage("", "Completed", String.format("Time to analyze code was %s", DateUtilities.elapsedTime(start)));
 	}
 
 	protected void generateSnapshot(Element castAction) {
@@ -135,12 +141,14 @@ public class CastScan extends RunCommand {
 
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
 		makeBatchFile();
-		super.execute();
 		_session.addLogMessage("", "CAST Log File", "View generate snapshot log", "file://" + logFile);
+		long start = System.currentTimeMillis();
+		super.execute();
+		_session.addLogMessage("", "Completed", String.format("Time to generate snapshot was %s", DateUtilities.elapsedTime(start)));
 	}
 
 	protected void publishResults(Element castAction) {
-		throw new RuntimeException("CAST PublishResults action not currently supported.");
+		throw new RuntimeException("CAST PublishResults action not available in this version.");
 	}
 
 	protected void defaultRescanPattern() {
@@ -154,5 +162,4 @@ public class CastScan extends RunCommand {
 		Element generateSnapshot = _action.getOwnerDocument().createElement("GenerateSnapshot");
 		_action.appendChild(generateSnapshot);
 	}
-
 }
