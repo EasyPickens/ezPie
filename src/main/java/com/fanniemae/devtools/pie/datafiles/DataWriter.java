@@ -37,6 +37,7 @@ import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldSqlTimestamp;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldString;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldStringEncrypted;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldUUID;
+import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldObject;
 
 /**
  * 
@@ -362,6 +363,8 @@ public class DataWriter extends DataFormat {
 			}
 		case UUIDData:
 			return new FieldUUID(_bos);
+		case ObjectData:
+			return new FieldObject(_bos);
 		default:
 			throw new IOException("Data type " + ColumnDataType.toString() + " is not currently supported by the data engine.");
 		}

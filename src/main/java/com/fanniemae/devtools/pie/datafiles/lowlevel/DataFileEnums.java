@@ -20,7 +20,8 @@ public class DataFileEnums {
 		ShortData, 
 		SqlTimestampData, 
 		StringData, 
-		UUIDData
+		UUIDData,
+		ObjectData
 	}
 
 	public enum ColumnTypes {

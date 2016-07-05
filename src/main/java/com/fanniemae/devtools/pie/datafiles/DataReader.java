@@ -31,6 +31,7 @@ import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldDate;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldDouble;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldInteger;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldLong;
+import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldObject;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldReadWrite;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldBoolean;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.FieldString;
@@ -322,6 +323,8 @@ public class DataReader extends DataFormat {
                 } else {
                     return new FieldString(_bis);
                 }
+            case ObjectData:
+            	return new FieldObject(_bis);
             default:
                 throw new IOException("Data type " + columnDataType.toString() + " is not currently supported by the data engine.");
         }

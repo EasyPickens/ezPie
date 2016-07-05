@@ -80,50 +80,53 @@ public class DataUtilities {
 			return Types.VARCHAR;
 		}
 	}
-	
-    public static DataType DataTypeToEnum(String sTypeName) {
-    	if (sTypeName == null) {
-    		return DataType.StringData;
-    	}
-        switch (sTypeName) {
-            case "java.math.BigDecimal":
-            case "BigDecimalData":
-                return DataType.BigDecimalData;            
-            case "java.lang.Boolean":
-            case "BooleanData":
-                return DataType.BooleanData;            
-            case "java.lang.Byte":
-            case "ByteData":
-                return DataType.ByteData;
-            case "java.lang.Character":
-            case "CharData":
-                return DataType.CharData;                
-            case "java.util.Date":
-            case "DateData":
-                return DataType.DateData;
-            case "java.lang.Double":
-            case "DoubleData":
-                return DataType.DoubleData;
-            case "java.lang.Float":
-            case "FloatData":
-                return DataType.FloatData;
-            case "java.lang.Integer":
-            case "IntegerData":
-                return DataType.IntegerData;
-            case "java.lang.Long":
-            case "LongData":
-                return DataType.LongData;
-            case "java.lang.Short":
-            case "ShortData":
-                return DataType.ShortData;
-            case "java.lang.String":
-            case "StringData":
-                return DataType.StringData;
-            case "java.sql.Timestamp":
-            case "SqlTimestampData":
-                return DataType.SqlTimestampData;
-            default:
-                throw new RuntimeException("Error: " + sTypeName);
-        }
-    }
+
+	public static DataType DataTypeToEnum(String sTypeName) {
+		if (sTypeName == null) {
+			return DataType.StringData;
+		}
+		switch (sTypeName) {
+		case "java.math.BigDecimal":
+		case "BigDecimalData":
+			return DataType.BigDecimalData;
+		case "java.lang.Boolean":
+		case "BooleanData":
+			return DataType.BooleanData;
+		case "java.lang.Byte":
+		case "ByteData":
+			return DataType.ByteData;
+		case "java.lang.Character":
+		case "CharData":
+			return DataType.CharData;
+		case "java.util.Date":
+		case "DateData":
+			return DataType.DateData;
+		case "java.lang.Double":
+		case "DoubleData":
+			return DataType.DoubleData;
+		case "java.lang.Float":
+		case "FloatData":
+			return DataType.FloatData;
+		case "java.lang.Integer":
+		case "IntegerData":
+			return DataType.IntegerData;
+		case "java.lang.Long":
+		case "LongData":
+			return DataType.LongData;
+		case "java.lang.Short":
+		case "ShortData":
+			return DataType.ShortData;
+		case "java.lang.String":
+		case "StringData":
+			return DataType.StringData;
+		case "java.sql.Timestamp":
+		case "SqlTimestampData":
+			return DataType.SqlTimestampData;
+		case "java.lang.Object":
+		case "ObjectData":
+			return DataType.ObjectData;
+		default:
+			throw new RuntimeException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", sTypeName));
+		}
+	}
 }
