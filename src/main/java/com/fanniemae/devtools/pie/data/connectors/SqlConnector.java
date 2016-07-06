@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.SessionManager;
@@ -36,6 +35,7 @@ public class SqlConnector extends DataConnector {
 	protected String[] _fieldNames;
 
 	protected Boolean _calledCommandCancel = false;
+	protected Boolean _usingTransactions = false;
 
 	protected int _columnCount;
 	protected int _commandTimeout = 60;
@@ -48,6 +48,9 @@ public class SqlConnector extends DataConnector {
 			_sqlCommand = _session.resolveTokens(FileUtilities.loadFile(_sqlCommand.substring(7)));
 		}
 		_session.addLogMessagePreserveLayout("", "Command", _sqlCommand);
+
+		// For ExecuteSql elements we use transactions by default
+		_usingTransactions = "ExecuteSql".equals(_dataSource.getNodeName());
 	}
 
 	@Override
@@ -55,12 +58,14 @@ public class SqlConnector extends DataConnector {
 		try {
 			_provider = new DataProvider(_connection);
 			_con = _provider.getConnection();
+			if (_usingTransactions)
+				_con.setAutoCommit(false);
 			_pstmt = _con.prepareStatement(_sqlCommand);
 			_connectionString = _con.getMetaData().getURL();
 
 			_session.addLogMessage("", "ConnectionID", _connection.getAttribute("ID"));
 
-			AddCommandParameters();
+			addSqlParameters();
 			String sCommandTimeout = _dataSource.getAttribute("CommandTimeout");
 			if (StringUtilities.isNullOrEmpty(sCommandTimeout)) {
 				sCommandTimeout = _connection.getAttribute("CommandTimeout");
@@ -88,7 +93,7 @@ public class SqlConnector extends DataConnector {
 				_pstmt.setFetchSize(1);
 			} else if (_rowLimit != -1) {
 				_pstmt.setFetchSize(_rowLimit);
-				_session.addLogMessage("", "Row Limit", String.format("%, d", _rowLimit));
+				// _session.addLogMessage("", "Row Limit", String.format("%, d", _rowLimit));
 			}
 
 			_session.addLogMessage("", "Execute Query", "Send the query to the database server.");
@@ -117,7 +122,7 @@ public class SqlConnector extends DataConnector {
 				RuntimeException ex = new RuntimeException("Query returned null result set information.");
 				throw ex;
 			}
-			
+
 			_session.addLogMessage("", "Read MetaData", "Read field names and data types.");
 			ResultSetMetaData rsmd = _rs.getMetaData();
 			_columnCount = rsmd.getColumnCount();
@@ -158,8 +163,19 @@ public class SqlConnector extends DataConnector {
 				sbFields.append(String.format("%s (%s)", sName, rsmd.getColumnClassName(i + 1)));
 				nFieldNumber++;
 			}
-			_session.addLogMessage("", "Query Returned", sbFields.toString());
+			_session.addLogMessage("", "Result Set Schema", sbFields.toString());
+			if (_usingTransactions)
+				_con.commit();
 		} catch (NumberFormatException | SQLException ex) {
+			if (_usingTransactions) {
+				try {
+					Exception exRun = new RuntimeException("ExecuteSql transaction is being rolled back. " + ex.getMessage(), ex);
+					_session.addErrorMessage(exRun);
+					_con.rollback();
+				} catch (SQLException e) {
+					throw new RuntimeException("Error during rollback. " + e.getMessage(), e);
+				}
+			}
 			throw new RuntimeException("Error while trying to open and run the query. " + ex.getMessage(), ex);
 		}
 		return true;
@@ -193,77 +209,69 @@ public class SqlConnector extends DataConnector {
 		return sUrl.contains("postgresql");
 	}
 
-	protected boolean NotPostgreSQL() throws SQLException {
+	protected boolean isNotPostgreSQL() throws SQLException {
 		return !isPostgreSQL();
 	}
 
-	protected void AddCommandParameters() throws SQLException {
+	protected void addSqlParameters() throws SQLException {
 		// Add parameters in the order listed.
 		// Check report definition for defined parameters
-		Node nodeParameters = XmlUtilities.selectSingleNode(_dataSource, "SPParameters");
-		if (nodeParameters == null) {
+		NodeList parameterList = XmlUtilities.selectNodes(_dataSource, "SqlParameter");
+		int length = parameterList.getLength();
+		if (length == 0)
 			return;
-		}
-		
+
 		java.util.Date javaDate;
-		//java.util.Calendar oCalendar;
-		String nullValue = ((Element) nodeParameters).getAttribute("NullValue");
-
-		NodeList parameterList = XmlUtilities.selectNodes(_dataSource, "SPParameters/SPParameter");
-
-		if ((parameterList != null) && (parameterList.getLength() > 0)) {
-			int iLength = parameterList.getLength();
-			for (int i = 0; i < iLength; i++) {
-				int paramNumber = i + 1;
-				// String sName = ((Element)
-				// nlParameters.item(i)).getAttribute("Name").trim();
-				String value = ((Element) parameterList.item(i)).getAttribute("Value");
-				String paramType = ((Element) parameterList.item(i)).getAttribute("SqlParamType").trim();
-				if (value.equals(nullValue)) {
-					_pstmt.setNull(paramNumber, DataUtilities.dbStringTypeToJavaSqlType(paramType));
-				}
-
-				switch (DataUtilities.dbStringTypeToJavaSqlType(paramType)) {
-				case Types.BIGINT:
-					_pstmt.setLong(paramNumber, Long.parseLong(value));
-					break;
-				case Types.BOOLEAN:
-					_pstmt.setBoolean(paramNumber, Boolean.parseBoolean(value));
-					break;
-				case Types.DECIMAL:
-					_pstmt.setBigDecimal(paramNumber, new BigDecimal(value));
-					break;
-				case Types.DATE:
-					javaDate = StringUtilities.toDate(value);
-					_pstmt.setDate(paramNumber, new java.sql.Date(javaDate.getTime()));
-					break;
-				case Types.DOUBLE:
-					_pstmt.setDouble(paramNumber, Double.parseDouble(value));
-					break;
-				case Types.INTEGER:
-					_pstmt.setInt(paramNumber, Integer.parseInt(value));
-					break;
-				case Types.TIME:
-					javaDate = StringUtilities.toDate(value);
-					_pstmt.setTime(paramNumber, new java.sql.Time(javaDate.getTime()));
-					break;
-				case Types.TIMESTAMP:
-					javaDate = StringUtilities.toDate(value);
-					_pstmt.setTimestamp(paramNumber, new java.sql.Timestamp(javaDate.getTime()));
-					break;
-				case Types.CHAR:
-				case Types.LONGNVARCHAR:
-				case Types.LONGVARCHAR:
-				case Types.NVARCHAR:
-				case Types.VARCHAR:
-					_pstmt.setString(paramNumber, value);
-					break;
-				default:
-					_pstmt.setString(paramNumber, value);
-					break;
-				}
-
+		for (int i = 0; i < length; i++) {
+			int paramNumber = i + 1;
+			Element eleParameter = (Element) parameterList.item(i);
+			String value = eleParameter.getAttribute("Value");
+			String paramType = eleParameter.getAttribute("SqlType").trim();
+			String nullValue = eleParameter.getAttribute("NullValue");
+			if (value.equals(nullValue)) {
+				_pstmt.setNull(paramNumber, DataUtilities.dbStringTypeToJavaSqlType(paramType));
 			}
+
+			switch (DataUtilities.dbStringTypeToJavaSqlType(paramType)) {
+			case Types.BIGINT:
+				_pstmt.setLong(paramNumber, Long.parseLong(value));
+				break;
+			case Types.BOOLEAN:
+				_pstmt.setBoolean(paramNumber, Boolean.parseBoolean(value));
+				break;
+			case Types.DECIMAL:
+				_pstmt.setBigDecimal(paramNumber, new BigDecimal(value));
+				break;
+			case Types.DATE:
+				javaDate = StringUtilities.toDate(value);
+				_pstmt.setDate(paramNumber, new java.sql.Date(javaDate.getTime()));
+				break;
+			case Types.DOUBLE:
+				_pstmt.setDouble(paramNumber, Double.parseDouble(value));
+				break;
+			case Types.INTEGER:
+				_pstmt.setInt(paramNumber, Integer.parseInt(value));
+				break;
+			case Types.TIME:
+				javaDate = StringUtilities.toDate(value);
+				_pstmt.setTime(paramNumber, new java.sql.Time(javaDate.getTime()));
+				break;
+			case Types.TIMESTAMP:
+				javaDate = StringUtilities.toDate(value);
+				_pstmt.setTimestamp(paramNumber, new java.sql.Timestamp(javaDate.getTime()));
+				break;
+			case Types.CHAR:
+			case Types.LONGNVARCHAR:
+			case Types.LONGVARCHAR:
+			case Types.NVARCHAR:
+			case Types.VARCHAR:
+				_pstmt.setString(paramNumber, value);
+				break;
+			default:
+				_pstmt.setString(paramNumber, value);
+				break;
+			}
+			_session.addLogMessage("", "SQL Parameter", String.format("Parameter #%d is set to %s", paramNumber, value));
 		}
 	}
 

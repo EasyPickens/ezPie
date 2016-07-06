@@ -46,6 +46,11 @@ public abstract class DataConnector implements AutoCloseable {
 			_connectionString = _session.getAttribute(_connection, "ConnectionString");
 		}
 		
+		if ("ExecuteSql".equals(dataSource.getNodeName())) {
+			_rowLimit = 1;
+			return;
+		}
+		
 		if (StringUtilities.isNullOrEmpty(_dataSourceID))
 			throw new RuntimeException(String.format("DataSource.%s is missing an ID value.", _dataSourceType));
 

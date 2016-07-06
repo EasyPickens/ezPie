@@ -216,6 +216,10 @@ public class SessionManager {
 		return _tokenizer.resolveTokens(value, aDataRow);
 	}
 
+	public void addTokens(String tokenType, String[][] kvps) {
+		_tokenizer.addTokens(tokenType, kvps);
+	}
+	
 	public void addTokens(String tokenType, Node node) {
 		_tokenizer.addTokens(tokenType, node);
 	}
