@@ -57,6 +57,10 @@ public class TokenManager {
 	public void addTokens(String tokenType, Node nodeTokenValues) {
 		loadTokenValues(tokenType, nodeTokenValues);
 	}
+	
+	public void addTokens(String tokenType, String[][] kvps) {
+		loadTokenValues(tokenType, kvps);
+	}
 
 	public String getAttribute(Element ele, String sName) {
 		return resolveTokens(ele.getAttribute(sName));
@@ -106,41 +110,57 @@ public class TokenManager {
 		return resolveTokens(value, dataRow);
 	}
 
-	protected void loadTokenValues(String sTokenType, Node xNode) {
-		HashMap<String, String> aKeyValues;
-		if (_tokens.containsKey(sTokenType)) {
-			aKeyValues = _tokens.get(sTokenType);
+	protected void loadTokenValues(String tokenType, String[][] kvps) {
+		HashMap<String, String> tokenKeyValues;
+		if (_tokens.containsKey(tokenType)) {
+			tokenKeyValues = _tokens.get(tokenType);
 		} else {
-			aKeyValues = new HashMap<String, String>();
+			tokenKeyValues = new HashMap<String, String>();
 		}
-		
-		int startCount = aKeyValues.size();
 
 		StringBuilder sb = new StringBuilder();
-		NamedNodeMap aAttributes = xNode.getAttributes();
-		
-		int iUpdateCount = 0;
-		int iLen = aAttributes.getLength();
-		for (int i = 0; i < iLen; i++) {
-			Node xA = aAttributes.item(i);
-			String sName = xA.getNodeName();
-			String sValue = xA.getNodeValue();
-			if (sName.equals("ID")) continue;
-			iUpdateCount++;
-			aKeyValues.put(sName, sValue);
-			if(sName.toLowerCase().equals("password")) continue;
-			sb.append(String.format("%s = %s \n", sName, sValue));
+		int length = kvps.length;
+		for (int i = 0; i < length; i++) {
+			if (i > 0) sb.append("\n");
+			String name = kvps[i][0];
+			String value = kvps[i][1];
+			tokenKeyValues.put(name, value);
+			sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
 		}
-		_tokens.put(sTokenType, aKeyValues);
+		_tokens.put(tokenType, tokenKeyValues);
+		_logger.addMessage("", length == 1 ? "Token Added" : "Tokens Added", sb.toString());		
 		
-		String sLogMessage = "Adding tokens to log manager.";
-		if (startCount == 0) {
-			sLogMessage = String.format("%,d %s token(s) defined.\n%s", aKeyValues.size(), sTokenType, sb.toString());
-		} else if (startCount == aKeyValues.size()) {
-			sLogMessage = String.format("%,d %s token value(s) updated.\n%s", iUpdateCount, sTokenType, sb.toString());
-		} else if (startCount < aKeyValues.size()) {
-			sLogMessage = String.format("%,d %s token value(s) added/updated.\n%s", aKeyValues.size()-startCount, sTokenType, sb.toString());
+	}
+	
+	protected void loadTokenValues(String tokenType, Node node) {
+		HashMap<String, String> tokenKeyValues;
+		if (_tokens.containsKey(tokenType)) {
+			tokenKeyValues = _tokens.get(tokenType);
+		} else {
+			tokenKeyValues = new HashMap<String, String>();
 		}
-		_logger.addMessage("", "@" + sTokenType, sLogMessage);
+		
+		NamedNodeMap attributes = node.getAttributes();
+		
+		int added = 0;
+		int length = attributes.getLength();
+		Boolean addNewLine = false;
+		StringBuilder sb = new StringBuilder();
+		
+		for (int i = 0; i < length; i++) {
+			Node xA = attributes.item(i);
+			String name = xA.getNodeName();
+			String value = xA.getNodeValue();
+			if ("id".equals(name.toLowerCase()) || "password".equals(name.toLowerCase())) { 
+				continue;
+			}
+			tokenKeyValues.put(name, value);
+			if (addNewLine) sb.append("\n");
+			sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
+			added++;
+			addNewLine = true;
+		}
+		_tokens.put(tokenType, tokenKeyValues);
+		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
 	}
 }
