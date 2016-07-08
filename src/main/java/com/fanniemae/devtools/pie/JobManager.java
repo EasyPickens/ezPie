@@ -22,6 +22,7 @@ import com.fanniemae.devtools.pie.actions.DataSet;
 import com.fanniemae.devtools.pie.actions.Delete;
 import com.fanniemae.devtools.pie.actions.LocalTokens;
 import com.fanniemae.devtools.pie.actions.RunCommand;
+import com.fanniemae.devtools.pie.actions.Sleep;
 import com.fanniemae.devtools.pie.actions.Svn;
 import com.fanniemae.devtools.pie.actions.VersionFile;
 import com.fanniemae.devtools.pie.actions.WebClient;
@@ -125,6 +126,9 @@ public class JobManager {
 					break;
 				case "ExecuteSql":
 					act = new ExecuteSql(_session, eleOperation);
+					break;
+				case "Sleep":
+					act = new Sleep(_session, eleOperation);
 					break;
 				default:
 					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");

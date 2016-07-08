@@ -2,6 +2,7 @@ package com.fanniemae.devtools.pie.actions;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.w3c.dom.Element;
@@ -11,6 +12,7 @@ import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.ArrayUtilities;
 import com.fanniemae.devtools.pie.common.DateUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
+import com.fanniemae.devtools.pie.common.SqlUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
@@ -20,6 +22,10 @@ public class CastScan extends RunCommand {
 	protected String _applicationName;
 	protected String _version;
 	protected String _castFolder;
+	
+	protected Element _connection;
+	
+	protected int _jobKey;
 
 	protected DateFormat _dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -41,6 +47,12 @@ public class CastScan extends RunCommand {
 			// Default to Package, analyze, snapshot -- consolidate added once rest tested
 			defaultRescanPattern();
 		}
+		
+		_connection = _session.getConnection("ScanManager");
+		String key = _session.resolveTokens("@Local.JobKey~");
+		if (StringUtilities.isNullOrEmpty(key))
+			throw new RuntimeException("Missing key value.");
+		_jobKey = StringUtilities.toInteger(key);
 	}
 
 	@Override
@@ -52,6 +64,9 @@ public class CastScan extends RunCommand {
 			String nodeName = castAction.getNodeName();
 			_session.addLogMessage(nodeName, String.format("%s Step", _actionName), String.format("Starting the %s step of %s", nodeName, _actionName));
 			switch (nodeName) {
+			case "BackupDatabase":
+				backupDatabase(castAction);
+				break;
 			case "PackageCode":
 				packageCode(castAction);
 				break;
@@ -69,6 +84,53 @@ public class CastScan extends RunCommand {
 			}
 		}
 		return "";
+	}
+
+	protected void backupDatabase(Element castAction) {
+		// Update Status to Backup Database
+		_session.addLogMessage("", "Update Status", "Changing status of job to start backup of database.");
+		Object[][] params = new Object[2][2];
+		params[0][0] = "string";
+		params[0][1] = "Backup Database";
+		params[1][0] = "int";
+		params[1][1] = _jobKey;
+		SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.UpdateStatus~"), params);
+
+		params = new Object[1][2];
+		params[0][0] = "int";
+		params[0][1] = _jobKey;
+		Calendar endTime = Calendar.getInstance();
+		endTime.add(Calendar.HOUR_OF_DAY, 2);
+		boolean completed = false;
+		boolean backupError = false;
+		_session.addLogMessage("", "Waiting", "Waiting up to 2 hours for database backup to complete.");
+		// Wait for status to change to Backup Complete or Error
+		try {
+			while (Calendar.getInstance().compareTo(endTime) < 0) {
+				Object value = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.CheckStatus~"), params);
+				if (value != null) {
+					String status = value.toString();
+					if ("error".equals(status.toLowerCase())) {
+						backupError = true;
+						   break;
+					} else if (!"Backup Database".equals(status)) {
+					   completed = true;
+					   break;
+					}
+				} else {
+					break;
+				}
+				Thread.sleep(30000); // sleep for 30 seconds.
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Database polling thread interrupted.", e);
+		}
+		if (backupError) {
+			throw new RuntimeException("Database backup failed.");
+		}else if (!completed) {
+			throw new RuntimeException("Database backup did not complete within 2 hours.");
+		}
+		_session.addLogMessage("", "Backup", "Database backup completed.");
 	}
 
 	protected void packageCode(Element castAction) {
@@ -95,7 +157,7 @@ public class CastScan extends RunCommand {
 		long start = System.currentTimeMillis();
 		super.execute();
 		_session.addLogMessage("", "Completed", String.format("Time to package was %s", DateUtilities.elapsedTime(start)));
-		
+
 	}
 
 	protected void analyzeCode(Element castAction) {
@@ -152,7 +214,10 @@ public class CastScan extends RunCommand {
 	}
 
 	protected void defaultRescanPattern() {
-		// Default to Package, analyze, snapshot
+		// Default to backup database, package, analyze, snapshot
+		Element backupDatabase = _action.getOwnerDocument().createElement("BackupDatabase");
+		_action.appendChild(backupDatabase);
+
 		Element packageCode = _action.getOwnerDocument().createElement("PackageCode");
 		_action.appendChild(packageCode);
 
