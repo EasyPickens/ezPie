@@ -10,6 +10,7 @@ import org.w3c.dom.Node;
 import com.fanniemae.devtools.pie.common.CryptoUtilities;
 import com.fanniemae.devtools.pie.common.DataStream;
 import com.fanniemae.devtools.pie.common.FileUtilities;
+import com.fanniemae.devtools.pie.common.Miscellaneous;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
@@ -31,17 +32,28 @@ public class SessionManager {
 	protected String _pathSeparator = System.getProperty("file.separator");
 
 	protected int _memoryLimit = 20;
+	protected int _jobKey = -1;
 
 	protected Document _settingsDoc;
 	protected Element _settings;
 	protected Element _job;
+	protected Element _connScanManager;
 
 	protected LogManager _logger;
 	protected TokenManager _tokenizer;
 
+	protected Boolean _updateScanManager = false;
+
 	protected Map<String, DataStream> _dataSets = new HashMap<String, DataStream>();
 
 	public SessionManager(String settingsFilename, String jobFilename) {
+		if (!FileUtilities.isValidFile(settingsFilename)) {
+			if (FileUtilities.isValidFile(Miscellaneous.getApplicationRoot()+settingsFilename)) {
+				settingsFilename = Miscellaneous.getApplicationRoot()+settingsFilename;
+			} else {
+				throw new RuntimeException(String.format("Settings file not found in %s",settingsFilename));
+			}
+		}
 		Document xSettings = XmlUtilities.loadXmlDefinition(settingsFilename);
 		if (xSettings == null)
 			throw new RuntimeException("No settings information found.");
@@ -53,16 +65,18 @@ public class SessionManager {
 			throw new RuntimeException("Settings file is missing the Configuration element.  Please update the settings file.");
 
 		Element eleConfig = (Element) nodeConfig;
+		Boolean randomLogFilename = StringUtilities.toBoolean(eleConfig.getAttribute("RandomLogFileName"),true);
 		_appPath = FileUtilities.formatPath(eleConfig.getAttribute("ApplicationPath"), System.getProperty("user.dir"), "ApplicationPath");
 		_stagingPath = FileUtilities.formatPath(eleConfig.getAttribute("StagingPath"), String.format("%1$s_Staging", _appPath), "StagingPath");
 		_logPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _appPath), "LogPath");
 		_definitionPath = FileUtilities.formatPath(eleConfig.getAttribute("DefinitionPath"), String.format("%1$s_Definitions", _appPath), "DefinitionPath");
 		_templatePath = FileUtilities.formatPath(eleConfig.getAttribute("TemplatePath"), String.format("%1$s_Templates", _appPath), "TemplatePath");
-		// _LogFilename = String.format("%1$s%2$s_%3$s.html", _LogPath,
-		// FileUtilities.getFilenameWithoutExtension(jobFilename), new
-		// SimpleDateFormat("yyyyMMdd").format(new Date()));
-		_logFilename = FileUtilities.getRandomFilename(_logPath, "html");
-
+		if (!randomLogFilename) {
+			_logFilename = String.format("%1$s%2$s.html", _logPath, FileUtilities.getFilenameWithoutExtension(jobFilename));
+		} else {
+			_logFilename = FileUtilities.getRandomFilename(_logPath, "html");
+		}
+		
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _definitionPath + jobFilename;
 			if (FileUtilities.isValidFile(sAdjustedDefinitionFilename))
@@ -90,6 +104,15 @@ public class SessionManager {
 			_logger.addErrorMessage(ex);
 			throw ex;
 		}
+		
+		_connScanManager = getConnection("JavaScanManager");
+		if (_connScanManager != null) {
+			_updateScanManager = true;
+//			String key = resolveTokens("@Local.JobKey~");
+//			if (StringUtilities.isNullOrEmpty(key))
+//				throw new RuntimeException("Missing job primary key required to update ScanManager status.");
+//			_jobKey = StringUtilities.toInteger(key, -1);
+		}
 	}
 
 	public TokenManager getTokenizer() {
@@ -107,7 +130,7 @@ public class SessionManager {
 	public String getLogPath() {
 		return _logPath;
 	}
-	
+
 	public String getLogFilename() {
 		return _logFilename;
 	}
@@ -120,14 +143,22 @@ public class SessionManager {
 		return System.lineSeparator();
 	}
 	
+	public Element getConnectionScanManager() {
+		return _connScanManager;
+	}
+
+	public Boolean updateScanManager() {
+		return _updateScanManager;
+	}
+
 	public String getAttribute(Node ele, String name) {
 		return getAttribute(ele, name, "");
 	}
-	
+
 	public String getAttribute(Element ele, String name) {
 		return getAttribute(ele, name, "");
 	}
-	
+
 	public String getAttribute(Node ele, String name, String defaultValue) {
 		return getAttribute((Element) ele, name, defaultValue);
 	}
@@ -150,7 +181,8 @@ public class SessionManager {
 			iTokenEnd = aTokens[i].indexOf('~');
 			if ((iTokenSplit == -1) || (iTokenEnd == -1))
 				continue;
-			if (iTokenSplit > iTokenEnd) continue;
+			if (iTokenSplit > iTokenEnd)
+				continue;
 
 			String sFullToken = "@" + aTokens[i].substring(0, iTokenEnd + 1);
 			String sGroup = aTokens[i].substring(0, iTokenSplit);
@@ -181,11 +213,11 @@ public class SessionManager {
 	public void addLogMessage(String logGroup, String event, String description, String cargo) {
 		_logger.addMessage(logGroup, event, description, cargo);
 	}
-	
+
 	public void addLogMessageHtml(String logGroup, String event, String description) {
 		addLogMessageHtml(logGroup, event, description, "");
 	}
-	
+
 	public void addLogMessageHtml(String logGroup, String event, String description, String cargo) {
 		_logger.addHtmlMessage(logGroup, event, description, cargo);
 	}
@@ -219,11 +251,11 @@ public class SessionManager {
 	public void addTokens(String tokenType, String[][] kvps) {
 		_tokenizer.addTokens(tokenType, kvps);
 	}
-	
+
 	public void addTokens(String tokenType, Node node) {
 		_tokenizer.addTokens(tokenType, node);
 	}
-	
+
 	public void addToken(String tokenType, String key, String value) {
 		_tokenizer.addToken(tokenType, key, value);
 	}

@@ -14,32 +14,44 @@ public class SqlUtilities {
 	private SqlUtilities() {
 	}
 
-	public static Object ExecuteScalar(Element connection, String sqlCommand, Object[][] params) {
+	public static Object ExecuteScalar(Element connection, String sqlCommand, Object[][] params, boolean updateScanManager) {
+		if (!updateScanManager)
+			return "";
+		
 		Object result = null;
 		DataProvider dp = new DataProvider(connection);
 		try (Connection con = dp.getConnection()) {
+//			System.out.println(con == null ? "AHHHH it is null" : "Got ONE");
+//			System.out.println(sqlCommand);
 			PreparedStatement pstmt = con.prepareStatement(sqlCommand);
-			
+
 			if ((params != null) && (params.length > 0)) {
-				for(int i=0;i<params.length;i++) {
-					switch (((String)params[i][0]).toLowerCase()) {
+				for (int i = 0; i < params.length; i++) {
+					Object obj = params[i][1];
+					switch (((String) params[i][0]).toLowerCase()) {
 					case "int":
-						pstmt.setInt(i, (int)params[i][1]);
+						pstmt.setInt(i + 1, (int) obj);
 						break;
 					default:
-						pstmt.setString(i, params[i][1].toString());
+						pstmt.setString(i + 1, (String) obj);
 						break;
 					}
 				}
 			}
 			pstmt.setFetchSize(1);
-			ResultSet rs = pstmt.executeQuery();
-			result = rs.getObject(0);
-			rs.close();
+			Boolean hasResultSet = pstmt.execute();
+			if (hasResultSet) {
+				ResultSet rs = pstmt.getResultSet();
+				rs.next();
+				result = rs.getObject(1);
+				rs.close();
+			} else {
+				result = pstmt.getUpdateCount();
+			}
 			pstmt.close();
 			con.close();
 		} catch (SQLException e) {
-			throw new RuntimeException(String.format("Error running SQL Scalar command. %s",e.getMessage()));
+			throw new RuntimeException(String.format("Error running SQL Scalar command. %s", e.getMessage()));
 		}
 		return result;
 	}
