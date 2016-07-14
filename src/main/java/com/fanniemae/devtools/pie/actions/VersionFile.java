@@ -14,7 +14,7 @@ import com.fanniemae.devtools.pie.common.StringUtilities;
 
 public class VersionFile extends Action {
 	protected String _path;
-	protected String _filename = "Application.version";
+	protected String _filename = "Version.txt";
 	protected String _version;
 	
 	protected Boolean _setVersion = false;
@@ -23,9 +23,7 @@ public class VersionFile extends Action {
 		super(session, action, true);
 
 		_path = requiredAttribute("Path");
-		_session.addLogMessage("", "Path", _path);
 		_filename = FileUtilities.combine(_path, _filename);
-		_session.addLogMessage("", "Filename", _filename);
 		
 		_version = _session.getAttribute(action, "Version");
 		if (StringUtilities.isNotNullOrEmpty(_version)) {

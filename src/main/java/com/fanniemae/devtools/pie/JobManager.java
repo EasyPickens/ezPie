@@ -58,8 +58,10 @@ public class JobManager {
 			for (int i = 0; i < iLen; i++) {
 				Element eleOperation = (Element) nlActions.item(i);
 				switch (eleOperation.getNodeName()) {
+				case "Note":
+					continue;
 				case "RunCommand":
-					// Run external command or batch file
+					// Run an external command or batch file
 					act = new RunCommand(_session, eleOperation);
 					break;
 				case "LocalTokens":

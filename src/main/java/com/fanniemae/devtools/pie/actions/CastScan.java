@@ -12,7 +12,6 @@ import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.ArrayUtilities;
 import com.fanniemae.devtools.pie.common.DateUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
-import com.fanniemae.devtools.pie.common.Miscellaneous;
 import com.fanniemae.devtools.pie.common.SqlUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
@@ -174,8 +173,8 @@ public class CastScan extends RunCommand {
 		makeBatchFile();
 		_session.addLogMessage("", "CAST Log File", "View packaging and delivery log", "file://" + logFile);
 		long start = System.currentTimeMillis();
-		//super.execute();
-		Miscellaneous.sleep(30);
+		super.execute();
+		//Miscellaneous.sleep(30);
 		_session.addLogMessage("", "Completed", String.format("Time to package was %s", DateUtilities.elapsedTime(start)));
 
 	}
@@ -197,8 +196,8 @@ public class CastScan extends RunCommand {
 		makeBatchFile();
 		_session.addLogMessage("", "CAST Log File", "View code analysis log", "file://" + logFile);
 		long start = System.currentTimeMillis();
-		//super.execute();
-		Miscellaneous.sleep(30);
+		super.execute();
+		//Miscellaneous.sleep(30);
 		_session.addLogMessage("", "Completed", String.format("Time to analyze code was %s", DateUtilities.elapsedTime(start)));
 	}
 
@@ -226,8 +225,8 @@ public class CastScan extends RunCommand {
 		makeBatchFile();
 		_session.addLogMessage("", "CAST Log File", "View generate snapshot log", "file://" + logFile);
 		long start = System.currentTimeMillis();
-		//super.execute();
-		Miscellaneous.sleep(30);
+		super.execute();
+		//Miscellaneous.sleep(30);
 		_session.addLogMessage("", "Completed", String.format("Time to generate snapshot was %s", DateUtilities.elapsedTime(start)));
 	}
 
@@ -236,12 +235,12 @@ public class CastScan extends RunCommand {
 	}
 
 	protected void defaultRescanPattern() {
-		// Default to backup database, package, analyze, snapshot
-//		Element backupDatabase = _action.getOwnerDocument().createElement("BackupDatabase");
-//		_action.appendChild(backupDatabase);
-
+		// Default to package, backup database, analyze, snapshot
 		Element packageCode = _action.getOwnerDocument().createElement("PackageCode");
 		_action.appendChild(packageCode);
+		
+//		Element backupDatabase = _action.getOwnerDocument().createElement("BackupDatabase");
+//		_action.appendChild(backupDatabase);
 
 		Element analyzeCode = _action.getOwnerDocument().createElement("AnalyzeCode");
 		_action.appendChild(analyzeCode);

@@ -1,15 +1,18 @@
 package com.fanniemae.devtools.pie.actions;
 
 import java.io.File;
-import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOCase;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
+import com.fanniemae.devtools.pie.common.XmlUtilities;
 
 public abstract class FileSystemAction extends Action {
 
@@ -31,48 +34,16 @@ public abstract class FileSystemAction extends Action {
 	protected boolean _hasIncludeDirectoryFilter = false;
 	protected boolean _hasExcludeDirectoryFilter = false;
 
-	protected FileFilter _includeFiles;
-	protected FileFilter _excludeFiles;
-	protected FileFilter _includeDirectories;
-	protected FileFilter _excludeDirectories;
+	protected Pattern[] _excludeDirectoryRegex = null;
+	protected Pattern[] _includeDirectoryRegex = null;
+	protected Pattern[] _excludeFileRegex = null;
+	protected Pattern[] _includeFileRegex = null;
 
 	protected long _totalBytes = 0L;
 	protected int _filesProcessed = 0;
 
 	public FileSystemAction(SessionManager session, Element action) {
 		super(session, action, false);
-
-		_includeFileFilter = optionalAttribute("IncludeFiles", null);
-		if (StringUtilities.isNotNullOrEmpty(_includeFileFilter)) {
-			_hasIncludeFileFilter = true;
-			String[] filter = StringUtilities.split(_includeFileFilter);
-			_includeFiles = new WildcardFileFilter(filter, IOCase.INSENSITIVE);
-			_session.addLogMessage("", "IncludeFiles", _includeFileFilter);
-		}
-
-		_includeDirectoryFilter = optionalAttribute("IncludeDirectories", null);
-		if (StringUtilities.isNotNullOrEmpty(_includeDirectoryFilter)) {
-			_hasIncludeDirectoryFilter = true;
-			String[] filter = StringUtilities.split(_includeDirectoryFilter);
-			_includeDirectories = new WildcardFileFilter(filter, IOCase.INSENSITIVE);
-			_session.addLogMessage("", "IncludeDirectories", _includeDirectoryFilter);
-		}
-
-		_excludeFileFilter = optionalAttribute("ExcludeFiles", null);
-		if (StringUtilities.isNotNullOrEmpty(_excludeFileFilter)) {
-			_hasExcludeFileFilter = true;
-			String[] filter = StringUtilities.split(_excludeFileFilter);
-			_excludeFiles = new WildcardFileFilter(filter, IOCase.INSENSITIVE);
-			_session.addLogMessage("", "ExcludeFiles", _excludeFileFilter);
-		}
-
-		_excludeDirectoryFilter = optionalAttribute("ExcludeDirectories", null);
-		if (StringUtilities.isNotNullOrEmpty(_excludeDirectoryFilter)) {
-			_hasExcludeDirectoryFilter = true;
-			String[] filter = StringUtilities.split(_excludeDirectoryFilter);
-			_excludeDirectories = new WildcardFileFilter(filter, IOCase.INSENSITIVE);
-			_session.addLogMessage("", "ExcludeDirectories", _excludeDirectoryFilter);
-		}
 
 		String shallow = optionalAttribute("Shallow", null);
 		if (StringUtilities.isNotNullOrEmpty(shallow)) {
@@ -90,6 +61,45 @@ public abstract class FileSystemAction extends Action {
 		if (StringUtilities.isNotNullOrEmpty(clearReadOnly)) {
 			_clearReadOnly = StringUtilities.toBoolean(clearReadOnly, false);
 			_session.addLogMessage("", "ClearReadOnly", _clearReadOnly ? "True" : "False");
+		}
+
+		NodeList nlChildren = XmlUtilities.selectNodes(_action, "*");
+		int length = nlChildren.getLength();
+		if (length > 0) {
+			List<Pattern> excludeDirectory = new ArrayList<Pattern>();
+			List<Pattern> includeDirectory = new ArrayList<Pattern>();
+			List<Pattern> excludeFile = new ArrayList<Pattern>();
+			List<Pattern> includeFile = new ArrayList<Pattern>();
+			for (int i = 0; i < length; i++) {
+				String name = nlChildren.item(i).getNodeName();
+				Element child = (Element) nlChildren.item(i);
+				switch (name) {
+				case "ExcludeDirectory":
+					_hasExcludeDirectoryFilter = true;
+					excludeDirectory.add(Pattern.compile(_session.getAttribute(child, "Regex")));
+					break;
+				case "IncludeDirectory":
+					_hasIncludeDirectoryFilter = true;
+					includeDirectory.add(Pattern.compile(_session.getAttribute(child, "Regex")));
+					break;
+				case "ExcludeFile":
+					_hasExcludeFileFilter = true;
+					excludeFile.add(Pattern.compile(_session.getAttribute(child, "Regex")));
+					break;
+				case "IncludeFile":
+					_hasIncludeFileFilter = true;
+					includeFile.add(Pattern.compile(_session.getAttribute(child, "Regex")));
+					break;
+				}
+			}
+			_excludeDirectoryRegex = new Pattern[excludeDirectory.size()];
+			_excludeDirectoryRegex = excludeDirectory.toArray(_excludeDirectoryRegex);
+			_includeDirectoryRegex = new Pattern[includeDirectory.size()];
+			_includeDirectoryRegex = includeDirectory.toArray(_includeDirectoryRegex);
+			_excludeFileRegex = new Pattern[excludeFile.size()];
+			_excludeFileRegex = excludeFile.toArray(_excludeFileRegex);
+			_includeFileRegex = new Pattern[includeFile.size()];
+			_includeFileRegex = includeFile.toArray(_includeFileRegex);
 		}
 	}
 
@@ -125,48 +135,36 @@ public abstract class FileSystemAction extends Action {
 			return;
 		}
 		File dir = new File(source);
-		File[] allEntries = dir.listFiles();
-		File[] includeFiles = dir.listFiles(_includeFiles);
-		File[] excludeFiles = (_hasExcludeFileFilter) ? dir.listFiles(_excludeFiles) : null;
-		File[] includeDirectories = dir.listFiles(_includeDirectories);
-		File[] excludeDirectories = (_hasExcludeDirectoryFilter) ? dir.listFiles(_excludeDirectories) : null;
+		File[] directoryContents = dir.listFiles();
 
-		if (allEntries == null)
+		if (directoryContents == null)
 			return;
 
-		for (int i = 0; i < allEntries.length; i++) {
-			if (_skipHidden && allEntries[i].isHidden())
+		for (int i = 0; i < directoryContents.length; i++) {
+			if (_skipHidden && directoryContents[i].isHidden())
 				continue;
 
-			Boolean copyFile = true;
-			String entryName = allEntries[i].getName();
-
-			if (allEntries[i].isDirectory()) {
-				if (_hasExcludeDirectoryFilter && inArray(entryName, excludeDirectories)) {
-					continue;
-				} else if (_hasIncludeDirectoryFilter && !inArray(entryName, includeDirectories)) {
+			String entryName = directoryContents[i].getName();
+			if (directoryContents[i].isDirectory()) {
+				if (_hasIncludeDirectoryFilter && matchesRegexFilter(entryName, _includeDirectoryRegex)) {
+					// include filters override exclude filters
+				} else if (_hasExcludeDirectoryFilter && matchesRegexFilter(entryName, _excludeDirectoryRegex)) {
 					continue;
 				}
-				processFileSystem(allEntries[i].getPath(), destination + File.separator + entryName);
-				postprocessDirectory(allEntries[i].getPath());
+
+				processFileSystem(directoryContents[i].getPath(), destination + File.separator + entryName);
+				postprocessDirectory(directoryContents[i].getPath());
 				continue;
 			}
-
-			// Exclude filters trump include
-			if (_hasExcludeFileFilter && inArray(entryName, excludeFiles)) {
-				copyFile = false;
+			
+			if (_hasIncludeFileFilter && matchesRegexFilter(entryName, _includeFileRegex)) {
+				// include filters override exclude filters
+			} else if (_hasExcludeFileFilter && matchesRegexFilter(entryName, _excludeFileRegex)) {
+				continue;
 			}
-
-			// If it is still set to be copied, check against include filter
-			if (copyFile && _hasIncludeFileFilter) {
-				copyFile = inArray(entryName, includeFiles);
-			}
-
-			if (copyFile) {
-				_totalBytes += allEntries[i].length();
-				_filesProcessed++;
-				processFile(allEntries[i].getPath(), destination, entryName);
-			}
+			 _totalBytes += directoryContents[i].length();
+			_filesProcessed++;
+			processFile(directoryContents[i].getPath(), destination, entryName);
 		}
 	}
 
@@ -176,12 +174,25 @@ public abstract class FileSystemAction extends Action {
 
 		boolean found = false;
 		for (int x = 0; x < list.length; x++) {
-			if (list[x].getName().equals(value)) {
+			if (list[x].getName().equalsIgnoreCase(value)) {
 				found = true;
 				break;
 			}
 		}
 		return found;
+	}
+
+	protected boolean matchesRegexFilter(String value, Pattern[] regexFilter) {
+		if (regexFilter == null)
+			return false;
+
+		for (int x = 0; x < regexFilter.length; x++) {
+			Matcher m = regexFilter[x].matcher(value);
+			if (m.find()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

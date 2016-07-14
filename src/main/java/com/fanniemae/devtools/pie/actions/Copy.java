@@ -38,11 +38,8 @@ public class Copy extends FileSystemAction {
 		if (!_isFile && !_isDirectory) {
 			throw new RuntimeException(String.format("%s action requires a source value to an existing directory or file. %s is not a valid file or directory.", _actionName, _source));
 		}
-		_session.addLogMessage("", "Source", _source);
 		_type = (_isFile) ? "file" : "directory";
-
 		_destination = requiredAttribute("Destination", String.format("%s action requires a destination %s.", _actionName, _type));
-		_session.addLogMessage("", "Destination", _destination);
 	}
 
 	@Override
