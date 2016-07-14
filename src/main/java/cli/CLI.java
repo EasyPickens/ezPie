@@ -60,22 +60,24 @@ public class CLI {
 	}
 	
 	protected void runJobManager(CommandLine cmd){
-		String logFilename = null;
+		//String logFilename = null;
 		try {
-			System.out.println("Initializing PIE JobManager");
+			//System.out.println("Initializing PIE JobManager");
 			JobManager jobManager = new JobManager(_settings, _job);
 			List<String> args = cmd.getArgList();
 			for(int i = 0; i < args.size(); i++){
 				String[] keyValuePair = args.get(i).split("=");
 				jobManager.getSession().addToken("Local", keyValuePair[0], keyValuePair[1]);
 			}
-			logFilename = jobManager.getLogFilename();
-			viewlog(logFilename);
-			System.out.println("Running job definition " + _job);
+			//logFilename = jobManager.getLogFilename();
+			//viewlog(logFilename);
+			//System.out.println("Running job definition " + _job);
 			jobManager.runJob();
-			System.out.println("Job definition processing completed.");
+			//System.out.println("Job definition processing completed.");
+			System.exit(0);
 		} catch (Exception ex) {
 			ex.printStackTrace();
+			System.exit(1);
 		}
 	}
 

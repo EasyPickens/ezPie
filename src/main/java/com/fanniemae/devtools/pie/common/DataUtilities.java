@@ -38,6 +38,7 @@ public class DataUtilities {
 			return Types.DOUBLE;
 		case "filetime":
 			return Types.TIME;
+		case "int":
 		case "integer":
 			return Types.INTEGER;
 		case "longvarbinary":

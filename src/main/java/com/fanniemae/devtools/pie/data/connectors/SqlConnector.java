@@ -225,9 +225,9 @@ public class SqlConnector extends DataConnector {
 		for (int i = 0; i < length; i++) {
 			int paramNumber = i + 1;
 			Element eleParameter = (Element) parameterList.item(i);
-			String value = eleParameter.getAttribute("Value");
-			String paramType = eleParameter.getAttribute("SqlType").trim();
-			String nullValue = eleParameter.getAttribute("NullValue");
+			String value = _session.getAttribute(eleParameter, "Value");
+			String paramType = _session.getAttribute(eleParameter, "SqlType").trim();
+			String nullValue = _session.getAttribute(eleParameter, "NullValue");
 			if (value.equals(nullValue)) {
 				_pstmt.setNull(paramNumber, DataUtilities.dbStringTypeToJavaSqlType(paramType));
 			}

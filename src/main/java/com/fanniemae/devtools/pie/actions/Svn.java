@@ -48,15 +48,10 @@ public class Svn extends RunCommand {
 				String subDirectory = optionalAttribute(nodeCmds.item(i), "DirectoryName", null);
 
 				String localPath = _workDirectory;
-				if (StringUtilities.isNullOrEmpty(subDirectory)) {
-					int iPos = repoURL.lastIndexOf('/');
-					if ((iPos > -1) && (iPos < repoURL.length() - 1)) {
-						subDirectory = repoURL.substring(iPos + 1);
-					} else {
-						throw new RuntimeException(String.format("Could not parse SVN repository URL (%s) for directory name.", repoURL));
-					}
+				if (StringUtilities.isNotNullOrEmpty(subDirectory)) {
+					localPath = FileUtilities.addDirectory(_workDirectory, subDirectory);
 				}
-				localPath = FileUtilities.addDirectory(_workDirectory, subDirectory);
+				
 				if (FileUtilities.isInvalidDirectory(localPath)) {
 					File file = new File(localPath);
 					file.mkdirs();

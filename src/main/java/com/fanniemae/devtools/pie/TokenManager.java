@@ -7,6 +7,9 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.fanniemae.devtools.pie.common.StringUtilities;
+import com.fanniemae.devtools.pie.common.XmlUtilities;
+
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
@@ -35,9 +38,14 @@ public class TokenManager {
 			case "Constants":
 				loadTokenValues("Constants", nl.item(i));
 				break;
-			case "Git":
-				loadTokenValues("Git",nl.item(i));
+			case "CAST":
+				loadTokenValues("CAST", nl.item(i));
 				break;
+			case "Git":
+				loadTokenValues("Git", nl.item(i));
+				break;
+			case "SelfServiceScan":
+				loadSelfServiceScanTokens("ScanManager", nl.item(i));
 			}
 		}
 	}
@@ -49,15 +57,16 @@ public class TokenManager {
 
 		aTokenValues.put(key, value);
 		_tokens.put(tokenType, aTokenValues);
-		if (key.toLowerCase().equals("password")) return;
-		String sLogMessage = String.format("%s token value added.\n%s", tokenType, key+"="+value);
+		if (key.toLowerCase().equals("password"))
+			return;
+		String sLogMessage = String.format("%s token value added.\n%s", tokenType, key + "=" + value);
 		_logger.addMessage("", "@" + tokenType, sLogMessage);
 	}
 
 	public void addTokens(String tokenType, Node nodeTokenValues) {
 		loadTokenValues(tokenType, nodeTokenValues);
 	}
-	
+
 	public void addTokens(String tokenType, String[][] kvps) {
 		loadTokenValues(tokenType, kvps);
 	}
@@ -71,8 +80,9 @@ public class TokenManager {
 	}
 
 	public String resolveTokens(String value, Object[] dataRow) {
-		if (value == null) return value;
-		
+		if (value == null)
+			return value;
+
 		int tokenStart = value.indexOf("@");
 		int tokenMid = value.indexOf(".");
 		int tokenEnd = value.indexOf("~");
@@ -121,17 +131,18 @@ public class TokenManager {
 		StringBuilder sb = new StringBuilder();
 		int length = kvps.length;
 		for (int i = 0; i < length; i++) {
-			if (i > 0) sb.append("\n");
+			if (i > 0)
+				sb.append("\n");
 			String name = kvps[i][0];
 			String value = kvps[i][1];
 			tokenKeyValues.put(name, value);
 			sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
 		}
 		_tokens.put(tokenType, tokenKeyValues);
-		_logger.addMessage("", length == 1 ? "Token Added" : "Tokens Added", sb.toString());		
-		
+		_logger.addMessage("", length == 1 ? "Token Added" : "Tokens Added", sb.toString());
+
 	}
-	
+
 	protected void loadTokenValues(String tokenType, Node node) {
 		HashMap<String, String> tokenKeyValues;
 		if (_tokens.containsKey(tokenType)) {
@@ -139,25 +150,70 @@ public class TokenManager {
 		} else {
 			tokenKeyValues = new HashMap<String, String>();
 		}
-		
+
 		NamedNodeMap attributes = node.getAttributes();
-		
+
 		int added = 0;
 		int length = attributes.getLength();
 		Boolean addNewLine = false;
 		StringBuilder sb = new StringBuilder();
-		
+
 		for (int i = 0; i < length; i++) {
 			Node xA = attributes.item(i);
 			String name = xA.getNodeName();
 			String value = xA.getNodeValue();
-			if ("id".equals(name.toLowerCase()) || "password".equals(name.toLowerCase())) { 
+			if ("id".equals(name.toLowerCase()) || "password".equals(name.toLowerCase())) {
 				continue;
 			}
 			tokenKeyValues.put(name, value);
-			if (addNewLine) sb.append("\n");
+			if (addNewLine)
+				sb.append("\n");
 			sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
 			added++;
+			addNewLine = true;
+		}
+		_tokens.put(tokenType, tokenKeyValues);
+		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
+	}
+
+	protected void loadSelfServiceScanTokens(String tokenType, Node node) {
+		if ((node == null) || !node.hasChildNodes())
+			return;
+
+		NodeList queries = XmlUtilities.selectNodes(node, "*");
+		int length = queries.getLength();
+
+		if (length == 0)
+			return;
+
+		HashMap<String, String> tokenKeyValues;
+		if (_tokens.containsKey(tokenType)) {
+			tokenKeyValues = _tokens.get(tokenType);
+		} else {
+			tokenKeyValues = new HashMap<String, String>();
+		}
+
+		int added = 0;
+		Boolean addNewLine = false;
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < length; i++) {
+			Element query = (Element) queries.item(i);
+			if (!query.hasAttributes())
+				continue;
+
+			String name = query.getNodeName();
+			String value = query.getAttribute("SqlQuery");
+			if (StringUtilities.isNullOrEmpty(value))
+				continue;
+			
+			tokenKeyValues.put(name, value);
+			added++;
+
+			if (addNewLine)
+				sb.append("\n");
+
+			sb.append(String.format("@%s.%s~", tokenType, name));
 			addNewLine = true;
 		}
 		_tokens.put(tokenType, tokenKeyValues);
