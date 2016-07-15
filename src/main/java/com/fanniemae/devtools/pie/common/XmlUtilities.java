@@ -167,11 +167,11 @@ public class XmlUtilities {
 	}
 
 	public static Document loadXmlDefinition(String filename, ArrayList<String> breadCrumbs) {
-		org.w3c.dom.Document xDoc = loadXmlDocument(filename);
+		Document xDoc = loadXmlDocument(filename);
 
 		// Remove remarked elements
-		List<org.w3c.dom.Node> aRemarks = new ArrayList<>();
-		org.w3c.dom.NodeList nl = selectNodes(xDoc.getDocumentElement(), "//Remark | //Note | //*[@Remark] | //Comment");
+		List<Node> aRemarks = new ArrayList<>();
+		NodeList nl = selectNodes(xDoc.getDocumentElement(), "//Remark | //Note | //*[@Remark] | //Comment");
 		if (nl.getLength() > 0) {
 			int iLength = nl.getLength();
 			for (int i = 0; i < iLength; i++) {
@@ -187,9 +187,9 @@ public class XmlUtilities {
 		nl = selectNodes(xDoc.getDocumentElement(), "//IncludeSharedElement");
 		if (nl.getLength() > 0) {
 			int length = nl.getLength();
-			Map<Integer, org.w3c.dom.Element[]> elementsToInsert = new HashMap<Integer, org.w3c.dom.Element[]>();
+			Map<Integer, Element[]> elementsToInsert = new HashMap<Integer, Element[]>();
 			for (int i = 0; i < length; i++) {
-				org.w3c.dom.Element ele = (org.w3c.dom.Element) nl.item(i);
+				Element ele = (Element) nl.item(i);
 				String definitionName = ele.getAttribute("DefinitionName");
 				String definitionFilename = definitionName;
 				String elementID = ele.getAttribute("SharedElementID");
@@ -218,30 +218,30 @@ public class XmlUtilities {
 				}
 				breadCrumbs.add(crumb);
 
-				org.w3c.dom.Document innerDocument = loadXmlDefinition(definitionFilename, breadCrumbs);
+				Document innerDocument = loadXmlDefinition(definitionFilename, breadCrumbs);
 				// Look for the shared element
-				org.w3c.dom.Node sharedNode = XmlUtilities.selectSingleNode(innerDocument, String.format("//SharedElement[@ID='%s']", elementID));
+				Node sharedNode = XmlUtilities.selectSingleNode(innerDocument, String.format("//SharedElement[@ID='%s']", elementID));
 				if (sharedNode == null) {
 					throw new RuntimeException(String.format("IncludeSharedElement could not find a SharedElement with ID=%s referenced in %s", elementID, definitionName));
 				}
-				org.w3c.dom.NodeList sharedSteps = XmlUtilities.selectNodes(sharedNode, "*");
+				NodeList sharedSteps = XmlUtilities.selectNodes(sharedNode, "*");
 				int sharedStepsLength = sharedSteps.getLength();
 				if (sharedStepsLength > 0) {
 					Integer pos = elementsToInsert.size();
 					for (int x = 0; x < sharedStepsLength; x++) {
-						org.w3c.dom.Element[] elementUpdate = new org.w3c.dom.Element[2];
+						Element[] elementUpdate = new Element[2];
 						elementUpdate[0] = ele;
-						elementUpdate[1] = (org.w3c.dom.Element) (sharedSteps.item(x));
+						elementUpdate[1] = (Element) (sharedSteps.item(x));
 						elementsToInsert.put(pos, elementUpdate);
 					}
 				}
 			}
 			if (elementsToInsert.size() > 0) {
-				org.w3c.dom.Element docElement = xDoc.getDocumentElement();
+				Element docElement = xDoc.getDocumentElement();
 				int insertsToDo = elementsToInsert.size();
 				for (int i = 0; i < insertsToDo; i++) {
-					org.w3c.dom.Element parent = elementsToInsert.get(i)[0];
-					org.w3c.dom.Element newElement = elementsToInsert.get(i)[1];
+					Element parent = elementsToInsert.get(i)[0];
+					Element newElement = elementsToInsert.get(i)[1];
 					docElement.insertBefore(xDoc.adoptNode(newElement.cloneNode(true)), parent);
 				}
 			}
