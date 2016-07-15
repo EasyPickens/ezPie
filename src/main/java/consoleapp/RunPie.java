@@ -45,7 +45,8 @@ public class RunPie {
 		// String job = "dbsimple.xml";
 		// String job = "SqlExecute.xml";
 		// String job = "SMDU.xml";
-		String job = "PEWholeLoanB2B.xml";
+		// String job = "PEWholeLoanB2B.xml";
+		String job = "SharedTest.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

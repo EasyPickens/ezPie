@@ -1,10 +1,14 @@
 package com.fanniemae.devtools.pie.common;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -158,25 +162,91 @@ public class XmlUtilities {
 	}
 
 	public static Document loadXmlDefinition(String filename) {
-		Document xDoc = loadXmlDocument(filename);
+		ArrayList<String> breadCrumbs = new ArrayList<String>();
+		return loadXmlDefinition(filename, breadCrumbs);
+	}
+
+	public static Document loadXmlDefinition(String filename, ArrayList<String> breadCrumbs) {
+		org.w3c.dom.Document xDoc = loadXmlDocument(filename);
 
 		// Remove remarked elements
-		List<Node> aRemarks = new ArrayList<>();
+		List<org.w3c.dom.Node> aRemarks = new ArrayList<>();
+		org.w3c.dom.NodeList nl = selectNodes(xDoc.getDocumentElement(), "//Remark | //Note | //*[@Remark] | //Comment");
+		if (nl.getLength() > 0) {
+			int iLength = nl.getLength();
+			for (int i = 0; i < iLength; i++) {
+				aRemarks.add(nl.item(i));
+			}
 
-		NodeList nl = selectNodes(xDoc.getDocumentElement(), "//Remark | //Note | //*[@Remark] | //Comment");
-		if (nl.getLength() == 0) {
-			return xDoc;
+			iLength = aRemarks.size();
+			for (int i = 0; i < iLength; i++) {
+				aRemarks.get(i).getParentNode().removeChild(aRemarks.get(i));
+			}
 		}
 
-		int iLength = nl.getLength();
-		for (int i = 0; i < iLength; i++) {
-			aRemarks.add(nl.item(i));
+		nl = selectNodes(xDoc.getDocumentElement(), "//IncludeSharedElement");
+		if (nl.getLength() > 0) {
+			int length = nl.getLength();
+			Map<Integer, org.w3c.dom.Element[]> elementsToInsert = new HashMap<Integer, org.w3c.dom.Element[]>();
+			for (int i = 0; i < length; i++) {
+				org.w3c.dom.Element ele = (org.w3c.dom.Element) nl.item(i);
+				String definitionName = ele.getAttribute("DefinitionName");
+				String definitionFilename = definitionName;
+				String elementID = ele.getAttribute("SharedElementID");
+				if (StringUtilities.isNullOrEmpty(definitionName)) {
+					throw new RuntimeException("The IncludeSharedElement is missing a value in the required DefinitionName");
+				}
+				if (StringUtilities.isNullOrEmpty(elementID)) {
+					throw new RuntimeException("The IncludeSharedElement is missing a value in the required SharedElementID");
+				}
+				if (!definitionFilename.toLowerCase().endsWith(".xml")) {
+					definitionFilename += ".xml";
+				}
+				if (FileUtilities.isInvalidFile(definitionFilename)) {
+					File temp = new File(filename);
+					String absolutePath = temp.getAbsolutePath();
+					String definitionPath = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator) + 1);
+					definitionFilename = definitionPath + definitionFilename;
+				}
+				if (FileUtilities.isInvalidFile(definitionFilename)) {
+					throw new RuntimeException(String.format("IncludeSharedElement could not find the %s referenced definition", definitionName));
+				}
+
+				String crumb = String.format("%s|%s", definitionName, elementID);
+				if (breadCrumbs.indexOf(crumb) > -1) {
+					throw new RuntimeException(String.format("Possible circular IncludeSharedElement reference detected. Definition %s SharedElementID %s triggered the error.", definitionName, elementID));
+				}
+				breadCrumbs.add(crumb);
+
+				org.w3c.dom.Document innerDocument = loadXmlDefinition(definitionFilename, breadCrumbs);
+				// Look for the shared element
+				org.w3c.dom.Node sharedNode = XmlUtilities.selectSingleNode(innerDocument, String.format("//SharedElement[@ID='%s']", elementID));
+				if (sharedNode == null) {
+					throw new RuntimeException(String.format("IncludeSharedElement could not find a SharedElement with ID=%s referenced in %s", elementID, definitionName));
+				}
+				org.w3c.dom.NodeList sharedSteps = XmlUtilities.selectNodes(sharedNode, "*");
+				int sharedStepsLength = sharedSteps.getLength();
+				if (sharedStepsLength > 0) {
+					Integer pos = elementsToInsert.size();
+					for (int x = 0; x < sharedStepsLength; x++) {
+						org.w3c.dom.Element[] elementUpdate = new org.w3c.dom.Element[2];
+						elementUpdate[0] = ele;
+						elementUpdate[1] = (org.w3c.dom.Element) (sharedSteps.item(x));
+						elementsToInsert.put(pos, elementUpdate);
+					}
+				}
+			}
+			if (elementsToInsert.size() > 0) {
+				org.w3c.dom.Element docElement = xDoc.getDocumentElement();
+				int insertsToDo = elementsToInsert.size();
+				for (int i = 0; i < insertsToDo; i++) {
+					org.w3c.dom.Element parent = elementsToInsert.get(i)[0];
+					org.w3c.dom.Element newElement = elementsToInsert.get(i)[1];
+					docElement.insertBefore(xDoc.adoptNode(newElement.cloneNode(true)), parent);
+				}
+			}
 		}
 
-		iLength = aRemarks.size();
-		for (int i = 0; i < iLength; i++) {
-			aRemarks.get(i).getParentNode().removeChild(aRemarks.get(i));
-		}
 		return xDoc;
 	}
 

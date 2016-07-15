@@ -59,6 +59,8 @@ public class JobManager {
 			for (int i = 0; i < iLen; i++) {
 				Element eleOperation = (Element) nlActions.item(i);
 				switch (eleOperation.getNodeName()) {
+				case "IncludeSharedElement":
+				case "SharedElement":
 				case "Note":
 					continue;
 				case "Tokens":
