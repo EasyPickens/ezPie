@@ -63,6 +63,10 @@ public class TokenManager {
 		_logger.addMessage("", "@" + tokenType, sLogMessage);
 	}
 
+	public void addTokens(Node tokenNode) {
+		loadTokenValues(tokenNode);
+	}
+
 	public void addTokens(String tokenType, Node nodeTokenValues) {
 		loadTokenValues(tokenType, nodeTokenValues);
 	}
@@ -143,6 +147,45 @@ public class TokenManager {
 
 	}
 
+	protected void loadTokenValues(Node tokenNode) {
+		if (tokenNode == null)
+			return;
+
+		NodeList nl = XmlUtilities.selectNodes(tokenNode, "*");
+		int nodeCount = nl.getLength();
+		if (nodeCount == 0)
+			return;
+
+		int added = 0;
+		Boolean addNewLine = false;
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < nodeCount; i++) {
+			String tokenType = nl.item(i).getNodeName();
+			NamedNodeMap attributes = nl.item(i).getAttributes();
+			int attrCount = attributes.getLength();
+			if (attrCount == 0)
+				continue;
+
+			HashMap<String, String> tokenKeyValues = _tokens.containsKey(tokenType) ? _tokens.get(tokenType) : new HashMap<String, String>();
+			for (int x = 0; x < attrCount; x++) {
+				Node xA = attributes.item(x);
+				String name = xA.getNodeName();
+				String value = xA.getNodeValue();
+
+				tokenKeyValues.put(name, value);
+				if (addNewLine)
+					sb.append("\n");
+				sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
+				added++;
+				addNewLine = true;
+			}
+			_tokens.put(tokenType, tokenKeyValues);
+		}
+
+		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
+	}
+
 	protected void loadTokenValues(String tokenType, Node node) {
 		HashMap<String, String> tokenKeyValues;
 		if (_tokens.containsKey(tokenType)) {
@@ -206,7 +249,7 @@ public class TokenManager {
 			String value = query.getAttribute("SqlQuery");
 			if (StringUtilities.isNullOrEmpty(value))
 				continue;
-			
+
 			tokenKeyValues.put(name, value);
 			added++;
 

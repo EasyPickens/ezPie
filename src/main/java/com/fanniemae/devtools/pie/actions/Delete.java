@@ -7,36 +7,22 @@ import org.w3c.dom.Element;
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 
-//<Delete 
-//   Source 
-//   [IncludeFiles] default all
-//   [ExcludeFiles] default none
-//   [IncludeDirectories] default all
-//   [ExcludeDirectories] default none
-//   [ClearReadOnly] default false
-//   [SkipHidden] default false
-//   [Shallow] default true
-///>
 public class Delete extends FileSystemAction {
+
+	protected boolean _exists = true;
 
 	public Delete(SessionManager session, Element action) {
 		super(session, action);
-
 		_source = requiredAttribute("Path", String.format("%s action requires a Path to a directory or file.", _actionName));
-		_isFile = FileUtilities.isValidFile(_source);
-		_isDirectory = FileUtilities.isValidDirectory(_source);
-		if (!_isFile && !_isDirectory) {
-			throw new RuntimeException(String.format("%s action requires a Path to an existing directory or file. %s is not a valid file or directory.", _actionName, _source));
-		}
-		_session.addLogMessage("", "Source", _source);
-		_type = (_isFile) ? "file" : "directory";
 	}
 
 	@Override
 	protected void processFile(String source, String destination, String nameOnly) {
 		try {
 			File sourceFile = new File(source);
-			if (_clearReadOnly && !sourceFile.canWrite()) {
+			if (!sourceFile.exists()) {
+				return;
+			} else if (_clearReadOnly && !sourceFile.canWrite()) {
 				sourceFile.setWritable(true);
 			}
 			sourceFile.delete();

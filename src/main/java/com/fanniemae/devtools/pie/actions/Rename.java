@@ -6,17 +6,12 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
 
-//<Rename 
-//   Source 
-//   Destination 
-///>
-
 public class Rename extends Copy {
 
 	public Rename(SessionManager session, Element action) {
 		super(session, action);
 	}
-	
+
 	@Override
 	public String execute() {
 		processFileSystem(_source, _destination);
@@ -25,8 +20,8 @@ public class Rename extends Copy {
 
 	@Override
 	protected void processFileSystem(String source, String destination) {
-		try {
-			File originalName = new File(source);
+		File originalName = new File(source);
+		if (originalName.exists()) {
 			File newName = new File(destination);
 			if (newName.getParent() == null) {
 				String fullPath = String.format("%s%s%s", originalName.getParent(), File.separator, newName.getName());
@@ -34,8 +29,11 @@ public class Rename extends Copy {
 			}
 			originalName.renameTo(newName);
 			_session.addLogMessage("", "Rename Complete", String.format("%s to %s", originalName, newName));
-		} catch (Exception e) {
-			throw new RuntimeException("Could not rename %s to %s.  " + e.getMessage(), e);
+		} else {
+			if (_required) {
+				throw new RuntimeException(String.format("%s does not exist.  To make this action optional, set the attribute Required to False.", source));
+			}
+			_session.addLogMessage("", "** Warning **", String.format(" Nothing found to %s. %s does not exist.", _actionName, source));
 		}
 	}
 }

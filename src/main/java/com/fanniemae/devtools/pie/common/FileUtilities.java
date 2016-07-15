@@ -18,6 +18,12 @@ import org.w3c.dom.Element;
  */
 public class FileUtilities {
 
+	public static boolean exists(String filePath) {
+		if (filePath == null) return false;
+		File f = new File(filePath);
+		return f.exists();
+	}
+	
 	public static boolean isValidDirectory(String filePath) {
 		if (filePath == null) return false;
 		File f = new File(filePath);

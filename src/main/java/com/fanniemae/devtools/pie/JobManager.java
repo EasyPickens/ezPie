@@ -24,6 +24,7 @@ import com.fanniemae.devtools.pie.actions.LocalTokens;
 import com.fanniemae.devtools.pie.actions.RunCommand;
 import com.fanniemae.devtools.pie.actions.Sleep;
 import com.fanniemae.devtools.pie.actions.Svn;
+import com.fanniemae.devtools.pie.actions.Tokens;
 import com.fanniemae.devtools.pie.actions.VersionFile;
 import com.fanniemae.devtools.pie.actions.WebClient;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
@@ -60,6 +61,9 @@ public class JobManager {
 				switch (eleOperation.getNodeName()) {
 				case "Note":
 					continue;
+				case "Tokens":
+					act = new Tokens(_session, eleOperation);
+					break;
 				case "RunCommand":
 					// Run an external command or batch file
 					act = new RunCommand(_session, eleOperation);

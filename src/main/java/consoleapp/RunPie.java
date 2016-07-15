@@ -2,6 +2,8 @@ package consoleapp;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.time.DurationFormatUtils;
+
 import com.fanniemae.devtools.pie.JobManager;
 
 public class RunPie {
@@ -11,7 +13,8 @@ public class RunPie {
 	}
 
 	protected static void runJobManager() {
-		String sSettings = "C:\\Developers\\Test\\_Settings.xml";
+		// String sSettings = "C:\\Developers\\Test\\_Settings.xml";
+		String sSettings = "C:\\Developers\\Code\\TestDirectory\\_Settings.xml";
 		// String job = "test.xml";
 		// String job = "CMFT_Monthly_Scores.xml";
 		// String job = "CMFT_Monthly_v2.xml";
@@ -27,16 +30,22 @@ public class RunPie {
 		// String job = "JoinTest.xml";
 		// String job = "ReportTest.xml";
 		// String job = "clmDefinition.xml";
-		String job = "clm.xml";
+		// String job = "clm.xml";
 		// String job = "FileDirectory_Test.xml";
 		// String job = "AIP_AFP_Export.xml";
 		// String job = "Backup_Fnma_Apps.xml";
 		// String job = "Monthly_CQA_Report.xml";
 		// String job = "REPORT_EFP_YTD.xml";
-		//String job = "VersionFile_Test.xml";
+		// String job = "VersionFile_Test.xml";
 		// String job = "Evas_Rescan.xml";
-		//String job = "AIP_OnBoard.xml";
-		String job = "SVN_Test.xml";
+		// String job = "AIP_OnBoard.xml";
+		// String job = "SVN_Test.xml";
+		// String job = "Rescan_EPV.xml";
+		// String job = "Test_Actions.xml";
+		// String job = "dbsimple.xml";
+		// String job = "SqlExecute.xml";
+		// String job = "SMDU.xml";
+		String job = "PEWholeLoanB2B.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
@@ -49,7 +58,7 @@ public class RunPie {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		//viewlog(logFilename);
+		// viewlog(logFilename);
 	}
 
 	protected static void viewlog(String logFilename) {

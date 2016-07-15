@@ -33,13 +33,7 @@ public class Copy extends FileSystemAction {
 		super(session, action);
 
 		_source = requiredAttribute("Source", String.format("%s action requires a source directory or file.", _actionName));
-		_isFile = FileUtilities.isValidFile(_source);
-		_isDirectory = FileUtilities.isValidDirectory(_source);
-		if (!_isFile && !_isDirectory) {
-			throw new RuntimeException(String.format("%s action requires a source value to an existing directory or file. %s is not a valid file or directory.", _actionName, _source));
-		}
-		_type = (_isFile) ? "file" : "directory";
-		_destination = requiredAttribute("Destination", String.format("%s action requires a destination %s.", _actionName, _type));
+		_destination = requiredAttribute("Destination", String.format("%s action requires a destination value.", _actionName));
 	}
 
 	@Override
