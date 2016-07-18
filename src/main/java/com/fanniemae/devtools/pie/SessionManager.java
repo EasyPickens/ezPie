@@ -93,12 +93,14 @@ public class SessionManager {
 			_logger.addMessage("Setup Token Dictionary", "Load Tokens", "Read value from settings file.");
 			_tokenizer = new TokenManager(_settings, _logger);
 
-			Document xJob = XmlUtilities.loadXmlDefinition(_jobFilename);
-			if (xJob == null)
+			Document xmlJobDefinition = XmlUtilities.loadXmlDefinition(_jobFilename);
+			if (xmlJobDefinition == null)
 				throw new RuntimeException("No settings information found.");
 
-			_job = xJob.getDocumentElement();
-			_logger.addMessage("", "Prepare Definition", "Complete");
+			_job = xmlJobDefinition.getDocumentElement();
+			String finalJobDefinition = FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.XMLDocumentToString(xmlJobDefinition));
+			//_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + finalJobDefinition);
+			_logger.addMessage("", "Prepared Definition", "View Definition", "file://" + finalJobDefinition);
 			_logger.addMessage("", "Adjusted Size", String.format("%,d bytes", XmlUtilities.getOuterXml(_job).length()));
 		} catch (Exception ex) {
 			_logger.addErrorMessage(ex);

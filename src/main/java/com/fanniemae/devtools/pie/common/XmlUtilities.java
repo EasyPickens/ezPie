@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -61,6 +59,7 @@ public class XmlUtilities {
 			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
 			transformer.transform(new DOMSource(doc), new StreamResult(sw));
 			return sw.toString();
@@ -166,35 +165,39 @@ public class XmlUtilities {
 		return loadXmlDefinition(filename, breadCrumbs);
 	}
 
-	public static Document loadXmlDefinition(String filename, ArrayList<String> breadCrumbs) {
+	protected static Document loadXmlDefinition(String filename, ArrayList<String> breadCrumbs) {
 		Document xDoc = loadXmlDocument(filename);
 
 		// Remove remarked elements
-		List<Node> aRemarks = new ArrayList<>();
-		NodeList nl = selectNodes(xDoc.getDocumentElement(), "//Remark | //Note | //*[@Remark] | //Comment");
-		if (nl.getLength() > 0) {
-			int iLength = nl.getLength();
-			for (int i = 0; i < iLength; i++) {
-				aRemarks.add(nl.item(i));
+		List<Node> remarkElements = new ArrayList<>();
+		NodeList nl = selectNodes(xDoc.getDocumentElement(), "//Remark");
+		int length = nl.getLength();
+		if (length > 0) {
+			for (int i = 0; i < length; i++) {
+				remarkElements.add(nl.item(i));
 			}
 
-			iLength = aRemarks.size();
-			for (int i = 0; i < iLength; i++) {
-				aRemarks.get(i).getParentNode().removeChild(aRemarks.get(i));
+			length = remarkElements.size();
+			for (int i = 0; i < length; i++) {
+				remarkElements.get(i).getParentNode().removeChild(remarkElements.get(i));
 			}
 		}
 
 		nl = selectNodes(xDoc.getDocumentElement(), "//IncludeSharedElement");
 		if (nl.getLength() > 0) {
-			int length = nl.getLength();
-			Map<Integer, Element[]> elementsToInsert = new HashMap<Integer, Element[]>();
+			length = nl.getLength();
+			//Map<Integer, Element[]> elementsToInsert = new HashMap<Integer, Element[]>();
+			List<Element[]> elementsToInsert = new ArrayList<>();
 			for (int i = 0; i < length; i++) {
+				boolean inSameFile = false;
 				Element ele = (Element) nl.item(i);
 				String definitionName = ele.getAttribute("DefinitionName");
 				String definitionFilename = definitionName;
 				String elementID = ele.getAttribute("SharedElementID");
 				if (StringUtilities.isNullOrEmpty(definitionName)) {
-					throw new RuntimeException("The IncludeSharedElement is missing a value in the required DefinitionName");
+					definitionName = filename;
+					definitionFilename = definitionName;
+					inSameFile = true;
 				}
 				if (StringUtilities.isNullOrEmpty(elementID)) {
 					throw new RuntimeException("The IncludeSharedElement is missing a value in the required SharedElementID");
@@ -218,7 +221,7 @@ public class XmlUtilities {
 				}
 				breadCrumbs.add(crumb);
 
-				Document innerDocument = loadXmlDefinition(definitionFilename, breadCrumbs);
+				Document innerDocument = inSameFile ? xDoc : loadXmlDefinition(definitionFilename, breadCrumbs);
 				// Look for the shared element
 				Node sharedNode = XmlUtilities.selectSingleNode(innerDocument, String.format("//SharedElement[@ID='%s']", elementID));
 				if (sharedNode == null) {
@@ -227,12 +230,11 @@ public class XmlUtilities {
 				NodeList sharedSteps = XmlUtilities.selectNodes(sharedNode, "*");
 				int sharedStepsLength = sharedSteps.getLength();
 				if (sharedStepsLength > 0) {
-					Integer pos = elementsToInsert.size();
 					for (int x = 0; x < sharedStepsLength; x++) {
 						Element[] elementUpdate = new Element[2];
 						elementUpdate[0] = ele;
 						elementUpdate[1] = (Element) (sharedSteps.item(x));
-						elementsToInsert.put(pos, elementUpdate);
+						elementsToInsert.add(elementUpdate);
 					}
 				}
 			}
@@ -242,7 +244,26 @@ public class XmlUtilities {
 				for (int i = 0; i < insertsToDo; i++) {
 					Element parent = elementsToInsert.get(i)[0];
 					Element newElement = elementsToInsert.get(i)[1];
-					docElement.insertBefore(xDoc.adoptNode(newElement.cloneNode(true)), parent);
+					
+					parent.getParentNode().insertBefore(xDoc.adoptNode(newElement.cloneNode(true)), parent);
+				}
+				// Remove IncludeSharedElements
+				List<String> removed = new ArrayList<>();
+				for (int i = 0; i < insertsToDo; i++) {
+					Element parent = elementsToInsert.get(i)[0];
+					String key = String.format("%s|%s", parent.getAttribute("DefinitionName"), parent.getAttribute("SharedElementID"));
+					if (removed.indexOf(key) > -1) {
+						continue;
+					}
+					parent.getParentNode().removeChild(parent);
+					removed.add(key);
+				}
+				// Remove empty text nodes
+				NodeList emptyTextNodes = XmlUtilities.selectNodes(docElement, "//text()[normalize-space(.)='']");
+				int emptyCount = emptyTextNodes.getLength();
+				for (int i=0;i<emptyCount;i++) {
+					Node emptyNode = emptyTextNodes.item(i);
+					emptyNode.getParentNode().removeChild(emptyNode);
 				}
 			}
 		}

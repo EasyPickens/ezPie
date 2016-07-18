@@ -99,12 +99,15 @@ public class FileUtilities {
 	}
 
 	public static String getRandomFilename(String filePath, String extension) {
-		String sRandomGuid = UUID.randomUUID().toString().replace("-", "");
-		String sDirectory = filePath;
-		if (!sDirectory.endsWith(File.separator)) {
-			sDirectory += File.separator;
+		String randomGuid = UUID.randomUUID().toString().replace("-", "");
+		String directory = filePath;
+		if (!directory.endsWith(File.separator)) {
+			directory += File.separator;
 		}
-		return String.format("%s%s.%s", sDirectory, sRandomGuid, extension);
+		if ((extension != null) && extension.startsWith(".") && (extension.length() > 1)) {
+			extension = extension.substring(1);
+		}
+		return String.format("%s%s.%s", directory, randomGuid, extension);
 	}
 
 	public static String getDataFilename(String filepath, Element eleDataset, Element eleConnection) {
@@ -126,6 +129,11 @@ public class FileUtilities {
 			return sName.substring(0, sName.indexOf("."));
 		}
 		return sName;
+	}
+	
+	public static String getFilenameOnly(String fileName) {
+		File f = new File(fileName);
+		return f.getName();
 	}
 
 	public static String loadFile(String filename) {

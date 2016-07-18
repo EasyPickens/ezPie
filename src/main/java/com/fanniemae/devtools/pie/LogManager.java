@@ -195,7 +195,9 @@ public class LogManager {
 		
 		if (cargo.startsWith("file://")) {
 			// add html link line to view the file.
-			description = String.format("<a href=\"%2$s\">%1$s</a>",description, cargo.substring(7));
+			String fileName = FileUtilities.getFilenameOnly(cargo.substring(7));
+			//description = String.format("<a href=\"%2$s\">%1$s</a>",description, cargo.substring(7));
+			description = String.format("<a href=\"%2$s\">%1$s</a>",description, fileName);
 		}
 
 		try (RandomAccessFile raf = new RandomAccessFile(_logFilename, "rw")) {
