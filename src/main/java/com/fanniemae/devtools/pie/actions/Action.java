@@ -58,7 +58,7 @@ public abstract class Action {
 	protected String optionalAttribute(Element element, String attributeName, String defaultValue) {
 		String value = _session.getAttribute(element, attributeName);
 		if (StringUtilities.isNullOrEmpty(value)) {
-			value = defaultValue;
+			value = _session.resolveTokens(defaultValue);
 		} else {
 			_session.addLogMessage("", attributeName, value);
 		}
