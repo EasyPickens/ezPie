@@ -90,7 +90,7 @@ public class Compression extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		try {
 			if (_zip) {
 				String filelist = ArrayUtilities.toString(ZipUtilities.zip(_sourcePath, _zipFilename, _includeFiles, _excludeFiles, _includeDirectories, _excludeDirectories));

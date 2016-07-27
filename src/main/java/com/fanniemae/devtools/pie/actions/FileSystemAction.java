@@ -104,7 +104,7 @@ public abstract class FileSystemAction extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		processFileSystem(_source, _destination);
 		if (FileUtilities.isValidDirectory(_source)) {
 			postprocessDirectory(_source);

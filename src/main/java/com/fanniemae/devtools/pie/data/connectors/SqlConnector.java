@@ -116,7 +116,7 @@ public class SqlConnector extends DataConnector {
 					}
 				}
 			}
-			_session.addLogMessage("", "", "Database server returned.");
+			_session.addLogMessage("", "Query Returned", "Database server results ready.");
 
 			if (_rs == null) {
 				RuntimeException ex = new RuntimeException("Query returned null result set information.");

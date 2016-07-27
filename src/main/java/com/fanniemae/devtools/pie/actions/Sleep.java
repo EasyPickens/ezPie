@@ -16,7 +16,7 @@ public class Sleep extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		_session.addLogMessage("", "Time", String.format("Sleeping for %s seconds", _seconds));
 		try {
 			Thread.sleep(_seconds * 1000L);

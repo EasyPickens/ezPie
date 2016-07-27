@@ -12,6 +12,7 @@ import java.util.Date;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
+import com.fanniemae.devtools.pie.common.DateUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 
@@ -26,9 +27,12 @@ public class LogManager {
 	protected String _logFilename;
 	protected String _templatePath;
 	protected final String _htmlFooter = "</table><script>$(\".togglelink\").click(function () { $header = $(this); $content = $header.next(); $content.slideToggle(200, function () {$header.text(function () { return $content.is(\":visible\") ? \"Hide Text\" : \"View Text\";});});});</script></body></html>";
-	protected final String _basicLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.4f</td></tr>\n";
-	protected final String _longTextLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td><div class=\"longtexttoggle\"><div class=\"togglelink\"><span>View Text</span></div><div class=\"togglecontent\">%3$s&nbsp;</div></div></td><td>%4$,.4f</td></tr>\n";
-	protected final String _exceptionRow = "<tr class=\"exceptionRow\"><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.4f</td></tr>\n";
+	//protected final String _basicLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.3f</td></tr>\n";
+	protected final String _basicLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$s</td></tr>\n";	
+	//protected final String _longTextLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td><div class=\"longtexttoggle\"><div class=\"togglelink\"><span>View Text</span></div><div class=\"togglecontent\">%3$s&nbsp;</div></div></td><td>%4$,.3f</td></tr>\n";
+	protected final String _longTextLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td><div class=\"longtexttoggle\"><div class=\"togglelink\"><span>View Text</span></div><div class=\"togglecontent\">%3$s&nbsp;</div></div></td><td>%4$s</td></tr>\n";	
+	//protected final String _exceptionRow = "<tr class=\"exceptionRow\"><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$,.3f</td></tr>\n";
+	protected final String _exceptionRow = "<tr class=\"exceptionRow\"><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$s</td></tr>\n";
 
 	protected byte[] _htmlFooterByteArray;
 
@@ -169,8 +173,13 @@ public class LogManager {
 		}
 	}
 
-	protected double elapsedTime() {
-		return (System.currentTimeMillis() - _startTime) / 1000.0;
+//	protected double elapsedTime() {
+//		return (System.currentTimeMillis() - _startTime) / 1000.0;
+//	}
+	
+	protected String elapsedTime() {
+		//return (System.currentTimeMillis() - _startTime) / 1000.0;
+		return DateUtilities.elapsedTimeShort(_startTime);
 	}
 
 	protected void updateLog(Boolean isError, String logGroup, String event, String description) {

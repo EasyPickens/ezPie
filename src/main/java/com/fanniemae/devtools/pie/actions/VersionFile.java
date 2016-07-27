@@ -35,7 +35,7 @@ public class VersionFile extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		Properties prop = new Properties();
 		if (_setVersion) {
 			Date dt = new Date();

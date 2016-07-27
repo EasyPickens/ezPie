@@ -16,7 +16,7 @@ public class ExecuteSql extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		try (DataConnector sqlConnection = new SqlConnector(_session, _action, false)) {
 			sqlConnection.open();
 			String[][] columnNames = sqlConnection.getDataSourceSchema();

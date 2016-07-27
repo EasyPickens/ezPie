@@ -67,7 +67,7 @@ public class Directory extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		try {
 			switch (_actionType) {
 			case "Copy":

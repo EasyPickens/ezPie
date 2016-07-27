@@ -23,7 +23,7 @@ public class MakeDirectory extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		File fi = new File(_path);
 		if (!fi.exists()) {
 			_session.addLogMessage("", "", String.format("Creating %s", _path));

@@ -51,5 +51,30 @@ public class DateUtilities {
 			elapsed = elapsed.replace("0 minutes ", "");
 		return elapsed;
 	}
+	
+//	public static String elapsedTimeShort(long start) {
+//		String elapsed = DurationFormatUtils.formatDuration(System.currentTimeMillis() - start, "d'd' H'h' m'm' s.S's'");
+//		// Remove the 0 periods if not needed.
+//		if (elapsed.startsWith("0d "))
+//			elapsed = elapsed.replace("0d ", "");
+//		if (elapsed.startsWith("0h "))
+//			elapsed = elapsed.replace("0h ", "");
+//		if (elapsed.startsWith("0m "))
+//			elapsed = elapsed.replace("0m ", "");
+//		return elapsed;
+//	}
+	
+	public static String elapsedTimeShort(long start) {
+		long elapsed = System.currentTimeMillis() - start;
+		if (elapsed < 60000L) {
+			return DurationFormatUtils.formatDuration(elapsed, "s.S's'");
+		} else if (elapsed < 3600000L ) {
+			return DurationFormatUtils.formatDuration(elapsed, "m'm' s.S's'");
+		} else if (elapsed < 86400000L ) {
+			return DurationFormatUtils.formatDuration(elapsed, "H'h' m'm' s.S's'");
+		} else {
+			return DurationFormatUtils.formatDuration(elapsed, "d'd' H'h' m'm' s.S's'");
+		}
+	}
 
 }

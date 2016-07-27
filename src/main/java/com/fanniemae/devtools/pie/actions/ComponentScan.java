@@ -64,7 +64,7 @@ public class ComponentScan extends RunCommand{
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		//zip files and only extract out *.jar and *.dll files
 		String[] filter = StringUtilities.split("*.jar, *.dll");
 		try {
@@ -107,7 +107,7 @@ public class ComponentScan extends RunCommand{
 		
 		//running IQ Server Jar to do component scan
 		_acceptableErrorOutput = POLICYFAILUREOUTPUT;
-		super.execute();
+		super.executeAction();
 		
 		return null;
 	}

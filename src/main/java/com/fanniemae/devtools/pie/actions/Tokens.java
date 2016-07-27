@@ -11,7 +11,7 @@ public class Tokens extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		_session.addTokens(_action);
 		return null;
 	}

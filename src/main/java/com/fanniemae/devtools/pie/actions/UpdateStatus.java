@@ -46,7 +46,7 @@ public class UpdateStatus extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		SqlUtilities.ExecuteScalar(_connection, _updateCommand, _parameters, true);
 		return null;
 	}

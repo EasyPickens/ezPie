@@ -73,7 +73,7 @@ public class RunCommand extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		String sConsoleFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
 		Timer commandTimer = null;
 		ProcessBuilder pb = new ProcessBuilder(_arguments);

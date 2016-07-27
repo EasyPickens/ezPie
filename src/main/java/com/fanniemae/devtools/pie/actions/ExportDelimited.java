@@ -72,7 +72,7 @@ public class ExportDelimited extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		_dataStream = _session.getDataStream(_dataSetID);
 
 		try (DataReader dr = new DataReader(_dataStream); FileWriter fw = new FileWriter(_outputFilename, _appendData)) {

@@ -58,7 +58,7 @@ public class CastScan extends RunCommand {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		SimpleDateFormat sdf = new SimpleDateFormat("MMMM d, yyyy HH:mm:ss");
 		Object[][] params = new Object[3][2];
 		params[0][0] = "string";
@@ -173,7 +173,7 @@ public class CastScan extends RunCommand {
 		makeBatchFile();
 		_session.addLogMessage("", "CAST Log File", "View packaging and delivery log", "file://" + logFile);
 		long start = System.currentTimeMillis();
-		super.execute();
+		super.executeAction();
 		//Miscellaneous.sleep(30);
 		_session.addLogMessage("", "Completed", String.format("Time to package was %s", DateUtilities.elapsedTime(start)));
 
@@ -196,7 +196,7 @@ public class CastScan extends RunCommand {
 		makeBatchFile();
 		_session.addLogMessage("", "CAST Log File", "View code analysis log", "file://" + logFile);
 		long start = System.currentTimeMillis();
-		super.execute();
+		super.executeAction();
 		//Miscellaneous.sleep(30);
 		_session.addLogMessage("", "Completed", String.format("Time to analyze code was %s", DateUtilities.elapsedTime(start)));
 	}
@@ -225,7 +225,7 @@ public class CastScan extends RunCommand {
 		makeBatchFile();
 		_session.addLogMessage("", "CAST Log File", "View generate snapshot log", "file://" + logFile);
 		long start = System.currentTimeMillis();
-		super.execute();
+		super.executeAction();
 		//Miscellaneous.sleep(30);
 		_session.addLogMessage("", "Completed", String.format("Time to generate snapshot was %s", DateUtilities.elapsedTime(start)));
 	}

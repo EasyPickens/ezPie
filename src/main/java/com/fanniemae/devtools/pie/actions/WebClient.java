@@ -51,7 +51,7 @@ public class WebClient extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		// Get a list of web client steps
 		try (final com.gargoylesoftware.htmlunit.WebClient webClient = connect()) {
 			_webClient = webClient;

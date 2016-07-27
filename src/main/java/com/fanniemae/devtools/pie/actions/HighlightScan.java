@@ -39,7 +39,7 @@ public class HighlightScan extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		// Get a list of Highlight Scan steps
 		highlightActions(_action);
 		return null;

@@ -1,9 +1,13 @@
 package com.fanniemae.devtools.pie.actions;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.fanniemae.devtools.pie.SessionManager;
+import com.fanniemae.devtools.pie.common.DateUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 
 /**
@@ -22,6 +26,9 @@ public abstract class Action {
 	protected String _actionName;
 
 	protected boolean _idRequired = true;
+	protected SimpleDateFormat _sdf = new SimpleDateFormat("MMMM d, yyyy HH:mm:ss");
+	
+	protected long _start;
 
 	public Action(SessionManager session, Element action) {
 		this(session, action, true);
@@ -38,23 +45,31 @@ public abstract class Action {
 
 		if (_idRequired && StringUtilities.isNullOrEmpty(_id)) {
 			throw new RuntimeException(String.format("%s is missing a required ID value.", _action.getNodeName()));
-		} else if (StringUtilities.isNullOrEmpty(_id)) {
-			_session.addLogMessage(_actionName, "Process", String.format("Starting to process the %s action.", _actionName));
-		} else {
-			_session.addLogMessage(_actionName, "ID", _id);
+		}
+
+		_session.addLogMessage(_actionName, "Process", String.format("Processing %s action (started: %s)", _actionName, _sdf.format(new Date())));
+		_start = System.currentTimeMillis();
+		if (StringUtilities.isNotNullOrEmpty(_id)) {
+			_session.addLogMessage("", "ID", _id);
 		}
 	}
+	
+	public String execute() {
+		String result = executeAction();
+		_session.addLogMessage("", String.format("%s Completed", _actionName), String.format("Elapsed time: %s", DateUtilities.elapsedTime(_start)));
+		return result;
+	}
 
-	public abstract String execute();
+	public abstract String executeAction();
 
 	protected String optionalAttribute(String attributeName, String defaultValue) {
 		return optionalAttribute(_action, attributeName, defaultValue);
 	}
 
 	protected String optionalAttribute(Node node, String attributeName, String defaultValue) {
-		return optionalAttribute((Element)node, attributeName, defaultValue);
+		return optionalAttribute((Element) node, attributeName, defaultValue);
 	}
-	
+
 	protected String optionalAttribute(Element element, String attributeName, String defaultValue) {
 		String value = _session.getAttribute(element, attributeName);
 		if (StringUtilities.isNullOrEmpty(value)) {
@@ -74,16 +89,16 @@ public abstract class Action {
 	}
 
 	protected String requiredAttribute(Node node, String attributeName) {
-		return requiredAttribute((Element)node, attributeName);
+		return requiredAttribute((Element) node, attributeName);
 	}
-	
+
 	protected String requiredAttribute(Element element, String attributeName) {
 		String errorMessage = String.format("Missing a value for %s on the %s element.", attributeName, element.getNodeName());
 		return requiredAttribute(element, attributeName, errorMessage);
 	}
-	
+
 	protected String requiredAttribute(Node node, String attributeName, String errorMessage) {
-		return requiredAttribute((Element)node, attributeName, errorMessage);
+		return requiredAttribute((Element) node, attributeName, errorMessage);
 	}
 
 	protected String requiredAttribute(Element element, String attributeName, String errorMessage) {

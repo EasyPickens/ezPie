@@ -21,7 +21,7 @@ public class DataSet extends Action {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		DataEngine de = new DataEngine(_session);
 		NodeList nl = XmlUtilities.selectNodes(_action, "DataSource");
 		

@@ -13,7 +13,7 @@ public class Rename extends Copy {
 	}
 
 	@Override
-	public String execute() {
+	public String executeAction() {
 		processFileSystem(_source, _destination);
 		return null;
 	}
