@@ -48,23 +48,23 @@ public class RunCommand extends Action {
 		if (!action.getNodeName().equals("RunCommand"))
 			return;
 
-		String workDirectory = requiredAttribute("WorkDirectory");
-		String cmdLine = requiredAttribute("CommandLine");
+		_workDirectory = requiredAttribute("WorkDirectory");
+		_commandLine = requiredAttribute("CommandLine");
 		String waitForExit = optionalAttribute("WaitForExit", null);
 		String timeout = optionalAttribute("Timeout", null);
 		Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
 
-		_workDirectory = workDirectory;
-		_commandLine = cmdLine;
+//		_workDirectory = workDirectory;
+//		_commandLine = cmdLine;
 		_waitForExit = StringUtilities.toBoolean(waitForExit, true);
 		_timeout = parseTimeout(timeout);
 
-		_session.addLogMessage("", "Work Directory", _workDirectory);
-		_session.addLogMessage("", "Command Line", _commandLine);
-		if (StringUtilities.isNotNullOrEmpty(waitForExit))
-			_session.addLogMessage("", "Wait For Exit", _waitForExit.toString());
-		if (StringUtilities.isNotNullOrEmpty(timeout))
-			_session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _timeout));
+//		_session.addLogMessage("", "Work Directory", _workDirectory);
+//		_session.addLogMessage("", "Command Line", _commandLine);
+//		if (StringUtilities.isNotNullOrEmpty(waitForExit))
+//			_session.addLogMessage("", "Wait For Exit", _waitForExit.toString());
+//		if (StringUtilities.isNotNullOrEmpty(timeout))
+//			_session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _timeout));
 
 		_arguments = parseCommandLine(_commandLine);
 		if (makeBatchFile) {

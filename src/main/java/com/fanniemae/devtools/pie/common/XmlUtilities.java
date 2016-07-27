@@ -162,10 +162,10 @@ public class XmlUtilities {
 
 	public static Document loadXmlDefinition(String filename) {
 		ArrayList<String> breadCrumbs = new ArrayList<String>();
-		return loadXmlDefinition(filename, breadCrumbs);
+		return loadXmlDefinition(filename, null, breadCrumbs);
 	}
 
-	protected static Document loadXmlDefinition(String filename, ArrayList<String> breadCrumbs) {
+	protected static Document loadXmlDefinition(String filename, String sharedElementID, ArrayList<String> breadCrumbs) {
 		Document xDoc = loadXmlDocument(filename);
 
 		// Remove remarked elements
@@ -182,8 +182,15 @@ public class XmlUtilities {
 				remarkElements.get(i).getParentNode().removeChild(remarkElements.get(i));
 			}
 		}
-
-		nl = selectNodes(xDoc.getDocumentElement(), "//IncludeSharedElement");
+		
+		// Must be added in the next sprint to prevent circular references.
+		// Need to perform two different steps, 1 update any nested IncludeSharedElements 2 add updated include to main definition
+//		if (sharedElementID == null) {
+			nl = selectNodes(xDoc.getDocumentElement(), "//IncludeSharedElement");	
+//		} else {
+//			nl = selectNodes(xDoc.getDocumentElement(), String.format("//SharedElement[@ID='%s']/IncludeSharedElement",sharedElementID));
+//		}
+		
 		if (nl.getLength() > 0) {
 			length = nl.getLength();
 			//Map<Integer, Element[]> elementsToInsert = new HashMap<Integer, Element[]>();
@@ -215,13 +222,14 @@ public class XmlUtilities {
 					throw new RuntimeException(String.format("IncludeSharedElement could not find the %s referenced definition", definitionName));
 				}
 
-				String crumb = String.format("%s|%s", definitionName, elementID);
-				if (breadCrumbs.indexOf(crumb) > -1) {
-					throw new RuntimeException(String.format("Possible circular IncludeSharedElement reference detected. Definition %s SharedElementID %s triggered the error.", definitionName, elementID));
-				}
-				breadCrumbs.add(crumb);
+//				String crumb = String.format("%s|%s", definitionName, elementID);
+//				if (breadCrumbs.indexOf(crumb) > -1) {
+//					throw new RuntimeException(String.format("Possible circular IncludeSharedElement reference detected. Definition %s SharedElementID %s triggered the error.", definitionName, elementID));
+//				}
+//				breadCrumbs.add(crumb);
 
-				Document innerDocument = inSameFile ? xDoc : loadXmlDefinition(definitionFilename, breadCrumbs);
+				Document innerDocument = inSameFile ? xDoc : loadXmlDefinition(definitionFilename, elementID, breadCrumbs);
+				
 				// Look for the shared element
 				Node sharedNode = XmlUtilities.selectSingleNode(innerDocument, String.format("//SharedElement[@ID='%s']", elementID));
 				if (sharedNode == null) {

@@ -138,15 +138,15 @@ public class CastScan extends RunCommand {
 				} else {
 					break;
 				}
-				Thread.sleep(30000); // sleep for 30 seconds.
+				Thread.sleep(15000); // sleep for 15 seconds.
 			}
 		} catch (InterruptedException e) {
 			throw new RuntimeException("Database polling thread interrupted.", e);
 		}
 		if (backupError) {
-			throw new RuntimeException("Database backup failed.");
+			throw new RuntimeException("Database backup failed. Check the error log on the CAST database server for details.");
 		} else if (!completed) {
-			throw new RuntimeException("Database backup did not complete within 2 hours.");
+			throw new RuntimeException("Database backup did not complete within 2 hours. Check the backup log on the CAST database server for details.");
 		}
 		_session.addLogMessage("", "Completed", String.format("Time to backup data was %s", DateUtilities.elapsedTime(start)));		
 	}

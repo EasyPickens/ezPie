@@ -1,5 +1,7 @@
 package com.fanniemae.devtools.pie;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 import org.w3c.dom.Element;
@@ -22,7 +24,8 @@ public class TokenManager {
 
 	protected HashMap<String, HashMap<String, String>> _tokens = new HashMap<String, HashMap<String, String>>();
 	protected LogManager _logger;
-
+	protected Date _startDateTime = new Date();
+	
 	public TokenManager(Element eleSettings, LogManager logger) {
 		_logger = logger;
 		NodeList nl = eleSettings.getChildNodes();
@@ -46,6 +49,7 @@ public class TokenManager {
 				break;
 			case "SelfServiceScan":
 				loadSelfServiceScanTokens("ScanManager", nl.item(i));
+				break;
 			}
 		}
 	}
@@ -88,13 +92,14 @@ public class TokenManager {
 			return value;
 
 		int tokenStart = value.indexOf("@");
-		int tokenMid = value.indexOf(".");
-		int tokenEnd = value.indexOf("~");
-		if ((tokenStart == -1) || (tokenMid == -1) || (tokenEnd == -1)) {
+		if (tokenStart == -1)
 			return value;
-		} else if ((tokenStart > tokenMid) || (tokenEnd < tokenMid) || (tokenStart > tokenEnd)) {
+		int tokenMid = value.indexOf(".", tokenStart);
+		if (tokenMid == -1)
 			return value;
-		}
+		int tokenEnd = value.indexOf("~", tokenMid);
+		if (tokenEnd == -1)
+			return value;
 
 		int iTokenSplit = 0;
 		int iTokenEnd = 0;
@@ -114,7 +119,19 @@ public class TokenManager {
 			if ((dataRow == null) && sGroup.equals("Data"))
 				continue;
 
-			if (_tokens.containsKey(sGroup) && _tokens.get(sGroup).containsKey(sKey)) {
+			// System tokens call methods
+			if ("System".equals(sGroup)) {
+				switch (sKey) {
+				case "CurrentDateTimeString":
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+					value = value.replace(sFullToken, sdf.format(new Date()));
+					break;
+				case "StartDateTimeString":
+					SimpleDateFormat sdfStart = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+					value = value.replace(sFullToken, sdfStart.format(_startDateTime));
+					break;					
+				}
+			} else if (_tokens.containsKey(sGroup) && _tokens.get(sGroup).containsKey(sKey)) {
 				value = value.replace(sFullToken, _tokens.get(sGroup).get(sKey));
 			} else {
 				// if the token is not found, it evaluates to empty string.
@@ -182,7 +199,6 @@ public class TokenManager {
 			}
 			_tokens.put(tokenType, tokenKeyValues);
 		}
-
 		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
 	}
 
