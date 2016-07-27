@@ -64,7 +64,7 @@ public class XmlUtilities {
 			transformer.transform(new DOMSource(doc), new StreamResult(sw));
 			return sw.toString();
 		} catch (IllegalArgumentException | TransformerException ex) {
-			throw new RuntimeException("Error converting to String", ex);
+			throw new RuntimeException("Error converting XML document to string. " + ex.getMessage(), ex);
 		}
 	}
 
@@ -77,7 +77,7 @@ public class XmlUtilities {
 			transformer.transform(new DOMSource(node), new StreamResult(writer));
 			return writer.toString();
 		} catch (IllegalArgumentException | TransformerException ex) {
-			throw new RuntimeException("Error converting to String", ex);
+			throw new RuntimeException("Error converting XML node to string. " + ex.getMessage(), ex);
 		}
 	}
 
@@ -182,18 +182,18 @@ public class XmlUtilities {
 				remarkElements.get(i).getParentNode().removeChild(remarkElements.get(i));
 			}
 		}
-		
+
 		// Must be added in the next sprint to prevent circular references.
 		// Need to perform two different steps, 1 update any nested IncludeSharedElements 2 add updated include to main definition
-//		if (sharedElementID == null) {
-			nl = selectNodes(xDoc.getDocumentElement(), "//IncludeSharedElement");	
-//		} else {
-//			nl = selectNodes(xDoc.getDocumentElement(), String.format("//SharedElement[@ID='%s']/IncludeSharedElement",sharedElementID));
-//		}
-		
+		// if (sharedElementID == null) {
+		nl = selectNodes(xDoc.getDocumentElement(), "//IncludeSharedElement");
+		// } else {
+		// nl = selectNodes(xDoc.getDocumentElement(), String.format("//SharedElement[@ID='%s']/IncludeSharedElement",sharedElementID));
+		// }
+
 		if (nl.getLength() > 0) {
 			length = nl.getLength();
-			//Map<Integer, Element[]> elementsToInsert = new HashMap<Integer, Element[]>();
+			// Map<Integer, Element[]> elementsToInsert = new HashMap<Integer, Element[]>();
 			List<Element[]> elementsToInsert = new ArrayList<>();
 			for (int i = 0; i < length; i++) {
 				boolean inSameFile = false;
@@ -222,14 +222,14 @@ public class XmlUtilities {
 					throw new RuntimeException(String.format("IncludeSharedElement could not find the %s referenced definition", definitionName));
 				}
 
-//				String crumb = String.format("%s|%s", definitionName, elementID);
-//				if (breadCrumbs.indexOf(crumb) > -1) {
-//					throw new RuntimeException(String.format("Possible circular IncludeSharedElement reference detected. Definition %s SharedElementID %s triggered the error.", definitionName, elementID));
-//				}
-//				breadCrumbs.add(crumb);
+				// String crumb = String.format("%s|%s", definitionName, elementID);
+				// if (breadCrumbs.indexOf(crumb) > -1) {
+				// throw new RuntimeException(String.format("Possible circular IncludeSharedElement reference detected. Definition %s SharedElementID %s triggered the error.", definitionName, elementID));
+				// }
+				// breadCrumbs.add(crumb);
 
 				Document innerDocument = inSameFile ? xDoc : loadXmlDefinition(definitionFilename, elementID, breadCrumbs);
-				
+
 				// Look for the shared element
 				Node sharedNode = XmlUtilities.selectSingleNode(innerDocument, String.format("//SharedElement[@ID='%s']", elementID));
 				if (sharedNode == null) {
@@ -252,7 +252,7 @@ public class XmlUtilities {
 				for (int i = 0; i < insertsToDo; i++) {
 					Element parent = elementsToInsert.get(i)[0];
 					Element newElement = elementsToInsert.get(i)[1];
-					
+
 					parent.getParentNode().insertBefore(xDoc.adoptNode(newElement.cloneNode(true)), parent);
 				}
 				// Remove IncludeSharedElements
@@ -269,7 +269,7 @@ public class XmlUtilities {
 				// Remove empty text nodes
 				NodeList emptyTextNodes = XmlUtilities.selectNodes(docElement, "//text()[normalize-space(.)='']");
 				int emptyCount = emptyTextNodes.getLength();
-				for (int i=0;i<emptyCount;i++) {
+				for (int i = 0; i < emptyCount; i++) {
 					Node emptyNode = emptyTextNodes.item(i);
 					emptyNode.getParentNode().removeChild(emptyNode);
 				}
@@ -289,7 +289,7 @@ public class XmlUtilities {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			return builder.parse(filename);
 		} catch (ParserConfigurationException | SAXException | IOException ex) {
-			throw new RuntimeException(ex.getMessage(), ex);
+			throw new RuntimeException(String.format("Could not load %s XML file.  %s", filename, ex.getMessage()), ex);
 		}
 	}
 }
