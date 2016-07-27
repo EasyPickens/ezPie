@@ -1,5 +1,6 @@
 package com.fanniemae.devtools.pie.data;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.CallableStatement;
@@ -47,10 +48,20 @@ public class DataProvider {
 		if (StringUtilities.isNullOrEmpty(_sqlDialect)) {
 			_sqlDialect = "SQL92";
 		}
-		
+
 		_url = eleConnection.getAttribute("URL");
 		_className = eleConnection.getAttribute("ClassName");
 		_connectionString = eleConnection.getAttribute("ConnectionString");
+		// if (FileUtilities.isInvalidFile(_url)) {
+		// throw new RuntimeException(String.format("JDBC provider file %s was not found.", _url));
+		// }
+		if (StringUtilities.isNullOrEmpty(_className)) {
+			throw new RuntimeException("Missing class name for JDBC provider.");
+		}
+		if (StringUtilities.isNullOrEmpty(_connectionString)) {
+			throw new RuntimeException("Missing connection string to database.");
+		}
+
 	}
 
 	public Connection getConnection() {
@@ -58,18 +69,20 @@ public class DataProvider {
 		try {
 			URL u = new URL(formatProviderUrl(_url));
 			URLClassLoader ucl = new URLClassLoader(new URL[] { u });
-			Driver d = (Driver) Class.forName(_className, true, ucl).newInstance();
+			Class<?> dbClass = Class.forName(_className, true, ucl);
+			Driver d = (Driver) dbClass.newInstance();
 			DriverManager.registerDriver(new DriverShim(d));
 			con = DriverManager.getConnection(_connectionString);
-		} catch (Exception ex) {
-			_lastErrorMessage = ex.getMessage();
-			if (con != null) {
-				try {
-					con.close();
-				} catch (SQLException e) {
-				}
-			}
-			con = null;
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(String.format("Specified database driver class (%s) was not found in %s.", _className, _url), e);
+		} catch (SQLException e) {
+			throw new RuntimeException(String.format("SQL exception while preparing connection. %s", e.getMessage()), e);
+		} catch (InstantiationException e) {
+			throw new RuntimeException(String.format("Instantiation exception while preparing connection. %s", e.getMessage()), e);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(String.format("Illegal access exception while preparing connection. %s", e.getMessage()), e);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(String.format("Malformed URL exception while preparing connection. %s", e.getMessage()), e);
 		}
 		return con;
 	}
