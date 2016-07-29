@@ -39,7 +39,12 @@ public class Compression extends Action {
 
 		_zipFilename = requiredAttribute("ZipFilename");
 		if (!_zip && FileUtilities.isInvalidFile(_zipFilename)) {
-			throw new RuntimeException(String.format("%s file not found.", _zipFilename));
+			if(!_zipFilename.endsWith(".zip")){
+				_zipFilename += ".zip";
+			} 
+			if(FileUtilities.isInvalidFile(_zipFilename)){
+				throw new RuntimeException(String.format("%s file not found.", _zipFilename));
+			}
 		}
 		_session.addLogMessage("", "Zip Filename", _zipFilename);
 
