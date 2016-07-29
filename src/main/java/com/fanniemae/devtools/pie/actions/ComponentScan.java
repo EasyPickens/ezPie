@@ -6,12 +6,11 @@ import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.ArrayUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.RestUtilities;
-import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.ZipUtilities;
 
 import java.io.IOException;
-import org.apache.commons.io.IOCase;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
+import java.util.regex.Pattern;
+
 import org.json.JSONArray;
 
 public class ComponentScan extends RunCommand{
@@ -21,7 +20,7 @@ public class ComponentScan extends RunCommand{
 	protected String _cliPath;
 	protected String _username;
 	protected String _password;
-	protected String _sourcePath;
+	protected String _source;
 	protected String _assetID;
 	protected String _appName;
 	protected String _orgName;
@@ -43,12 +42,12 @@ public class ComponentScan extends RunCommand{
 
 		_assetID = requiredAttribute("AssetID");
 		_appName = requiredAttribute("AppName");
-		_sourcePath = requiredAttribute("SourcePath");	
+		_source = requiredAttribute("Source");	
 		_orgName = optionalAttribute("Portfolio", "unknown");
 		
-		_workDirectory = requiredAttribute("SourcePath").trim();
+		_workDirectory = requiredAttribute("Source").trim();
 		if (FileUtilities.isInvalidDirectory(_workDirectory)) {
-			throw new RuntimeException(String.format("SourcePath %s is not a valid directory.", _workDirectory));
+			throw new RuntimeException(String.format("Source %s is not a valid directory.", _workDirectory));
 		}
 		
 		_zipPath = FileUtilities.getRandomFilename(_session.getStagingPath(), "zip");
@@ -65,12 +64,13 @@ public class ComponentScan extends RunCommand{
 
 	@Override
 	public String executeAction() {
-		//zip files and only extract out *.jar and *.dll files
-		String[] filter = StringUtilities.split("*.jar, *.dll");
 		try {
-			String filelist = ArrayUtilities.toString(ZipUtilities.zip(_sourcePath, _zipPath,  new WildcardFileFilter(filter, IOCase.INSENSITIVE)));
+			//zip files and only extract out *.jar and *.dll files
+			Pattern[] excludeFilePattern = new Pattern[1];
+			excludeFilePattern[0] = Pattern.compile("^.*\\.(?!jar$|dll$)[^.]+$");
+			String filelist = ArrayUtilities.toString(ZipUtilities.zip(_source, _zipPath, null, excludeFilePattern));
 			_session.addLogMessageHtml("", "Files Compressed", filelist);
-			_session.addLogMessage("", "Created Zip file with only *.jar and *.dll files", _zipPath);
+			_session.addLogMessage("", "Created Zip file with only jar and dll files", _zipPath);
 		} catch (IOException ex) {
 			_session.addErrorMessage(ex);
 		}

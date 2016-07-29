@@ -1,7 +1,6 @@
 package com.fanniemae.devtools.pie.common;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,6 +13,8 @@ import java.util.Deque;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -28,65 +29,62 @@ public class ZipUtilities {
 		return zip(directory, zipFilename, null, null, null, null);
 	}
 	
-	public static String[] zip(String directory, String zipFilename,  FileFilter includeFiles) throws IOException {
-		return zip(directory, zipFilename, includeFiles, null, null, null);
-	}
-	
-	public static String[] zip(String directory, String zipFilename, FileFilter includeFiles, FileFilter excludeFiles, FileFilter includeDirectories, FileFilter excludeDirectories) throws IOException {
+	public static String[] zip(String directory, String zipFilename, Pattern[] includeFileRegex, Pattern[] excludeFileRegex) throws IOException {
 		File sourceDir = new File(directory);
 		File zipFile = new File(zipFilename);
-		return zip(sourceDir, zipFile, includeFiles, excludeFiles, includeDirectories, excludeDirectories);
+		return zip(sourceDir, zipFile, includeFileRegex, excludeFileRegex, null, null);
+	}
+	
+	public static String[] zip(String directory, String zipFilename, Pattern[] includeFileRegex, Pattern[] excludeFileRegex, Pattern[] includeDirectoryRegex, Pattern[] excludeDirectoryRegex) throws IOException {
+		File sourceDir = new File(directory);
+		File zipFile = new File(zipFilename);
+		return zip(sourceDir, zipFile, includeFileRegex, excludeFileRegex, includeDirectoryRegex, excludeDirectoryRegex);
 	}
 
-	public static String[] zip(File directory, File zipfile, FileFilter includeFilesFilter, FileFilter excludeFilesFilter, FileFilter includeDirectoriesFilter, FileFilter excludeDirectoriesFilter) throws IOException {
+	public static String[] zip(File directory, File zipfile, Pattern[] includeFileRegex, Pattern[] excludeFileRegex, Pattern[] includeDirectoryRegex, Pattern[] excludeDirectoryRegex) throws IOException {
 		List<String> filelist = new ArrayList<String>();
 		filelist.add(TABLE_HEADER);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		long totalSize = 0L;
 		
-		boolean hasIncludeFileFilter = (includeFilesFilter != null) ? true : false;
-		boolean hasExcludeFileFilter = (excludeFilesFilter != null) ? true : false;
-		boolean hasIncludeDirectoryFilter = (includeDirectoriesFilter != null) ? true : false;
-		boolean hasExcludeDirectoryFilter = (excludeDirectoriesFilter != null) ? true : false;
+		boolean hasIncludeFileFilter = (includeFileRegex != null) ? true : false;
+		boolean hasExcludeFileFilter = (excludeFileRegex != null) ? true : false;
+		boolean hasIncludeDirectoryFilter = (includeDirectoryRegex != null) ? true : false;
+		boolean hasExcludeDirectoryFilter = (excludeDirectoryRegex != null) ? true : false;
 		
 		URI base = directory.toURI();
-		Deque<File> queue = new LinkedList<File>();
-		queue.push(directory);
+		Deque<Entry> queue = new LinkedList<Entry>();
+		queue.push(new Entry(directory, false));
+		Entry entry;
+		boolean excluded = false;
 		
 		try (OutputStream out = new FileOutputStream(zipfile, false); ZipOutputStream zout = new ZipOutputStream(out)) {
 			int row = 0;
 			ZipEntry ze;
 			while (!queue.isEmpty()) {
-				directory = queue.pop();
-				File[] includeFiles = directory.listFiles(includeFilesFilter);
-				File[] excludeFiles = (hasExcludeFileFilter) ? directory.listFiles(excludeFilesFilter) : null;
-				File[] includeDirectories = directory.listFiles(includeDirectoriesFilter);
-				File[] excludeDirectories = (hasExcludeDirectoryFilter) ? directory.listFiles(excludeDirectoriesFilter) : null;
+				entry = queue.pop();
+				directory = entry._file;
+				excluded = entry._excluded;
 				for (File file : directory.listFiles()) {
 					String name = base.relativize(file.toURI()).getPath();
 					if (file.isDirectory()) {
-						if((!hasExcludeDirectoryFilter && !hasIncludeDirectoryFilter && 
-								!hasExcludeFileFilter && !hasIncludeFileFilter) || 
-								(hasIncludeDirectoryFilter && inArray(file.getName(), includeDirectories)) ||
-								(hasExcludeDirectoryFilter && !inArray(file.getName(), excludeDirectories))){
-							name = name.endsWith("/") ? name : name + "/";
-							ze = new ZipEntry(name);
-							ze.setTime(file.lastModified());
-							zout.putNextEntry(ze);
-						} 
+						if (hasIncludeDirectoryFilter && matchesRegexFilter(name, includeDirectoryRegex)) {
+							// include filters override exclude filters
+						} else if (hasExcludeDirectoryFilter && matchesRegexFilter(name, excludeDirectoryRegex)) {
+							continue;
+						}
+						name = name.endsWith("/") ? name : name + "/";
+						ze = new ZipEntry(name);
+						ze.setTime(file.lastModified());
+						zout.putNextEntry(ze);
+						queue.push(new Entry(file, false));
 						
-						if (hasExcludeDirectoryFilter && inArray(file.getName(), excludeDirectories)) {
-							continue;
-						} else if (hasIncludeDirectoryFilter && !inArray(file.getName(), includeDirectories)) {
-							continue;
-						} 
-						queue.push(file);
-					
 					} else {
-						if (hasExcludeFileFilter && inArray(file.getName(), excludeFiles)) 
+						if (hasIncludeFileFilter && matchesRegexFilter(name, includeFileRegex)) {
+							// include filters override exclude filters
+						} else if ((hasExcludeFileFilter && matchesRegexFilter(name, excludeFileRegex)) || excluded) {
 							continue;
-						else if (hasIncludeFileFilter && !inArray(file.getName(), includeFiles)) 
-							continue;
+						}
 						
 						ze = new ZipEntry(name);
 						ze.setTime(file.lastModified());
@@ -109,27 +107,23 @@ public class ZipUtilities {
 	}
 	
 	public static String[] unzip(String zipFilename, String directory) throws IOException {
-		return unzip(zipFilename, directory, null, null, null, null);
-	}
-	
-	public static String[] unzip(String zipFilename, String directory,  FileFilter includeFiles) throws IOException {
-		return unzip(zipFilename, directory, includeFiles, null, null, null);
+		return unzip(zipFilename, directory, null, null);
 	}
 
-	public static String[] unzip(String zipFilename, String directory, FileFilter includeFiles, FileFilter excludeFiles, FileFilter includeDirectories, FileFilter excludeDirectories) throws IOException {
+	public static String[] unzip(String zipFilename, String directory, Pattern[] includeFileRegex, Pattern[] excludeFileRegex) throws IOException {
 		File zipFile = new File(zipFilename);
 		File destDirectory = new File(directory);
-		return unzip(zipFile, destDirectory, includeFiles, excludeFiles, includeDirectories, excludeDirectories);
+		return unzip(zipFile, destDirectory, includeFileRegex, excludeFileRegex);
 	}
 
-	public static String[] unzip(File zipfile, File directory, FileFilter includeFilesFilter, FileFilter excludeFilesFilter, FileFilter includeDirectoriesFilter, FileFilter excludeDirectoriesFilter) throws IOException {
+	public static String[] unzip(File zipfile, File directory, Pattern[] includeFileRegex, Pattern[] excludeFileRegex) throws IOException {
 		List<String> filelist = new ArrayList<String>();
 		filelist.add(TABLE_HEADER);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		long totalSize = 0L;
 		
-		boolean hasIncludeFileFilter = (includeFilesFilter != null) ? true : false;
-		boolean hasExcludeFileFilter = (excludeFilesFilter != null) ? true : false;
+		boolean hasIncludeFileFilter = (includeFileRegex != null) ? true : false;
+		boolean hasExcludeFileFilter = (excludeFileRegex != null) ? true : false;
 		
 		try (ZipFile zfile = new ZipFile(zipfile)) {
 			Enumeration<? extends ZipEntry> entries = zfile.entries();
@@ -138,8 +132,6 @@ public class ZipUtilities {
 				ZipEntry entry = entries.nextElement();
 				
 				File file = new File(directory, entry.getName());
-				boolean includeFile = (hasIncludeFileFilter) ? includeFilesFilter.accept(file) : false;
-				boolean excludeFile = (hasExcludeFileFilter) ? excludeFilesFilter.accept(file): false;
 				
 				if (entry.isDirectory()) {
 					file.mkdirs();
@@ -147,10 +139,11 @@ public class ZipUtilities {
 					
 				} else {
 					
-					if (hasExcludeFileFilter && excludeFile) 
+					if (hasIncludeFileFilter && matchesRegexFilter(entry.getName(), includeFileRegex)) {
+						// include filters override exclude filters
+					} else if (hasExcludeFileFilter && matchesRegexFilter(entry.getName(), excludeFileRegex)) {
 						continue;
-					else if (hasIncludeFileFilter && !includeFile) 
-						continue;
+					}
 					
 					file.getParentFile().mkdirs();
 
@@ -208,6 +201,29 @@ public class ZipUtilities {
 			}
 		}
 		return found;
+	}
+	
+	protected static boolean matchesRegexFilter(String value, Pattern[] regexFilter) {
+		if (regexFilter == null)
+			return false;
+
+		for (int x = 0; x < regexFilter.length; x++) {
+			Matcher m = regexFilter[x].matcher(value);
+			if (m.find()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	protected static class Entry {
+		protected File _file;
+		protected boolean _excluded;
+		
+		protected Entry(File file, boolean excluded){
+			_file = file;
+			_excluded = excluded;
+		}
 	}
 	
 }
