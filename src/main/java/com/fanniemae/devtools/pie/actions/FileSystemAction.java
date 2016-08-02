@@ -13,6 +13,7 @@ import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
+import com.fanniemae.devtools.pie.data.connectors.SqlConnector;
 
 public abstract class FileSystemAction extends Action {
 
@@ -90,6 +91,13 @@ public abstract class FileSystemAction extends Action {
 					_hasIncludeFileFilter = true;
 					includeFile.add(Pattern.compile(_session.getAttribute(child, "Regex")));
 					break;
+				case "ExcludeDBResultSet":
+					_hasExcludeFileFilter = true;
+					_hasExcludeDirectoryFilter = true;
+					List<Pattern> excludes = executeCommand(child);
+					excludeFile.addAll(excludes);
+					excludeDirectory.addAll(excludes);
+					break;
 				}
 			}
 			_excludeDirectoryRegex = new Pattern[excludeDirectory.size()];
@@ -111,6 +119,41 @@ public abstract class FileSystemAction extends Action {
 		}
 		_session.addLogMessage("", String.format("%s Complete", _actionName), String.format("%,d files (%,d bytes)", _filesProcessed, _totalBytes));
 		return null;
+	}
+	
+	protected List<Pattern> executeCommand(Element element){
+		String command = _session.getAttribute(element, "Command");
+		if (StringUtilities.isNullOrEmpty(command))
+			throw new RuntimeException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
+		
+		String id = _session.getAttribute(element, "ID");
+		if(StringUtilities.isNullOrEmpty(id))
+			element.setAttribute("ID", "ExcludeDBResultSet");
+		
+		SqlConnector conn = new SqlConnector(_session, element, false);
+		conn.open();
+		
+		List<Pattern> excludes = new ArrayList<Pattern>();
+		
+		String[][] schema = conn.getDataSourceSchema();
+		String col = _session.getAttribute(element, "Column");
+		int colIndex = 0;
+		for(int i = 0; i < schema.length; i++){
+			if(col.equals(schema[i][0])){
+				colIndex = i;
+			}
+		}
+
+		while (!conn.eof()) {
+			Object[] aValues = conn.getDataRow();
+			String value = escapeSpecialChar(aValues[colIndex].toString());
+			excludes.add(Pattern.compile(value));
+		}
+		
+		conn.close();
+		
+		return excludes;
+		
 	}
 
 	protected abstract void processFile(String source, String destination, String nameOnly);
@@ -156,10 +199,11 @@ public abstract class FileSystemAction extends Action {
 				continue;
 
 			String entryName = contents[i].getName();
+			String entryPath = contents[i].getAbsolutePath();
 			if (contents[i].isDirectory()) {
-				if (_hasIncludeDirectoryFilter && matchesRegexFilter(entryName, _includeDirectoryRegex)) {
+				if (_hasIncludeDirectoryFilter && (matchesRegexFilter(entryName, _includeDirectoryRegex) || matchesRegexFilter(entryPath, _includeDirectoryRegex))) {
 					// include filters override exclude filters
-				} else if (_hasExcludeDirectoryFilter && matchesRegexFilter(entryName, _excludeDirectoryRegex)) {
+				} else if (_hasExcludeDirectoryFilter && (matchesRegexFilter(entryName, _excludeDirectoryRegex) || matchesRegexFilter(entryPath, _excludeDirectoryRegex))) {
 					continue;
 				}
 
@@ -168,15 +212,20 @@ public abstract class FileSystemAction extends Action {
 				continue;
 			}
 
-			if (_hasIncludeFileFilter && matchesRegexFilter(entryName, _includeFileRegex)) {
+			if (_hasIncludeFileFilter && (matchesRegexFilter(entryName, _includeFileRegex) || matchesRegexFilter(entryPath, _includeFileRegex))) {
 				// include filters override exclude filters
-			} else if (_hasExcludeFileFilter && matchesRegexFilter(entryName, _excludeFileRegex)) {
+			} else if (_hasExcludeFileFilter && (matchesRegexFilter(entryName, _excludeFileRegex) || matchesRegexFilter(entryPath, _excludeFileRegex))) {
 				continue;
 			}
 			_totalBytes += contents[i].length();
 			_filesProcessed++;
 			processFile(contents[i].getPath(), destination, entryName);
 		}
+	}
+	
+	protected String escapeSpecialChar(String str){
+		String sep = "\\\\";
+		return str.replaceAll("/", Matcher.quoteReplacement(sep));
 	}
 
 	protected boolean inArray(String value, File[] list) {
