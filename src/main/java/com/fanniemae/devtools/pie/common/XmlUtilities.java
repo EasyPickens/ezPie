@@ -164,119 +164,9 @@ public class XmlUtilities {
 		ArrayList<String> breadCrumbs = new ArrayList<String>();
 		return loadXmlDefinition(filename, null, breadCrumbs);
 	}
-
-	protected static Document loadXmlDefinition(String filename, String sharedElementID, ArrayList<String> breadCrumbs) {
-		Document xDoc = loadXmlDocument(filename);
-
-		// Remove remarked elements
-		List<Node> remarkElements = new ArrayList<>();
-		NodeList nl = selectNodes(xDoc.getDocumentElement(), "//Remark");
-		int length = nl.getLength();
-		if (length > 0) {
-			for (int i = 0; i < length; i++) {
-				remarkElements.add(nl.item(i));
-			}
-
-			length = remarkElements.size();
-			for (int i = 0; i < length; i++) {
-				remarkElements.get(i).getParentNode().removeChild(remarkElements.get(i));
-			}
-		}
-
-		// Must be added in the next sprint to prevent circular references.
-		// Need to perform two different steps, 1 update any nested IncludeSharedElements 2 add updated include to main definition
-		// if (sharedElementID == null) {
-		nl = selectNodes(xDoc.getDocumentElement(), "//IncludeSharedElement");
-		// } else {
-		// nl = selectNodes(xDoc.getDocumentElement(), String.format("//SharedElement[@ID='%s']/IncludeSharedElement",sharedElementID));
-		// }
-
-		if (nl.getLength() > 0) {
-			length = nl.getLength();
-			// Map<Integer, Element[]> elementsToInsert = new HashMap<Integer, Element[]>();
-			List<Element[]> elementsToInsert = new ArrayList<>();
-			for (int i = 0; i < length; i++) {
-				boolean inSameFile = false;
-				Element ele = (Element) nl.item(i);
-				String definitionName = ele.getAttribute("DefinitionName");
-				String definitionFilename = definitionName;
-				String elementID = ele.getAttribute("SharedElementID");
-				if (StringUtilities.isNullOrEmpty(definitionName)) {
-					definitionName = filename;
-					definitionFilename = definitionName;
-					inSameFile = true;
-				}
-				if (StringUtilities.isNullOrEmpty(elementID)) {
-					throw new RuntimeException("The IncludeSharedElement is missing a value in the required SharedElementID");
-				}
-				if (!definitionFilename.toLowerCase().endsWith(".xml")) {
-					definitionFilename += ".xml";
-				}
-				if (FileUtilities.isInvalidFile(definitionFilename)) {
-					File temp = new File(filename);
-					String absolutePath = temp.getAbsolutePath();
-					String definitionPath = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator) + 1);
-					definitionFilename = definitionPath + definitionFilename;
-				}
-				if (FileUtilities.isInvalidFile(definitionFilename)) {
-					throw new RuntimeException(String.format("IncludeSharedElement could not find the %s referenced definition", definitionName));
-				}
-
-				// String crumb = String.format("%s|%s", definitionName, elementID);
-				// if (breadCrumbs.indexOf(crumb) > -1) {
-				// throw new RuntimeException(String.format("Possible circular IncludeSharedElement reference detected. Definition %s SharedElementID %s triggered the error.", definitionName, elementID));
-				// }
-				// breadCrumbs.add(crumb);
-
-				Document innerDocument = inSameFile ? xDoc : loadXmlDefinition(definitionFilename, elementID, breadCrumbs);
-
-				// Look for the shared element
-				Node sharedNode = XmlUtilities.selectSingleNode(innerDocument, String.format("//SharedElement[@ID='%s']", elementID));
-				if (sharedNode == null) {
-					throw new RuntimeException(String.format("IncludeSharedElement could not find a SharedElement with ID=%s referenced in %s", elementID, definitionName));
-				}
-				NodeList sharedSteps = XmlUtilities.selectNodes(sharedNode, "*");
-				int sharedStepsLength = sharedSteps.getLength();
-				if (sharedStepsLength > 0) {
-					for (int x = 0; x < sharedStepsLength; x++) {
-						Element[] elementUpdate = new Element[2];
-						elementUpdate[0] = ele;
-						elementUpdate[1] = (Element) (sharedSteps.item(x));
-						elementsToInsert.add(elementUpdate);
-					}
-				}
-			}
-			if (elementsToInsert.size() > 0) {
-				Element docElement = xDoc.getDocumentElement();
-				int insertsToDo = elementsToInsert.size();
-				for (int i = 0; i < insertsToDo; i++) {
-					Element parent = elementsToInsert.get(i)[0];
-					Element newElement = elementsToInsert.get(i)[1];
-
-					parent.getParentNode().insertBefore(xDoc.adoptNode(newElement.cloneNode(true)), parent);
-				}
-				// Remove IncludeSharedElements
-				List<String> removed = new ArrayList<>();
-				for (int i = 0; i < insertsToDo; i++) {
-					Element parent = elementsToInsert.get(i)[0];
-					String key = String.format("%s|%s", parent.getAttribute("DefinitionName"), parent.getAttribute("SharedElementID"));
-					if (removed.indexOf(key) > -1) {
-						continue;
-					}
-					parent.getParentNode().removeChild(parent);
-					removed.add(key);
-				}
-				// Remove empty text nodes
-				NodeList emptyTextNodes = XmlUtilities.selectNodes(docElement, "//text()[normalize-space(.)='']");
-				int emptyCount = emptyTextNodes.getLength();
-				for (int i = 0; i < emptyCount; i++) {
-					Node emptyNode = emptyTextNodes.item(i);
-					emptyNode.getParentNode().removeChild(emptyNode);
-				}
-			}
-		}
-
-		return xDoc;
+	
+	public static Document loadXmlFile(String filename) {
+		return loadXmlDocument(filename);
 	}
 
 	public static Document loadXmlDocument(String filename) {
@@ -292,4 +182,108 @@ public class XmlUtilities {
 			throw new RuntimeException(String.format("Could not load %s XML file.  %s", filename, ex.getMessage()), ex);
 		}
 	}
+
+	protected static Document loadXmlDefinition(String filename, String sharedElementID, ArrayList<String> breadCrumbs) {
+		Document xDoc = loadXmlFile(filename);
+		removeRemarkedElements(xDoc.getDocumentElement());
+
+		String xpath = (sharedElementID == null) ? "//IncludeSharedElement" : String.format("//SharedElement[@ID='%s']/IncludeSharedElement", sharedElementID);
+		NodeList nl = selectNodes(xDoc.getDocumentElement(), xpath);
+
+		int length = nl.getLength();
+		if (length > 0) {
+			List<Element[]> elementsToInsert = new ArrayList<>();
+			for (int i = 0; i < length; i++) {
+				@SuppressWarnings("unchecked")
+				ArrayList<String> loopCrumbs = (ArrayList<String>)breadCrumbs.clone();
+				Element ele = (Element) nl.item(i);
+				String definitionName = ele.getAttribute("DefinitionName");
+				String definitionFilename = definitionName;
+				String elementID = ele.getAttribute("SharedElementID");
+				if (definitionName.isEmpty()) {
+					definitionName = filename;
+					definitionFilename = definitionName;
+				}
+				if (elementID.isEmpty()) {
+					throw new RuntimeException("The IncludeSharedElement is missing a value in the required SharedElementID");
+				}
+				if (!definitionFilename.toLowerCase().endsWith(".xml")) {
+					definitionFilename += ".xml";
+				}
+				if (!exists(definitionFilename)) {
+					File temp = new File(filename);
+					String absolutePath = temp.getAbsolutePath();
+					String definitionPath = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator) + 1);
+					definitionFilename = definitionPath + definitionFilename;
+				}
+				if (!exists(definitionFilename)) {
+					throw new RuntimeException(String.format("IncludeSharedElement could not find the %s referenced definition", definitionName));
+				}
+
+				String crumb = String.format("%s|%s", definitionFilename, elementID);
+				if (loopCrumbs.indexOf(crumb) > -1) {
+					throw new RuntimeException(String.format("Circular IncludeSharedElement reference detected. SharedElementID %s in definition %s triggered the error.", elementID, definitionName));
+				}
+				loopCrumbs.add(crumb);
+
+				Document innerDocument = loadXmlDefinition(definitionFilename, elementID, loopCrumbs);
+
+				// Look for the shared element
+				Node sharedNode = XmlUtilities.selectSingleNode(innerDocument, String.format("//SharedElement[@ID='%s']", elementID));
+				if (sharedNode == null) {
+					throw new RuntimeException(String.format("Could not find a SharedElement with ID=%s referenced in %s", elementID, definitionName));
+				}
+				NodeList sharedSteps = XmlUtilities.selectNodes(sharedNode, "*");
+				int sharedStepsLength = sharedSteps.getLength();
+				if (sharedStepsLength > 0) {
+					for (int x = 0; x < sharedStepsLength; x++) {
+						Element[] elementUpdate = new Element[2];
+						elementUpdate[0] = ele;
+						elementUpdate[1] = (Element) (sharedSteps.item(x));
+						elementsToInsert.add(elementUpdate);
+					}
+				}
+			}
+			if (elementsToInsert.size() > 0) {
+				//Insert referenced elements
+				int insertsToDo = elementsToInsert.size();
+				for (int i = 0; i < insertsToDo; i++) {
+					Element parent = elementsToInsert.get(i)[0];
+					Element newElement = elementsToInsert.get(i)[1];
+
+					parent.getParentNode().insertBefore(xDoc.adoptNode(newElement.cloneNode(true)), parent);
+				}
+				// Remove IncludeSharedElements
+				removeElements(xDoc, "//IncludeSharedElement");
+				// Remove left over empty text nodes
+				removeWhitespace(xDoc);
+			}
+		}
+
+		return xDoc;
+	}
+
+	public static void removeRemarkedElements(Element ele) {
+		removeElements(ele.getOwnerDocument(),"//Remark");
+	}
+	
+	protected static void removeElements(Document doc, String xpath) {
+		Node emptyTextNode = XmlUtilities.selectSingleNode(doc, xpath);
+		while (emptyTextNode != null) {
+			emptyTextNode.getParentNode().removeChild(emptyTextNode);
+			emptyTextNode = XmlUtilities.selectSingleNode(doc, xpath);
+		}
+	}
+
+	protected static void removeWhitespace(Document doc) {
+		removeElements(doc, "//text()[normalize-space(.)='']");
+	}
+
+	protected static boolean exists(String filename) {
+		if (filename == null)
+			return false;
+		File f = new File(filename);
+		return f.exists() && f.isFile();
+	}
+	
 }

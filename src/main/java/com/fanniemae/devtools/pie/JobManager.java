@@ -28,6 +28,7 @@ import com.fanniemae.devtools.pie.actions.Tokens;
 import com.fanniemae.devtools.pie.actions.UpdateStatus;
 import com.fanniemae.devtools.pie.actions.VersionFile;
 import com.fanniemae.devtools.pie.actions.WebClient;
+import com.fanniemae.devtools.pie.common.DateUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
 /**
@@ -149,7 +150,7 @@ public class JobManager {
 					act.execute();
 				}
 			}
-			_session.addLogMessage("Completed", "", "Processing completed successfully.");
+			_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.",DateUtilities.getCurrentDateTimePretty()));
 			return "";
 		} catch (Exception ex) {
 			_session.addErrorMessage(ex);
