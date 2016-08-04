@@ -187,7 +187,7 @@ public class XmlUtilities {
 		Document xDoc = loadXmlFile(filename);
 		removeRemarkedElements(xDoc.getDocumentElement());
 
-		String xpath = (sharedElementID == null) ? "//IncludeSharedElement" : String.format("//SharedElement[@ID='%s']/IncludeSharedElement", sharedElementID);
+		String xpath = (sharedElementID == null) ? "//ImportSharedElement" : String.format("//SharedElement[@ID='%s']/ImportSharedElement", sharedElementID);
 		NodeList nl = selectNodes(xDoc.getDocumentElement(), xpath);
 
 		int length = nl.getLength();
@@ -205,7 +205,7 @@ public class XmlUtilities {
 					definitionFilename = definitionName;
 				}
 				if (elementID.isEmpty()) {
-					throw new RuntimeException("The IncludeSharedElement is missing a value in the required SharedElementID");
+					throw new RuntimeException("The ImportSharedElement is missing a value in the required SharedElementID");
 				}
 				if (!definitionFilename.toLowerCase().endsWith(".xml")) {
 					definitionFilename += ".xml";
@@ -217,12 +217,12 @@ public class XmlUtilities {
 					definitionFilename = definitionPath + definitionFilename;
 				}
 				if (!exists(definitionFilename)) {
-					throw new RuntimeException(String.format("IncludeSharedElement could not find the %s referenced definition", definitionName));
+					throw new RuntimeException(String.format("ImportSharedElement could not find the %s referenced definition", definitionName));
 				}
 
 				String crumb = String.format("%s|%s", definitionFilename, elementID);
 				if (loopCrumbs.indexOf(crumb) > -1) {
-					throw new RuntimeException(String.format("Circular IncludeSharedElement reference detected. SharedElementID %s in definition %s triggered the error.", elementID, definitionName));
+					throw new RuntimeException(String.format("Circular ImportSharedElement reference detected. SharedElementID %s in definition %s triggered the error.", elementID, definitionName));
 				}
 				loopCrumbs.add(crumb);
 
@@ -253,8 +253,8 @@ public class XmlUtilities {
 
 					parent.getParentNode().insertBefore(xDoc.adoptNode(newElement.cloneNode(true)), parent);
 				}
-				// Remove IncludeSharedElements
-				removeElements(xDoc, "//IncludeSharedElement");
+				// Remove ImportSharedElements
+				removeElements(xDoc, "//ImportSharedElement");
 				// Remove left over empty text nodes
 				removeWhitespace(xDoc);
 			}

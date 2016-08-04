@@ -62,6 +62,7 @@ public class JobManager {
 				Element eleOperation = (Element) nlActions.item(i);
 				switch (eleOperation.getNodeName()) {
 				case "IncludeSharedElement":
+					throw new RuntimeException("Please rename IncludeSharedElement to ImportSharedElement");
 				case "SharedElement":
 				case "Note":
 					continue;
