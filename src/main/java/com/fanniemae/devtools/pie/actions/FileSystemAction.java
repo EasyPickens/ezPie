@@ -80,6 +80,11 @@ public abstract class FileSystemAction extends Action {
 					List<Pattern> excludes = executeCommand(child);
 					exclude.addAll(excludes);
 					break;
+				case "ExcludeDirectory":
+				case "IncludeDirectory":
+				case "ExcludeFile":
+				case "IncludeFile":
+					throw new RuntimeException(String.format("%s child element no longer supported. Use Include or Exclude.", name));
 				default: 
 					_session.addLogMessage("** Warning **", name, "Operation not currently supported.");
 				}
