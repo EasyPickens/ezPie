@@ -66,9 +66,10 @@ public class ComponentScan extends RunCommand{
 	public String executeAction() {
 		try {
 			//zip files and only extract out *.jar and *.dll files
-			Pattern[] excludeFilePattern = new Pattern[1];
-			excludeFilePattern[0] = Pattern.compile("^.*\\.(?!jar$|dll$)[^.]+$");
-			String filelist = ArrayUtilities.toString(ZipUtilities.zip(_source, _zipPath, null, excludeFilePattern));
+			Pattern[] includePattern = new Pattern[2];
+			includePattern[0] = Pattern.compile("(?).jar$");
+			includePattern[1] = Pattern.compile("(?).dll$");
+			String filelist = ArrayUtilities.toString(ZipUtilities.zip(_source, _zipPath, includePattern, null));
 			_session.addLogMessageHtml("", "Files Compressed", filelist);
 			_session.addLogMessage("", "Created Zip file with only jar and dll files", _zipPath);
 		} catch (IOException ex) {

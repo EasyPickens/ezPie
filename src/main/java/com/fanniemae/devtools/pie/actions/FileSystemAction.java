@@ -19,24 +19,18 @@ public abstract class FileSystemAction extends Action {
 
 	protected String _source;
 	protected String _destination;
-	protected String _includeFileFilter = null;
-	protected String _excludeFileFilter = null;
-	protected String _includeDirectoryFilter = null;
-	protected String _excludeDirectoryFilter = null;
+	protected String _includeFilter = null;
+	protected String _excludeFilter = null;
 
 	protected boolean _shallow = false;
 	protected boolean _skipHidden = false;
 	protected boolean _clearReadOnly = false;
 	protected boolean _required = true;
-	protected boolean _hasIncludeFileFilter = false;
-	protected boolean _hasExcludeFileFilter = false;
-	protected boolean _hasIncludeDirectoryFilter = false;
-	protected boolean _hasExcludeDirectoryFilter = false;
+	protected boolean _hasIncludeFilter = false;
+	protected boolean _hasExcludeFilter = false;
 
-	protected Pattern[] _excludeDirectoryRegex = null;
-	protected Pattern[] _includeDirectoryRegex = null;
-	protected Pattern[] _excludeFileRegex = null;
-	protected Pattern[] _includeFileRegex = null;
+	protected Pattern[] _excludeRegex = null;
+	protected Pattern[] _includeRegex = null;
 
 	protected long _totalBytes = 0L;
 	protected int _filesProcessed = 0;
@@ -67,47 +61,36 @@ public abstract class FileSystemAction extends Action {
 		NodeList nlChildren = XmlUtilities.selectNodes(_action, "*");
 		int length = nlChildren.getLength();
 		if (length > 0) {
-			List<Pattern> excludeDirectory = new ArrayList<Pattern>();
-			List<Pattern> includeDirectory = new ArrayList<Pattern>();
-			List<Pattern> excludeFile = new ArrayList<Pattern>();
-			List<Pattern> includeFile = new ArrayList<Pattern>();
+			List<Pattern> exclude = new ArrayList<Pattern>();
+			List<Pattern> include = new ArrayList<Pattern>();
 			for (int i = 0; i < length; i++) {
 				String name = nlChildren.item(i).getNodeName();
 				Element child = (Element) nlChildren.item(i);
 				switch (name) {
-				case "ExcludeDirectory":
-					_hasExcludeDirectoryFilter = true;
-					excludeDirectory.add(Pattern.compile(_session.getAttribute(child, "Regex")));
+				case "Exclude":
+					_hasExcludeFilter = true;
+					exclude.add(Pattern.compile(_session.getAttribute(child, "Regex")));
 					break;
-				case "IncludeDirectory":
-					_hasIncludeDirectoryFilter = true;
-					includeDirectory.add(Pattern.compile(_session.getAttribute(child, "Regex")));
-					break;
-				case "ExcludeFile":
-					_hasExcludeFileFilter = true;
-					excludeFile.add(Pattern.compile(_session.getAttribute(child, "Regex")));
-					break;
-				case "IncludeFile":
-					_hasIncludeFileFilter = true;
-					includeFile.add(Pattern.compile(_session.getAttribute(child, "Regex")));
+				case "Include":
+					_hasIncludeFilter = true;
+					include.add(Pattern.compile(_session.getAttribute(child, "Regex")));
 					break;
 				case "ExcludeDBResultSet":
-					_hasExcludeFileFilter = true;
-					_hasExcludeDirectoryFilter = true;
+					_hasExcludeFilter = true;
 					List<Pattern> excludes = executeCommand(child);
-					excludeFile.addAll(excludes);
-					excludeDirectory.addAll(excludes);
+					exclude.addAll(excludes);
 					break;
+				default: 
+					_session.addLogMessage("** Warning **", name, "Operation not currently supported.");
 				}
 			}
-			_excludeDirectoryRegex = new Pattern[excludeDirectory.size()];
-			_excludeDirectoryRegex = excludeDirectory.toArray(_excludeDirectoryRegex);
-			_includeDirectoryRegex = new Pattern[includeDirectory.size()];
-			_includeDirectoryRegex = includeDirectory.toArray(_includeDirectoryRegex);
-			_excludeFileRegex = new Pattern[excludeFile.size()];
-			_excludeFileRegex = excludeFile.toArray(_excludeFileRegex);
-			_includeFileRegex = new Pattern[includeFile.size()];
-			_includeFileRegex = includeFile.toArray(_includeFileRegex);
+			_excludeRegex = new Pattern[exclude.size()];
+			_excludeRegex = exclude.toArray(_excludeRegex);
+			_includeRegex = new Pattern[include.size()];
+			_includeRegex = include.toArray(_includeRegex);
+			if(_excludeRegex.length > 0 && _includeRegex.length > 0){
+				throw new RuntimeException("Cannot have both Exclude and Include child elements. Create a seperate element.");
+			}
 		}
 	}
 
@@ -162,6 +145,10 @@ public abstract class FileSystemAction extends Action {
 	}
 
 	protected void processFileSystem(String source, String destination) {
+		processFileSystem(source, destination, !_hasIncludeFilter);
+	}
+	
+	protected void processFileSystem(String source, String destination, boolean included) {
 		File sourceLocation = new File(source);
 		if (!sourceLocation.exists()) {
 			if (_required) {
@@ -200,23 +187,23 @@ public abstract class FileSystemAction extends Action {
 
 			String entryName = contents[i].getName();
 			String entryPath = contents[i].getAbsolutePath();
-			if (contents[i].isDirectory()) {
-				if (_hasIncludeDirectoryFilter && (matchesRegexFilter(entryName, _includeDirectoryRegex) || matchesRegexFilter(entryPath, _includeDirectoryRegex))) {
-					// include filters override exclude filters
-				} else if (_hasExcludeDirectoryFilter && (matchesRegexFilter(entryName, _excludeDirectoryRegex) || matchesRegexFilter(entryPath, _excludeDirectoryRegex))) {
-					continue;
+			if (_hasIncludeFilter && (matchesRegexFilter(entryName, _includeRegex) || matchesRegexFilter(entryPath, _includeRegex))) {
+				// include filters override exclude filters
+			} else if(_hasIncludeFilter && !matchesRegexFilter(entryName, _includeRegex) && !matchesRegexFilter(entryPath, _includeRegex) && !included) {
+				if (contents[i].isDirectory()) {
+					processFileSystem(contents[i].getPath(), destination + File.separator + entryName, false);
 				}
-
-				processFileSystem(contents[i].getPath(), destination + File.separator + entryName);
+				continue;
+			} else if (_hasExcludeFilter && (matchesRegexFilter(entryName, _excludeRegex) || matchesRegexFilter(entryPath, _excludeRegex))) {
+				continue;
+			}
+			
+			if (contents[i].isDirectory()) {
+				processFileSystem(contents[i].getPath(), destination + File.separator + entryName, true);
 				postprocessDirectory(contents[i].getPath());
 				continue;
 			}
 
-			if (_hasIncludeFileFilter && (matchesRegexFilter(entryName, _includeFileRegex) || matchesRegexFilter(entryPath, _includeFileRegex))) {
-				// include filters override exclude filters
-			} else if (_hasExcludeFileFilter && (matchesRegexFilter(entryName, _excludeFileRegex) || matchesRegexFilter(entryPath, _excludeFileRegex))) {
-				continue;
-			}
 			_totalBytes += contents[i].length();
 			_filesProcessed++;
 			processFile(contents[i].getPath(), destination, entryName);

@@ -23,13 +23,11 @@ public class Compression extends Action {
 	protected String _source;
 	protected String _destination;
 
-	protected Pattern[] _excludeDirectoryRegex = null;
-	protected Pattern[] _includeDirectoryRegex = null;
-	protected Pattern[] _excludeFileRegex = null;
-	protected Pattern[] _includeFileRegex = null;
+	protected Pattern[] _excludeRegex = null;
+	protected Pattern[] _includeRegex = null;
 
 	public Compression(SessionManager session, Element action) {
-		super(session, action, true);
+		super(session, action, false);
 
 		_zip = action.getNodeName().equals("Zip");
 
@@ -59,36 +57,29 @@ public class Compression extends Action {
 		NodeList nlChildren = XmlUtilities.selectNodes(_action, "*");
 		int length = nlChildren.getLength();
 		if (length > 0) {
-			List<Pattern> excludeDirectory = new ArrayList<Pattern>();
-			List<Pattern> includeDirectory = new ArrayList<Pattern>();
-			List<Pattern> excludeFile = new ArrayList<Pattern>();
-			List<Pattern> includeFile = new ArrayList<Pattern>();
+			List<Pattern> exclude = new ArrayList<Pattern>();
+			List<Pattern> include = new ArrayList<Pattern>();
 			for (int i = 0; i < length; i++) {
 				String name = nlChildren.item(i).getNodeName();
 				Element child = (Element) nlChildren.item(i);
 				switch (name) {
-				case "ExcludeDirectory":
-					excludeDirectory.add(Pattern.compile(_session.getAttribute(child, "Regex")));
+				case "Exclude":
+					exclude.add(Pattern.compile(_session.getAttribute(child, "Regex")));
 					break;
-				case "IncludeDirectory":
-					includeDirectory.add(Pattern.compile(_session.getAttribute(child, "Regex")));
+				case "Include":
+					include.add(Pattern.compile(_session.getAttribute(child, "Regex")));
 					break;
-				case "ExcludeFile":
-					excludeFile.add(Pattern.compile(_session.getAttribute(child, "Regex")));
-					break;
-				case "IncludeFile":
-					includeFile.add(Pattern.compile(_session.getAttribute(child, "Regex")));
-					break;
+				default:
+					_session.addLogMessage("** Warning **", name, "Operation not currently supported.");
 				}
 			}
-			_excludeDirectoryRegex = new Pattern[excludeDirectory.size()];
-			_excludeDirectoryRegex = excludeDirectory.toArray(_excludeDirectoryRegex);
-			_includeDirectoryRegex = new Pattern[includeDirectory.size()];
-			_includeDirectoryRegex = includeDirectory.toArray(_includeDirectoryRegex);
-			_excludeFileRegex = new Pattern[excludeFile.size()];
-			_excludeFileRegex = excludeFile.toArray(_excludeFileRegex);
-			_includeFileRegex = new Pattern[includeFile.size()];
-			_includeFileRegex = includeFile.toArray(_includeFileRegex);
+			_excludeRegex = new Pattern[exclude.size()];
+			_excludeRegex = exclude.toArray(_excludeRegex);
+			_includeRegex = new Pattern[include.size()];
+			_includeRegex = include.toArray(_includeRegex);
+			if(_excludeRegex.length > 0 && _includeRegex.length > 0){
+				throw new RuntimeException("Cannot have both Exclude and Include child elements. Create a seperate element.");
+			}
 		}
 	}
 
@@ -96,12 +87,12 @@ public class Compression extends Action {
 	public String executeAction() {
 		try {
 			if (_zip) {
-				String filelist = ArrayUtilities.toString(ZipUtilities.zip(_source, _zipFilename, _includeFileRegex, _excludeFileRegex, _includeDirectoryRegex, _excludeDirectoryRegex));
+				String filelist = ArrayUtilities.toString(ZipUtilities.zip(_source, _zipFilename, _includeRegex, _excludeRegex));
 				_session.addLogMessageHtml("", "Files Compressed", filelist);
 				_session.addLogMessage("", "Zipped Size", String.format("%,d bytes", FileUtilities.getLength(_zipFilename)));
 				_session.addToken("File", _id, _zipFilename);
 			} else {
-				String[] list = ZipUtilities.unzip(_zipFilename, _destination, _includeFileRegex, _excludeFileRegex);
+				String[] list = ZipUtilities.unzip(_zipFilename, _destination, _includeRegex, _excludeRegex);
 				String filelist = ArrayUtilities.toString(list);
 				_session.addLogMessageHtml("", "Files Decompressed", filelist);
 				_session.addLogMessage("", "Count", String.format("%,d files", list.length - 2));
