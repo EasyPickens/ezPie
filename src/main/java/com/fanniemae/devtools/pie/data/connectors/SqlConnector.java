@@ -36,9 +36,11 @@ public class SqlConnector extends DataConnector {
 
 	protected Boolean _calledCommandCancel = false;
 	protected Boolean _usingTransactions = false;
+	protected Boolean _onlyUpdateCount = false;
 
 	protected int _columnCount;
 	protected int _commandTimeout = 60;
+	protected int _updateCount = -1;
 
 	public SqlConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
@@ -104,66 +106,76 @@ public class SqlConnector extends DataConnector {
 			if (isResultSet) {
 				_rs = _pstmt.getResultSet();
 			} else {
-				// Look through up to 30 results, taking only the first ResultSet.
-				// Could switch to a while(true), but concerned about infinite loop
-				for (int i = 0; i < 31; i++) {
-					isResultSet = _pstmt.getMoreResults();
-					if (isResultSet) {
-						_rs = _pstmt.getResultSet();
-						break;
-					} else if (_pstmt.getUpdateCount() == -1) {
-						break;
-					}
-				}
+				_onlyUpdateCount = true;
+				_updateCount = _pstmt.getUpdateCount();
+				_fieldNames = new String[] { "rowsaffected" };
+				_dataSchema = new String[1][2];
+				_dataSchema[0][0] = "rowsaffected";
+				_dataSchema[0][1] = "java.lang.Integer";
+				_session.addLogMessage("", "Result Set Schema", "rowsaffected (java.lang.Integer)");
+				// // Look through up to 30 results, taking only the first ResultSet.
+				// // Could switch to a while(true), but concerned about infinite loop
+				// for (int i = 0; i < 31; i++) {
+				// isResultSet = _pstmt.getMoreResults();
+				// if (isResultSet) {
+				// _rs = _pstmt.getResultSet();
+				// break;
+				// } else if (_pstmt.getUpdateCount() == -1) {
+				// break;
+				// }
+				// }
 			}
 			_session.addLogMessage("", "Query Returned", "Database server results ready.");
 
-			if (_rs == null) {
-				RuntimeException ex = new RuntimeException("Query returned null result set information.");
-				throw ex;
-			}
-
-			_session.addLogMessage("", "Read MetaData", "Read field names and data types.");
-			ResultSetMetaData rsmd = _rs.getMetaData();
-			_columnCount = rsmd.getColumnCount();
-			_fieldNames = new String[_columnCount];
-			// _FieldTypes = new JavaDataType[_ColumnCount];
-			_dataSchema = new String[_columnCount][2];
-
-			StringBuilder sbFields = new StringBuilder();
-			String sUsedFieldNames = "";
-			int nFieldNumber = 0;
-			int nColNumber = 0;
-			for (int i = 0; i < _fieldNames.length; i++) {
-				String sName = rsmd.getColumnName(i + 1);
-				if (StringUtilities.isNullOrEmpty(sName)) {
-					sName = String.format("Column%s", nColNumber);
-					nColNumber++;
+			if (!_onlyUpdateCount) {
+				if (_rs == null) {
+					RuntimeException ex = new RuntimeException("Query returned null result set information.");
+					throw ex;
 				}
 
-				String sTarget = String.format(";%s;", sName).toLowerCase();
-				if (sUsedFieldNames.contains(sTarget)) {
-					// Duplicate columns must be included with a unique name.
-					// The code will add a sequential number to the field name
-					// until it is unique - or use GUID.
-					for (int x = 2; x < 500; x++) {
-						sTarget = String.format(";%s%s;", sName, x).toLowerCase();
-						if (!sUsedFieldNames.contains(sTarget)) {
-							sName = String.format("%s%s", sName, x);
-							break;
+				_session.addLogMessage("", "Read MetaData", "Read field names and data types.");
+				ResultSetMetaData rsmd = _rs.getMetaData();
+				_columnCount = rsmd.getColumnCount();
+				_fieldNames = new String[_columnCount];
+				// _FieldTypes = new JavaDataType[_ColumnCount];
+				_dataSchema = new String[_columnCount][2];
+
+				StringBuilder sbFields = new StringBuilder();
+				String sUsedFieldNames = "";
+				int nFieldNumber = 0;
+				int nColNumber = 0;
+				for (int i = 0; i < _fieldNames.length; i++) {
+					String sName = rsmd.getColumnName(i + 1);
+					if (StringUtilities.isNullOrEmpty(sName)) {
+						sName = String.format("Column%s", nColNumber);
+						nColNumber++;
+					}
+
+					String sTarget = String.format(";%s;", sName).toLowerCase();
+					if (sUsedFieldNames.contains(sTarget)) {
+						// Duplicate columns must be included with a unique name.
+						// The code will add a sequential number to the field name
+						// until it is unique - or use GUID.
+						for (int x = 2; x < 500; x++) {
+							sTarget = String.format(";%s%s;", sName, x).toLowerCase();
+							if (!sUsedFieldNames.contains(sTarget)) {
+								sName = String.format("%s%s", sName, x);
+								break;
+							}
 						}
 					}
+					sUsedFieldNames += sTarget;
+					_fieldNames[nFieldNumber] = sName;
+					_dataSchema[nFieldNumber][0] = sName;
+					_dataSchema[nFieldNumber][1] = rsmd.getColumnClassName(i + 1);
+					if (i > 0)
+						sbFields.append(",\n");
+					sbFields.append(String.format("%s (%s)", sName, rsmd.getColumnClassName(i + 1)));
+					nFieldNumber++;
 				}
-				sUsedFieldNames += sTarget;
-				_fieldNames[nFieldNumber] = sName;
-				_dataSchema[nFieldNumber][0] = sName;
-				_dataSchema[nFieldNumber][1] = rsmd.getColumnClassName(i + 1);
-				if (i > 0)
-					sbFields.append(",\n");
-				sbFields.append(String.format("%s (%s)", sName, rsmd.getColumnClassName(i + 1)));
-				nFieldNumber++;
+				_session.addLogMessage("", "Result Set Schema", sbFields.toString());
 			}
-			_session.addLogMessage("", "Result Set Schema", sbFields.toString());
+
 			if (_usingTransactions)
 				_con.commit();
 		} catch (NumberFormatException | SQLException ex) {
@@ -183,6 +195,11 @@ public class SqlConnector extends DataConnector {
 
 	@Override
 	public Boolean eof() {
+		if (_onlyUpdateCount) {
+			return false;
+		} else if (_rs == null) {
+			return true;
+		}
 		try {
 			return !_rs.next();
 		} catch (SQLException e) {
@@ -192,6 +209,11 @@ public class SqlConnector extends DataConnector {
 
 	@Override
 	public Object[] getDataRow() {
+		if (_onlyUpdateCount) {
+			// After reading the update count, you have reached the end of the result set.
+			_onlyUpdateCount = false;
+			return new Object[] { _updateCount };
+		}
 		try {
 			Object[] aValues = new Object[_columnCount];
 			for (int i = 0; i < _columnCount; i++) {

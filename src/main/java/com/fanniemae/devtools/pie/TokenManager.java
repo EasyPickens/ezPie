@@ -63,8 +63,7 @@ public class TokenManager {
 		_tokens.put(tokenType, aTokenValues);
 		if (key.toLowerCase().equals("password"))
 			return;
-		String sLogMessage = String.format("%s token value added.\n%s", tokenType, key + "=" + value);
-		_logger.addMessage("", "@" + tokenType, sLogMessage);
+		_logger.addMessage("", "Token Added", String.format("@%s.%s~ = %s", tokenType, key, value));
 	}
 
 	public void addTokens(Node tokenNode) {

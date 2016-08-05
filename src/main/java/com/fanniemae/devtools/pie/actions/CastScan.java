@@ -35,7 +35,7 @@ public class CastScan extends RunCommand {
 		_connectionProfile = requiredAttribute("ConnectionProfile");
 		_applicationName = requiredAttribute("ApplicationName");
 		_version = requiredAttribute("ApplicationVersion");
-		_castFolder = optionalAttribute("CastFolder",_session.resolveTokens("@CAST.ProgramFolder~"));
+		_castFolder = optionalAttribute("CastFolder", _session.resolveTokens("@CAST.ProgramFolder~"));
 
 		if (FileUtilities.isInvalidDirectory(_castFolder)) {
 			throw new RuntimeException(String.format("CastFolder %s does not exist", _castFolder));
@@ -79,27 +79,28 @@ public class CastScan extends RunCommand {
 			switch (nodeName) {
 			case "BackupDatabase":
 				params[0][1] = "Backup Database";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand , params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_connection, "UPDATE fnma_measure8.fnma_apps SET dblog_name = null WHERE pkey = ?", params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				backupDatabase(castAction);
 				break;
 			case "PackageCode":
 				params[0][1] = "Package Code";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand , params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				packageCode(castAction);
 				break;
 			case "AnalyzeCode":
 				params[0][1] = "Analyze Code";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand , params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				analyzeCode(castAction);
 				break;
 			case "GenerateSnapshot":
 				params[0][1] = "Generate Snapshot";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand , params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				generateSnapshot(castAction);
 				break;
 			case "PublishResults":
 				params[0][1] = "Publish Results";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand , params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				publishResults(castAction);
 				break;
 			default:
@@ -115,7 +116,7 @@ public class CastScan extends RunCommand {
 		Object[][] params = new Object[1][2];
 		params[0][0] = "int";
 		params[0][1] = _jobKey;
-		
+
 		Calendar endTime = Calendar.getInstance();
 		endTime.add(Calendar.HOUR_OF_DAY, 2);
 		boolean completed = false;
@@ -124,7 +125,15 @@ public class CastScan extends RunCommand {
 		long start = System.currentTimeMillis();
 		// Wait for status to change to Backup Complete or Error
 		try {
+			boolean haveDbFilename = false;
 			while (Calendar.getInstance().compareTo(endTime) < 0) {
+				if (!haveDbFilename) {
+					Object logname = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.GetLogFilename~"), params, _session.updateScanManager());
+					if (logname != null) {
+						_session.addLogMessage("", "External Activity Log", "View Database Backup Log", "file://"+(String)logname);
+						haveDbFilename = true;
+					}
+				}
 				Object value = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.CheckStatus~"), params, _session.updateScanManager());
 				if (value != null) {
 					String status = value.toString();
@@ -143,12 +152,16 @@ public class CastScan extends RunCommand {
 		} catch (InterruptedException e) {
 			throw new RuntimeException("Database polling thread interrupted.", e);
 		}
+//		Object logname = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.GetLogFilename~"), params, _session.updateScanManager());
+//		if (logname != null) {
+//			_session.addLogMessage("", "External Log", "View Database Backup Log", "file://"+(String)logname);
+//		}
 		if (backupError) {
 			throw new RuntimeException("Database backup failed. Check the error log on the CAST database server for details.");
 		} else if (!completed) {
 			throw new RuntimeException("Database backup did not complete within 2 hours. Check the backup log on the CAST database server for details.");
 		}
-		_session.addLogMessage("", "Completed", String.format("Time to backup data was %s", DateUtilities.elapsedTime(start)));		
+		_session.addLogMessage("", "Completed", String.format("Time to backup data was %s", DateUtilities.elapsedTime(start)));
 	}
 
 	protected void packageCode(Element castAction) {
@@ -171,10 +184,9 @@ public class CastScan extends RunCommand {
 
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
 		makeBatchFile();
-		_session.addLogMessage("", "CAST Log File", "View packaging and delivery log", "file://" + logFile);
+		_session.addLogMessage("", "CAST Log File", "View Packaging and Delivery Log", "file://" + logFile);
 		long start = System.currentTimeMillis();
 		super.executeAction();
-		//Miscellaneous.sleep(30);
 		_session.addLogMessage("", "Completed", String.format("Time to package was %s", DateUtilities.elapsedTime(start)));
 
 	}
@@ -194,10 +206,9 @@ public class CastScan extends RunCommand {
 
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
 		makeBatchFile();
-		_session.addLogMessage("", "CAST Log File", "View code analysis log", "file://" + logFile);
+		_session.addLogMessage("", "CAST Log File", "View Code Analysis Log", "file://" + logFile);
 		long start = System.currentTimeMillis();
 		super.executeAction();
-		//Miscellaneous.sleep(30);
 		_session.addLogMessage("", "Completed", String.format("Time to analyze code was %s", DateUtilities.elapsedTime(start)));
 	}
 
@@ -223,10 +234,9 @@ public class CastScan extends RunCommand {
 
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
 		makeBatchFile();
-		_session.addLogMessage("", "CAST Log File", "View generate snapshot log", "file://" + logFile);
+		_session.addLogMessage("", "CAST Log File", "View Generate Snapshot Log", "file://" + logFile);
 		long start = System.currentTimeMillis();
 		super.executeAction();
-		//Miscellaneous.sleep(30);
 		_session.addLogMessage("", "Completed", String.format("Time to generate snapshot was %s", DateUtilities.elapsedTime(start)));
 	}
 
@@ -238,9 +248,9 @@ public class CastScan extends RunCommand {
 		// Default to package, backup database, analyze, snapshot
 		Element packageCode = _action.getOwnerDocument().createElement("PackageCode");
 		_action.appendChild(packageCode);
-		
-//		Element backupDatabase = _action.getOwnerDocument().createElement("BackupDatabase");
-//		_action.appendChild(backupDatabase);
+
+		Element backupDatabase = _action.getOwnerDocument().createElement("BackupDatabase");
+		_action.appendChild(backupDatabase);
 
 		Element analyzeCode = _action.getOwnerDocument().createElement("AnalyzeCode");
 		_action.appendChild(analyzeCode);

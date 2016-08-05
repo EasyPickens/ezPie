@@ -29,10 +29,15 @@ public class ExecuteSql extends Action {
 					kvps[i][1] = value;
 				}
 				_session.addTokens(_id, kvps);
+				if (sqlConnection.eof()) {
+				_session.addLogMessage("", "End of Set", "Reached the end of the result set.");
+				} else {
+					_session.addLogMessage("", "*******", "Says it is still good for more data.");
+				}
 			}
 			sqlConnection.close();
 		} catch (Exception ex) {
-			throw new RuntimeException("Error running ExecuteSQL command. " + ex.getMessage(), ex);
+			throw new RuntimeException("Error running ExecuteSql command. " + ex.getMessage(), ex);
 		}
 		return null;
 	}
