@@ -79,7 +79,7 @@ public class CastScan extends RunCommand {
 			switch (nodeName) {
 			case "BackupDatabase":
 				params[0][1] = "Backup Database";
-				SqlUtilities.ExecuteScalar(_connection, "UPDATE fnma_measure8.fnma_apps SET dblog_name = null WHERE pkey = ?", params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_connection, String.format("UPDATE fnma_measure8.scan_manager SET dblog_name = null WHERE pkey = %d",_jobKey), null, _session.updateScanManager());
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				backupDatabase(castAction);
 				break;
