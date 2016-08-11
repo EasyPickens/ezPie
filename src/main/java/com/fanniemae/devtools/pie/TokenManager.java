@@ -81,6 +81,13 @@ public class TokenManager {
 	public String getAttribute(Element ele, String sName) {
 		return resolveTokens(ele.getAttribute(sName));
 	}
+	
+	public String getTokenValue(String tokenType, String tokenKey) {
+		if (_tokens.containsKey(tokenType) && _tokens.get(tokenType).containsKey(tokenKey)) {
+			return _tokens.get(tokenType).get(tokenKey);
+		}
+		return "";
+	}
 
 	public String resolveTokens(String sValue) {
 		return resolveTokens(sValue, null);

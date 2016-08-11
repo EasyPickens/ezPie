@@ -12,10 +12,17 @@ import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.ArrayUtilities;
 import com.fanniemae.devtools.pie.common.DateUtilities;
 import com.fanniemae.devtools.pie.common.FileUtilities;
+import com.fanniemae.devtools.pie.common.Miscellaneous;
 import com.fanniemae.devtools.pie.common.SqlUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-05-30
+ * 
+ */
 public class CastScan extends RunCommand {
 
 	protected String _connectionProfile;
@@ -79,7 +86,7 @@ public class CastScan extends RunCommand {
 			switch (nodeName) {
 			case "BackupDatabase":
 				params[0][1] = "Backup Database";
-				SqlUtilities.ExecuteScalar(_connection, String.format("UPDATE fnma_measure8.scan_manager SET dblog_name = null WHERE pkey = %d",_jobKey), null, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_connection, String.format("UPDATE fnma_measure8.scan_manager SET dblog_name = null WHERE pkey = %d", _jobKey), null, _session.updateScanManager());
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				backupDatabase(castAction);
 				break;
@@ -103,6 +110,11 @@ public class CastScan extends RunCommand {
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				publishResults(castAction);
 				break;
+			case "LinkApplicationSite":
+				params[0][1] = "Link CED Site";
+				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				linkSiteToAAD(castAction);
+				break;
 			default:
 				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastScan does not currently support this processing step.");
 			}
@@ -111,6 +123,9 @@ public class CastScan extends RunCommand {
 	}
 
 	protected void backupDatabase(Element castAction) {
+		if (_session.updateScanManager()) {
+
+		}
 		// Update Status to Backup Database
 		_session.addLogMessage("", "Update Status", "Changing status of job to start backup of database.");
 		Object[][] params = new Object[1][2];
@@ -124,38 +139,30 @@ public class CastScan extends RunCommand {
 		_session.addLogMessage("", "Waiting", "Waiting up to 2 hours for database backup to complete.");
 		long start = System.currentTimeMillis();
 		// Wait for status to change to Backup Complete or Error
-		try {
-			boolean haveDbFilename = false;
-			while (Calendar.getInstance().compareTo(endTime) < 0) {
-				if (!haveDbFilename) {
-					Object logname = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.GetLogFilename~"), params, _session.updateScanManager());
-					if (logname != null) {
-						_session.addLogMessage("", "External Activity Log", "View Database Backup Log", "file://"+(String)logname);
-						haveDbFilename = true;
-					}
+		boolean haveDbFilename = false;
+		while (Calendar.getInstance().compareTo(endTime) < 0) {
+			if (!haveDbFilename) {
+				Object logname = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.GetLogFilename~"), params, _session.updateScanManager());
+				if (logname != null) {
+					_session.addLogMessage("", "External Activity Log", "View Database Backup Log", "file://" + (String) logname);
+					haveDbFilename = true;
 				}
-				Object value = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.CheckStatus~"), params, _session.updateScanManager());
-				if (value != null) {
-					String status = value.toString();
-					if (status.toLowerCase().startsWith("error")) {
-						backupError = true;
-						break;
-					} else if (!status.startsWith("Backup Database")) {
-						completed = true;
-						break;
-					}
-				} else {
+			}
+			Object value = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.CheckStatus~"), params, _session.updateScanManager());
+			if (value != null) {
+				String status = value.toString();
+				if (status.toLowerCase().startsWith("error")) {
+					backupError = true;
+					break;
+				} else if (!status.startsWith("Backup Database")) {
+					completed = true;
 					break;
 				}
-				Thread.sleep(15000); // sleep for 15 seconds.
+			} else {
+				break;
 			}
-		} catch (InterruptedException e) {
-			throw new RuntimeException("Database polling thread interrupted.", e);
+			Miscellaneous.sleep(15); // sleep for 15 seconds.
 		}
-//		Object logname = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.GetLogFilename~"), params, _session.updateScanManager());
-//		if (logname != null) {
-//			_session.addLogMessage("", "External Log", "View Database Backup Log", "file://"+(String)logname);
-//		}
 		if (backupError) {
 			throw new RuntimeException("Database backup failed. Check the error log on the CAST database server for details.");
 		} else if (!completed) {
@@ -182,13 +189,7 @@ public class CastScan extends RunCommand {
 		_timeout = 0;
 		_waitForExit = true;
 
-		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
-		makeBatchFile();
-		_session.addLogMessage("", "CAST Log File", "View Packaging and Delivery Log", "file://" + logFile);
-		long start = System.currentTimeMillis();
-		super.executeAction();
-		_session.addLogMessage("", "Completed", String.format("Time to package was %s", DateUtilities.elapsedTime(start)));
-
+		executeCastAction("View Code Packaging Log", "%s to package source code.", logFile);
 	}
 
 	protected void analyzeCode(Element castAction) {
@@ -204,12 +205,7 @@ public class CastScan extends RunCommand {
 		_timeout = 0;
 		_waitForExit = true;
 
-		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
-		makeBatchFile();
-		_session.addLogMessage("", "CAST Log File", "View Code Analysis Log", "file://" + logFile);
-		long start = System.currentTimeMillis();
-		super.executeAction();
-		_session.addLogMessage("", "Completed", String.format("Time to analyze code was %s", DateUtilities.elapsedTime(start)));
+		executeCastAction("View Code Analysis Log", "%s to analyze code.", logFile);
 	}
 
 	protected void generateSnapshot(Element castAction) {
@@ -232,20 +228,70 @@ public class CastScan extends RunCommand {
 		_timeout = 0;
 		_waitForExit = true;
 
-		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
-		makeBatchFile();
-		_session.addLogMessage("", "CAST Log File", "View Generate Snapshot Log", "file://" + logFile);
-		long start = System.currentTimeMillis();
-		super.executeAction();
-		_session.addLogMessage("", "Completed", String.format("Time to generate snapshot was %s", DateUtilities.elapsedTime(start)));
+		executeCastAction("View Snapshot Log", "%s to generate anaysis snapshot.", logFile);
 	}
 
 	protected void publishResults(Element castAction) {
-		throw new RuntimeException("CAST PublishResults action not available in this version.");
+		String logFile = optionalAttribute(castAction, "LogFile", FileUtilities.getRandomFilename(_session.getLogPath(), "txt"));
+		String dbDriver = optionalAttribute(castAction, "DbDriver", _session.getRequiredTokenValue("CAST", "DbDriver"));
+		String dbUrl = optionalAttribute(castAction, "DbUrl", _session.getRequiredTokenValue("CAST", "DbUrl"));
+		String dbSchema = optionalAttribute(castAction, "DbSchema", _session.getRequiredTokenValue("CAST", "DbSchema"));
+		String dbUser = optionalAttribute(castAction, "DbUser", _session.getRequiredTokenValue("CAST", "DbUser"));
+		String dbPassword = optionalAttribute(castAction, "DbPassword", _session.getRequiredTokenValue("CAST", "DbPassword"));
+
+		//@formatter:off
+		_arguments = new String[] { "AadConsolidation.exe", 
+		                            "-driver", StringUtilities.wrapValue(dbDriver), 
+		                            "-url", StringUtilities.wrapValue(dbUrl), 
+		                            "-schema", StringUtilities.wrapValue(dbSchema), 
+		                            "-user", StringUtilities.wrapValue(dbUser), 
+		                            "-password", StringUtilities.wrapValue(dbPassword), 
+		                            "-remote_url", StringUtilities.wrapValue(dbUrl), 
+		                            "-remote_schema", StringUtilities.wrapValue(dbSchema),
+		                            "-remote_user", StringUtilities.wrapValue(dbUser), 
+		                            "-remote_password", StringUtilities.wrapValue(dbPassword),
+		                            "-synchronize_indicators", 
+		                            "-log_file", StringUtilities.wrapValue(logFile) };		
+		
+		//@formatter:on
+		_workDirectory = FileUtilities.addDirectory(_castFolder, "\\AAD\\CLI\\");
+		_timeout = 0;
+		_waitForExit = true;
+
+		executeCastAction("View AAD Publish Log", "%s to publish results into AAD.", logFile);
+	}
+
+	protected void linkSiteToAAD(Element castAction) {
+		String logFile = optionalAttribute(castAction, "LogFile", FileUtilities.getRandomFilename(_session.getLogPath(), "txt"));
+		String dbDriver = optionalAttribute(castAction, "DbDriver", _session.getRequiredTokenValue("CAST", "DbDriver"));
+		String dbUrl = optionalAttribute(castAction, "DbUrl", _session.getRequiredTokenValue("CAST", "DbUrl"));
+		String dbSchema = optionalAttribute(castAction, "DbSchema", _session.getRequiredTokenValue("CAST", "DbSchema"));
+		String dbUser = optionalAttribute(castAction, "DbUser", _session.getRequiredTokenValue("CAST", "DbUser"));
+		String dbPassword = optionalAttribute(castAction, "DbPassword", _session.getRequiredTokenValue("CAST", "DbPassword"));
+		String siteName = optionalAttribute(castAction, "SiteName", _session.getRequiredTokenValue("LocalData", "dbprefix") + "_central.operator");
+		String siteUrl = optionalAttribute(castAction, "SiteUrl", _session.getRequiredTokenValue("LocalData", "ced_url"));
+
+		//@formatter:off
+		_arguments = new String[] { "AadSite.exe", 
+		                            "-driver", StringUtilities.wrapValue(dbDriver), 
+		                            "-url", StringUtilities.wrapValue(dbUrl), 
+		                            "-schema", StringUtilities.wrapValue(dbSchema), 
+		                            "-user", StringUtilities.wrapValue(dbUser), 
+		                            "-password", StringUtilities.wrapValue(dbPassword),
+		                            "-site_name", StringUtilities.wrapValue(siteName),
+		                            "-site_url", StringUtilities.wrapValue(siteUrl),
+		                            "-log_file", StringUtilities.wrapValue(logFile) };		
+		
+		//@formatter:on
+		_workDirectory = FileUtilities.addDirectory(_castFolder, "\\AAD\\CLI\\");
+		_timeout = 0;
+		_waitForExit = true;
+
+		executeCastAction("View Site Link Log", "%s to link the AAD and CED sites.", logFile);
 	}
 
 	protected void defaultRescanPattern() {
-		// Default to package, backup database, analyze, snapshot
+		// Default to package, backup database, analyze, snapshot, publish, linkSite
 		Element packageCode = _action.getOwnerDocument().createElement("PackageCode");
 		_action.appendChild(packageCode);
 
@@ -257,5 +303,23 @@ public class CastScan extends RunCommand {
 
 		Element generateSnapshot = _action.getOwnerDocument().createElement("GenerateSnapshot");
 		_action.appendChild(generateSnapshot);
+
+		// Leaving these steps out of automatic for now. UI provides button to publish information to AAD.
+		// Element publishResults = _action.getOwnerDocument().createElement("PublishResults");
+		// _action.appendChild(publishResults);
+		//
+		// Element linkApplicationSite = _action.getOwnerDocument().createElement("LinkApplicationSite");
+		// _action.appendChild(linkApplicationSite);
+	}
+
+	protected void executeCastAction(String viewLinkLabel, String timeLabel, String logFilename) {
+		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
+		makeBatchFile();
+		_session.addLogMessage("", "CAST Log File", viewLinkLabel, "file://" + logFilename);
+		long start = System.currentTimeMillis();
+		super.executeAction();
+		// Uncomment sleep and comment out executeAction when doing local testing.
+		// Miscellaneous.sleep(10);
+		_session.addLogMessage("", "Completed", String.format(timeLabel, DateUtilities.elapsedTime(start)));
 	}
 }

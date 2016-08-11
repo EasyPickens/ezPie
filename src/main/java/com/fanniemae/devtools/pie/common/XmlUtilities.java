@@ -164,7 +164,7 @@ public class XmlUtilities {
 		ArrayList<String> breadCrumbs = new ArrayList<String>();
 		return loadXmlDefinition(filename, null, breadCrumbs);
 	}
-	
+
 	public static Document loadXmlFile(String filename) {
 		return loadXmlDocument(filename);
 	}
@@ -195,7 +195,7 @@ public class XmlUtilities {
 			List<Element[]> elementsToInsert = new ArrayList<>();
 			for (int i = 0; i < length; i++) {
 				@SuppressWarnings("unchecked")
-				ArrayList<String> loopCrumbs = (ArrayList<String>)breadCrumbs.clone();
+				ArrayList<String> loopCrumbs = (ArrayList<String>) breadCrumbs.clone();
 				Element ele = (Element) nl.item(i);
 				String definitionName = ele.getAttribute("DefinitionName");
 				String definitionFilename = definitionName;
@@ -245,7 +245,7 @@ public class XmlUtilities {
 				}
 			}
 			if (elementsToInsert.size() > 0) {
-				//Insert referenced elements
+				// Insert referenced elements
 				int insertsToDo = elementsToInsert.size();
 				for (int i = 0; i < insertsToDo; i++) {
 					Element parent = elementsToInsert.get(i)[0];
@@ -256,17 +256,16 @@ public class XmlUtilities {
 				// Remove ImportSharedElements
 				removeElements(xDoc, "//ImportSharedElement");
 				// Remove left over empty text nodes
-				removeWhitespace(xDoc);
 			}
 		}
-
+		removeWhitespace(xDoc);
 		return xDoc;
 	}
 
 	public static void removeRemarkedElements(Element ele) {
-		removeElements(ele.getOwnerDocument(),"//Remark");
+		removeElements(ele.getOwnerDocument(), "//Remark");
 	}
-	
+
 	protected static void removeElements(Document doc, String xpath) {
 		Node emptyTextNode = XmlUtilities.selectSingleNode(doc, xpath);
 		while (emptyTextNode != null) {
@@ -285,5 +284,5 @@ public class XmlUtilities {
 		File f = new File(filename);
 		return f.exists() && f.isFile();
 	}
-	
+
 }

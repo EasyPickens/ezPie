@@ -21,6 +21,8 @@ public abstract class FileSystemAction extends Action {
 	protected String _destination;
 	protected String _includeFilter = null;
 	protected String _excludeFilter = null;
+	
+	protected String _countMessage = ""; 
 
 	protected boolean _shallow = false;
 	protected boolean _skipHidden = false;
@@ -105,7 +107,8 @@ public abstract class FileSystemAction extends Action {
 		if (FileUtilities.isValidDirectory(_source)) {
 			postprocessDirectory(_source);
 		}
-		_session.addLogMessage("", String.format("%s Complete", _actionName), String.format("%,d files (%,d bytes)", _filesProcessed, _totalBytes));
+		//_session.addLogMessage("", String.format("%s Complete", _actionName), String.format("%,d files (%,d bytes)", _filesProcessed, _totalBytes));
+		_session.addLogMessage("", "Count", String.format("%,d files (%,d bytes) %s", _filesProcessed, _totalBytes, _countMessage));
 		return null;
 	}
 	

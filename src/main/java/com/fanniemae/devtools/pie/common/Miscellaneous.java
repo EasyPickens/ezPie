@@ -35,6 +35,7 @@ public class Miscellaneous {
 		try {
 			Thread.sleep(seconds * 1000);
 		} catch (Exception ex) {
+			throw new RuntimeException("Thread sleep interval interrupted. "+ex.getMessage(), ex);
 		}
 	}
 }

@@ -14,6 +14,7 @@ public class Delete extends FileSystemAction {
 	public Delete(SessionManager session, Element action) {
 		super(session, action);
 		_source = requiredAttribute("Path", String.format("%s action requires a Path to a directory or file.", _actionName));
+		_countMessage = "deleted";
 	}
 
 	@Override

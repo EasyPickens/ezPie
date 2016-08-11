@@ -30,6 +30,7 @@ public class Move extends Copy {
 	public Move(SessionManager session, Element action) {
 		super(session, action);
 		_copyOptions = new CopyOption[] { StandardCopyOption.REPLACE_EXISTING };
+		_countMessage = "moved";
 	}
 
 	@Override

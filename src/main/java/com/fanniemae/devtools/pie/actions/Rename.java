@@ -10,6 +10,7 @@ public class Rename extends Copy {
 
 	public Rename(SessionManager session, Element action) {
 		super(session, action);
+		_countMessage = "renamed";
 	}
 
 	@Override

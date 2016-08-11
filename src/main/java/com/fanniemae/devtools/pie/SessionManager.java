@@ -109,7 +109,8 @@ public class SessionManager {
 		}
 		
 		_connScanManager = getConnection("JavaScanManager");
-		if (_connScanManager != null) {
+		String jobKey = getTokenValue("Local","JobKey");
+		if ((_connScanManager != null) && StringUtilities.isNotNullOrEmpty(jobKey)) {
 			_updateScanManager = true;
 //			String key = resolveTokens("@Local.JobKey~");
 //			if (StringUtilities.isNullOrEmpty(key))
@@ -242,7 +243,19 @@ public class SessionManager {
 	public String getFilenameHash(String value) {
 		return String.format("%1$s%2$s%3$s%4$s.dat", _appPath, "_DataCache", _pathSeparator, CryptoUtilities.hashValue(value));
 	}
+	
+	public String getRequiredTokenValue(String tokenType, String tokenKey) {
+		String value = getTokenValue(tokenType, tokenKey);
+		if (StringUtilities.isNullOrEmpty(value)) {
+			throw new RuntimeException(String.format("No value is defined for the @%s,%s~ token.", tokenType, tokenKey));
+		}
+		return value;
+	}
 
+	public String getTokenValue(String tokenType, String tokenKey) {
+		return _tokenizer.getTokenValue(tokenType, tokenKey);
+	}
+	
 	public String resolveTokens(String value) {
 		return _tokenizer.resolveTokens(value, null);
 	}

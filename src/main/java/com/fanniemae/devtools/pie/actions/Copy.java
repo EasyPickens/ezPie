@@ -34,6 +34,7 @@ public class Copy extends FileSystemAction {
 
 		_source = requiredAttribute("Source", String.format("%s action requires a source directory or file.", _actionName));
 		_destination = requiredAttribute("Destination", String.format("%s action requires a destination value.", _actionName));
+		_countMessage = "copied";
 	}
 
 	@Override

@@ -32,6 +32,7 @@ public class RunCommand extends Action {
 	protected String[] _arguments;
 
 	protected Boolean _waitForExit = true;
+	protected Boolean _hideConsoleOutput = false;
 
 	protected int _timeout = 0;
 	protected int[] _exitCodes = new int[] { 0 };
@@ -48,23 +49,21 @@ public class RunCommand extends Action {
 		if (!action.getNodeName().equals("RunCommand"))
 			return;
 
+		_hideConsoleOutput = StringUtilities.toBoolean(optionalAttribute("HideConsoleOutput", null), false);
 		_workDirectory = requiredAttribute("WorkDirectory");
-		_commandLine = requiredAttribute("CommandLine");
+		
+		_commandLine = _session.getAttribute(_action, "CommandLine");
+		if (StringUtilities.isNullOrEmpty(_commandLine)) {
+			throw new RuntimeException("Missing a value for CommandLine on the RunCommand element.");
+		}
+		_session.addLogMessage("", "CommandLine", (_hideConsoleOutput) ? "-- Hidden --" : _commandLine);
+		
 		String waitForExit = optionalAttribute("WaitForExit", null);
 		String timeout = optionalAttribute("Timeout", null);
 		Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
 
-		// _workDirectory = workDirectory;
-		// _commandLine = cmdLine;
 		_waitForExit = StringUtilities.toBoolean(waitForExit, true);
 		_timeout = parseTimeout(timeout);
-
-		// _session.addLogMessage("", "Work Directory", _workDirectory);
-		// _session.addLogMessage("", "Command Line", _commandLine);
-		// if (StringUtilities.isNotNullOrEmpty(waitForExit))
-		// _session.addLogMessage("", "Wait For Exit", _waitForExit.toString());
-		// if (StringUtilities.isNotNullOrEmpty(timeout))
-		// _session.addLogMessage("", "Timeout Value", String.format("%,d seconds", _timeout));
 
 		_arguments = parseCommandLine(_commandLine);
 		if (makeBatchFile) {
@@ -106,7 +105,11 @@ public class RunCommand extends Action {
 
 				bw.flush();
 				bw.close();
-				_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
+				if (_hideConsoleOutput) {
+					_session.addLogMessage("", "Console Output", "-- Hidden --");
+				} else {
+					_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
+				}
 			} catch (InterruptedException ex) {
 				_session.addErrorMessage(ex);
 				throw new RuntimeException("Error while running external command.", ex);
@@ -124,7 +127,7 @@ public class RunCommand extends Action {
 		} catch (IOException ex) {
 			throw new RuntimeException("Error while running external command.", ex);
 		}
-		_session.addLogMessage("", "Command", "Completed");
+		// _session.addLogMessage("", "Command", "Completed");
 		return null;
 	}
 
