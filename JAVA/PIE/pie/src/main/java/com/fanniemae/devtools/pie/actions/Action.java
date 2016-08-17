@@ -47,7 +47,9 @@ public abstract class Action {
 			throw new RuntimeException(String.format("%s is missing a required ID value.", _action.getNodeName()));
 		}
 
+		if (!"LogComment".equals(_actionName)) {
 		_session.addLogMessage(_actionName, "Process", String.format("Processing %s action (started: %s)", _actionName, _sdf.format(new Date())));
+		}
 		_start = System.currentTimeMillis();
 		if (StringUtilities.isNotNullOrEmpty(_id)) {
 			_session.addLogMessage("", "ID", _id);
@@ -56,7 +58,9 @@ public abstract class Action {
 	
 	public String execute() {
 		String result = executeAction();
+		if (!"LogComment".equals(_actionName)) {
 		_session.addLogMessage("", String.format("%s Completed", _actionName), String.format("Elapsed time: %s", DateUtilities.elapsedTime(_start)));
+		}
 		return result;
 	}
 

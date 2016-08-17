@@ -13,6 +13,7 @@ import com.fanniemae.devtools.pie.actions.ExecuteSql;
 import com.fanniemae.devtools.pie.actions.ExportDelimited;
 import com.fanniemae.devtools.pie.actions.Git;
 import com.fanniemae.devtools.pie.actions.HighlightScan;
+import com.fanniemae.devtools.pie.actions.IfElement;
 import com.fanniemae.devtools.pie.actions.LogComment;
 import com.fanniemae.devtools.pie.actions.MakeDirectory;
 import com.fanniemae.devtools.pie.actions.Maven;
@@ -44,20 +45,29 @@ public class JobManager {
 	public JobManager(String settingsFilename, String jobFilename) {
 		_session = new SessionManager(settingsFilename, jobFilename);
 	}
-	
+
 	public String getLogFilename() {
 		return _session.getLogFilename();
 	}
-	
+
 	public SessionManager getSession() {
 		return _session;
 	}
 
 	public String runJob() {
+		NodeList nlActions = XmlUtilities.selectNodes(_session.getJobDefinition(), "*");
+		String result = processActions(nlActions);
+		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
+		return result;
+	}
+
+	public String processActions(NodeList nlActions) {
+		int iLen = nlActions.getLength();
+		if (iLen == 0)
+			return "";
+
 		Action act = null;
 		try {
-			NodeList nlActions = XmlUtilities.selectNodes(_session.getJobDefinition(), "*");
-			int iLen = nlActions.getLength();
 			for (int i = 0; i < iLen; i++) {
 				Element eleOperation = (Element) nlActions.item(i);
 				switch (eleOperation.getNodeName()) {
@@ -89,7 +99,7 @@ public class JobManager {
 				case "SvnCheckout":
 					act = new Svn(_session, eleOperation);
 					break;
-				case "Directory" :
+				case "Directory":
 					act = new Directory(_session, eleOperation);
 					break;
 				case "WebClient":
@@ -101,13 +111,13 @@ public class JobManager {
 					break;
 				case "ComponentScan":
 					act = new ComponentScan(_session, eleOperation);
-					break;					
+					break;
 				case "Git":
 					act = new Git(_session, eleOperation);
 					break;
 				case "Svn":
 					act = new Svn(_session, eleOperation);
-					break;					
+					break;
 				case "Maven":
 					act = new Maven(_session, eleOperation);
 					break;
@@ -119,7 +129,7 @@ public class JobManager {
 					break;
 				case "Delete":
 					act = new Delete(_session, eleOperation);
-					break;					
+					break;
 				case "Rename":
 					act = new Rename(_session, eleOperation);
 					break;
@@ -144,6 +154,14 @@ public class JobManager {
 				case "UpdateStatus":
 					act = new UpdateStatus(_session, eleOperation);
 					break;
+				case "If":
+					act = new IfElement(_session, eleOperation);
+					IfElement condition = (IfElement) act;
+					if (condition.evalToBoolean()) {
+						NodeList nlSubActions = XmlUtilities.selectNodes(eleOperation, "*");
+						processActions(nlSubActions);
+					}
+					break;
 				default:
 					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}
@@ -151,12 +169,11 @@ public class JobManager {
 					act.execute();
 				}
 			}
-			_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.",DateUtilities.getCurrentDateTimePretty()));
 			return "";
 		} catch (Exception ex) {
 			_session.addErrorMessage(ex);
 			throw ex;
 		}
 	}
-	
+
 }

@@ -222,6 +222,7 @@ public class CastScan extends RunCommand {
 				                    "-version", StringUtilities.wrapValue(_version), 
 				                    "-snapshot", StringUtilities.wrapValue(snapshotName),
 				                    "-captureDate", StringUtilities.wrapValue(captureDate),
+				                    "-ignoreEmptyModule", "TRUE",
 				                    "-logFilePath", StringUtilities.wrapValue(logFile) };
 		//@formatter:on
 		_workDirectory = _castFolder;

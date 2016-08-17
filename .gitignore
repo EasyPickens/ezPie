@@ -30,3 +30,4 @@ _ReSharper*/
 target/
 .metadata/
 .settings/
+.recommenders/
