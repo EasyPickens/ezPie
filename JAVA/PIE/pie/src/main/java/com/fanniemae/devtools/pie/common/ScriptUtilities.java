@@ -12,7 +12,7 @@ public class ScriptUtilities {
 		Object x = false;
 		try {
 			ScriptEngineManager manager = new ScriptEngineManager();
-			ScriptEngine engine = manager.getEngineByName("JavaScript"); //nashorn");
+			ScriptEngine engine = manager.getEngineByName("nashorn"); //("JavaScript"); //nashorn");
 
 			// evaluate JavaScript code
 			x = engine.eval(expression);

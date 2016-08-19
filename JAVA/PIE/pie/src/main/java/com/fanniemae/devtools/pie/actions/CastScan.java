@@ -57,6 +57,9 @@ public class CastScan extends RunCommand {
 
 		if (_session.updateScanManager()) {
 			_connection = _session.getConnection("JavaScanManager");
+			if (_connection == null) {
+				throw new RuntimeException("Missing JavaScanManager connection element.");
+			}
 			String key = _session.resolveTokens("@Local.JobKey~");
 			if (StringUtilities.isNullOrEmpty(key))
 				throw new RuntimeException("Missing job primary key required to update ScanManager status.");
@@ -223,6 +226,7 @@ public class CastScan extends RunCommand {
 				                    "-snapshot", StringUtilities.wrapValue(snapshotName),
 				                    "-captureDate", StringUtilities.wrapValue(captureDate),
 				                    "-ignoreEmptyModule", "TRUE",
+				                    "-consolidateMeasures", "FALSE",
 				                    "-logFilePath", StringUtilities.wrapValue(logFile) };
 		//@formatter:on
 		_workDirectory = _castFolder;

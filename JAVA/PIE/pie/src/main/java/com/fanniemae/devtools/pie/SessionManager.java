@@ -109,14 +109,16 @@ public class SessionManager {
 		}
 		
 		_connScanManager = getConnection("JavaScanManager");
-		String jobKey = getTokenValue("Local","JobKey");
-		if ((_connScanManager != null) && StringUtilities.isNotNullOrEmpty(jobKey)) {
-			_updateScanManager = true;
-//			String key = resolveTokens("@Local.JobKey~");
-//			if (StringUtilities.isNullOrEmpty(key))
-//				throw new RuntimeException("Missing job primary key required to update ScanManager status.");
-//			_jobKey = StringUtilities.toInteger(key, -1);
-		}
+		_updateScanManager = StringUtilities.toBoolean(getTokenValue("Configuration", "UpdateScanManager"),false);
+			
+//		String jobKey = getTokenValue("Local","JobKey");
+//		if ((_connScanManager != null) && StringUtilities.isNotNullOrEmpty(jobKey)) {
+//			_updateScanManager = true;
+////			String key = resolveTokens("@Local.JobKey~");
+////			if (StringUtilities.isNullOrEmpty(key))
+////				throw new RuntimeException("Missing job primary key required to update ScanManager status.");
+////			_jobKey = StringUtilities.toInteger(key, -1);
+//		}
 	}
 
 	public TokenManager getTokenizer() {
@@ -235,8 +237,9 @@ public class SessionManager {
 			return null;
 
 		Node nodeConnection = XmlUtilities.selectSingleNode(_settings, String.format("..//Connections/Connection[@ID='%s']", connectionID));
-		if (nodeConnection == null)
-			return null;
+		if (nodeConnection == null) {
+			throw new RuntimeException(String.format("Requested connection %s was not found in the settings file.", connectionID));
+		}
 		return (Element) nodeConnection;
 	}
 

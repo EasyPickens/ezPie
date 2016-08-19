@@ -42,6 +42,9 @@ public class DataProvider {
 	protected int _CommandTimeout = 60;
 
 	public DataProvider(Element eleConnection) {
+		if (eleConnection == null) {
+			throw new RuntimeException("No connection element provided.");
+		}
 		_connection = eleConnection;
 
 		_sqlDialect = eleConnection.getAttribute("Dialect");

@@ -178,15 +178,19 @@ public class FileUtilities {
 	}
 
 	public static String writeRandomFile(String path, String extension, String contents) {
-		String sFilename = getRandomFilename(path, extension);
-		try (FileWriter fw = new FileWriter(sFilename); BufferedWriter bw = new BufferedWriter(fw);) {
+		String filename = getRandomFilename(path, extension);
+		return writeFile(filename, contents);
+	}
+	
+	public static String writeFile(String filename, String contents) {
+		try (FileWriter fw = new FileWriter(filename); BufferedWriter bw = new BufferedWriter(fw);) {
 			bw.write(contents);
 			bw.close();
 			fw.close();
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error while trying to write text file to %s", path), e);
+			throw new RuntimeException(String.format("Error while trying to write file to %s", filename), e);
 		}
-		return sFilename;
+		return filename;
 	}
 	
 	public static String combine(String path, String filename) {

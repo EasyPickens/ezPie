@@ -23,7 +23,7 @@ public class IfElement extends Action {
 
 	@Override
 	public String executeAction() {
-		// Element is a control statement.
+		// Element is used to control definition branching, no actual action.
 		return "";
 	}
 

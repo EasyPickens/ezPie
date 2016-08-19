@@ -113,4 +113,12 @@ public abstract class Action {
 		_session.addLogMessage("", attributeName, value);
 		return value;
 	}
+	
+	protected boolean isNotNullOrEmpty(String value) {
+		return !isNullOrEmpty(value);
+	}
+	
+	protected boolean isNullOrEmpty(String value) {
+		return StringUtilities.isNullOrEmpty(value);
+	}
 }

@@ -50,6 +50,11 @@ public class XmlUtilities {
 		}
 	}
 
+	public static void SaveXmlDocument(String filename, Document xmlDoc) {
+		String xmlString = XMLDocumentToString(xmlDoc);
+		FileUtilities.writeFile(filename, xmlString);
+	}
+
 	public static String XMLDocumentToString(Document doc) {
 		try {
 			StringWriter sw = new StringWriter();
