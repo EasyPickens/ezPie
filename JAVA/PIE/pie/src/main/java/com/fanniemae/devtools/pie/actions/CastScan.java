@@ -84,7 +84,7 @@ public class CastScan extends RunCommand {
 		for (int i = 0; i < length; i++) {
 			Element castAction = (Element) (castActions.item(i));
 			String nodeName = castAction.getNodeName();
-			_session.addLogMessage(nodeName, String.format("%s Step", _actionName), String.format("Starting the %s step of %s", nodeName, _actionName));
+			_session.addLogMessage(nodeName, String.format("%s Step", _actionName), String.format("Starting the %s step of %s (started: %s)", nodeName, _actionName, _sdf.format(new Date())));
 			params[1][1] = String.format("Started: %s", sdf.format(new Date()));
 			switch (nodeName) {
 			case "BackupDatabase":

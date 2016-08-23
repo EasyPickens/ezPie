@@ -76,18 +76,22 @@ public class SessionManager {
 		} else {
 			_logFilename = FileUtilities.getRandomFilename(_logPath, "html");
 		}
+
+		// Create Debug page.
+		_logger = new LogManager(_templatePath, _logFilename);
 		
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _definitionPath + jobFilename;
 			if (FileUtilities.isValidFile(sAdjustedDefinitionFilename))
 				jobFilename = sAdjustedDefinitionFilename;
-			else
-				throw new RuntimeException(String.format("Definition file %s not found.", jobFilename));
+			else {
+				RuntimeException exRun = new RuntimeException(String.format("Definition file %s not found.", jobFilename));
+				_logger.addErrorMessage(exRun);
+				throw exRun;
+			}
 		}
 		_jobFilename = jobFilename;
 
-		// Create Debug page.
-		_logger = new LogManager(_templatePath, _logFilename);
 		try {
 			_logger.addFileDetails(_jobFilename, "Definition Details");
 			_logger.addMessage("Setup Token Dictionary", "Load Tokens", "Read value from settings file.");
