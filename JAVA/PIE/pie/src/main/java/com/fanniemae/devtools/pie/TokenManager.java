@@ -25,7 +25,11 @@ public class TokenManager {
 	protected HashMap<String, HashMap<String, String>> _tokens = new HashMap<String, HashMap<String, String>>();
 	protected LogManager _logger;
 	protected Date _startDateTime = new Date();
-	
+
+	protected enum LogVisibility {
+		NONE, TOKEN_NAME, FULL
+	};
+
 	public TokenManager(Element eleSettings, LogManager logger) {
 		_logger = logger;
 		NodeList nl = eleSettings.getChildNodes();
@@ -38,17 +42,8 @@ public class TokenManager {
 			case "Configuration":
 				loadTokenValues("Configuration", nl.item(i));
 				break;
-			case "Constants":
-				loadTokenValues("Constants", nl.item(i));
-				break;
-			case "CAST":
-				loadTokenValues("CAST", nl.item(i));
-				break;
-			case "Git":
-				loadTokenValues("Git", nl.item(i));
-				break;
-			case "SelfServiceScan":
-				loadSelfServiceScanTokens("ScanManager", nl.item(i));
+			case "Tokens":
+				loadTokenValues(nl.item(i));
 				break;
 			}
 		}
@@ -61,8 +56,10 @@ public class TokenManager {
 
 		aTokenValues.put(key, value);
 		_tokens.put(tokenType, aTokenValues);
-		if (key.toLowerCase().equals("password"))
+		if (hideIt(key)) {
+			_logger.addMessage("", "Token Added", String.format("@%s.%s~ = *****", tokenType, key, value));
 			return;
+		}
 		_logger.addMessage("", "Token Added", String.format("@%s.%s~ = %s", tokenType, key, value));
 	}
 
@@ -81,7 +78,7 @@ public class TokenManager {
 	public String getAttribute(Element ele, String sName) {
 		return resolveTokens(ele.getAttribute(sName));
 	}
-	
+
 	public String getTokenValue(String tokenType, String tokenKey) {
 		if (_tokens.containsKey(tokenType) && _tokens.get(tokenType).containsKey(tokenKey)) {
 			return _tokens.get(tokenType).get(tokenKey);
@@ -135,7 +132,7 @@ public class TokenManager {
 				case "StartDateTimeString":
 					SimpleDateFormat sdfStart = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 					value = value.replace(sFullToken, sdfStart.format(_startDateTime));
-					break;					
+					break;
 				}
 			} else if (_tokens.containsKey(sGroup) && _tokens.get(sGroup).containsKey(sKey)) {
 				value = value.replace(sFullToken, _tokens.get(sGroup).get(sKey));
@@ -163,7 +160,11 @@ public class TokenManager {
 			String name = kvps[i][0];
 			String value = kvps[i][1];
 			tokenKeyValues.put(name, value);
-			sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
+			if (hideIt(name)) {
+				sb.append(String.format("@%s.%s~", tokenType, name, value));
+			} else {
+				sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
+			}
 		}
 		_tokens.put(tokenType, tokenKeyValues);
 		_logger.addMessage("", length == 1 ? "Token Added" : "Tokens Added", sb.toString());
@@ -179,12 +180,18 @@ public class TokenManager {
 		if (nodeCount == 0)
 			return;
 
-		int added = 0;
+		LogVisibility defaultVisibility = HideStatus(((Element) tokenNode).getAttribute("Hide"), LogVisibility.FULL);
+		int linesAdded = 0;
+		int tokensAdded = 0;
 		Boolean addNewLine = false;
 		StringBuilder sb = new StringBuilder();
 
 		for (int i = 0; i < nodeCount; i++) {
 			String tokenType = nl.item(i).getNodeName();
+			if ("|configuration|system|environment|application|".indexOf(tokenType.toLowerCase()) != -1) {
+				throw new RuntimeException(String.format("%s is one of the reserved token types.  Please rename your token type.",tokenType));
+			}
+			LogVisibility showLevel = HideStatus(((Element) nl.item(i)).getAttribute("Hide"), defaultVisibility);
 			NamedNodeMap attributes = nl.item(i).getAttributes();
 			int attrCount = attributes.getLength();
 			if (attrCount == 0)
@@ -196,16 +203,32 @@ public class TokenManager {
 				String name = xA.getNodeName();
 				String value = xA.getNodeValue();
 
+				if ("Hide".equals(name))
+					continue;
+
 				tokenKeyValues.put(name, value);
+				tokensAdded++;
+				if (showLevel == LogVisibility.NONE)
+					continue;
+
 				if (addNewLine)
 					sb.append("\n");
-				sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
-				added++;
+
+				if (hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
+					sb.append(String.format("@%s.%s~", tokenType, name));
+				} else {
+					sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
+				}
+				linesAdded++;
 				addNewLine = true;
 			}
 			_tokens.put(tokenType, tokenKeyValues);
 		}
-		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
+		if ((tokensAdded > 0) && (linesAdded == 0)) {
+			_logger.addMessage("", tokensAdded == 1 ? "Token Added" : "Tokens Added", String.format("%,d tokens added", tokensAdded));
+		} else {
+			_logger.addMessage("", linesAdded == 1 ? "Token Added" : "Tokens Added", sb.toString());
+		}
 	}
 
 	protected void loadTokenValues(String tokenType, Node node) {
@@ -216,9 +239,11 @@ public class TokenManager {
 			tokenKeyValues = new HashMap<String, String>();
 		}
 
+		LogVisibility visibility = HideStatus(((Element) node).getAttribute("Hide"), LogVisibility.FULL);
 		NamedNodeMap attributes = node.getAttributes();
 
-		int added = 0;
+		int linesAdded = 0;
+		int tokensAdded = 0;
 		int length = attributes.getLength();
 		Boolean addNewLine = false;
 		StringBuilder sb = new StringBuilder();
@@ -227,61 +252,54 @@ public class TokenManager {
 			Node xA = attributes.item(i);
 			String name = xA.getNodeName();
 			String value = xA.getNodeValue();
-			if ("id".equals(name.toLowerCase()) || "password".equals(name.toLowerCase())) {
+
+			if ("Hide".equalsIgnoreCase(name))
 				continue;
-			}
+
 			tokenKeyValues.put(name, value);
+			tokensAdded++;
+			if (visibility == LogVisibility.NONE)
+				continue;
+
 			if (addNewLine)
 				sb.append("\n");
-			sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
-			added++;
+			if (hideIt(name) && (visibility == LogVisibility.TOKEN_NAME)) {
+				sb.append(String.format("@%s.%s~", tokenType, name));
+			} else {
+				sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
+			}
+			linesAdded++;
 			addNewLine = true;
 		}
 		_tokens.put(tokenType, tokenKeyValues);
-		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
+		if (linesAdded == 0) {
+			_logger.addMessage("", linesAdded == 1 ? "Token Added" : "Tokens Added", String.format("%,d tokens added", tokensAdded));
+		} else {
+			_logger.addMessage("", linesAdded == 1 ? "Token Added" : "Tokens Added", sb.toString());
+		}
 	}
 
-	protected void loadSelfServiceScanTokens(String tokenType, Node node) {
-		if ((node == null) || !node.hasChildNodes())
-			return;
+	protected boolean hideIt(String value) {
+		if (value == null)
+			return false;
 
-		NodeList queries = XmlUtilities.selectNodes(node, "*");
-		int length = queries.getLength();
+		value = value.toLowerCase();
+		if (value.startsWith("password") || value.endsWith("password") || value.contains("password"))
+			return true;
+		else if (value.startsWith("user") || value.endsWith("user") || value.contains("user"))
+			return true;
+		return false;
+	}
 
-		if (length == 0)
-			return;
+	protected LogVisibility HideStatus(String value, LogVisibility defaultVisibility) {
+		if (StringUtilities.isNullOrEmpty(value))
+			return defaultVisibility;
 
-		HashMap<String, String> tokenKeyValues;
-		if (_tokens.containsKey(tokenType)) {
-			tokenKeyValues = _tokens.get(tokenType);
-		} else {
-			tokenKeyValues = new HashMap<String, String>();
-		}
+		if ("value".equalsIgnoreCase(value) || "values".equalsIgnoreCase(value))
+			return LogVisibility.TOKEN_NAME;
+		else if ("token".equalsIgnoreCase(value) || "tokens".equalsIgnoreCase(value))
+			return LogVisibility.NONE;
 
-		int added = 0;
-		Boolean addNewLine = false;
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < length; i++) {
-			Element query = (Element) queries.item(i);
-			if (!query.hasAttributes())
-				continue;
-
-			String name = query.getNodeName();
-			String value = query.getAttribute("SqlQuery");
-			if (StringUtilities.isNullOrEmpty(value))
-				continue;
-
-			tokenKeyValues.put(name, value);
-			added++;
-
-			if (addNewLine)
-				sb.append("\n");
-
-			sb.append(String.format("@%s.%s~", tokenType, name));
-			addNewLine = true;
-		}
-		_tokens.put(tokenType, tokenKeyValues);
-		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
+		return defaultVisibility;
 	}
 }
