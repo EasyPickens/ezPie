@@ -188,7 +188,7 @@ public class TokenManager {
 
 		for (int i = 0; i < nodeCount; i++) {
 			String tokenType = nl.item(i).getNodeName();
-			if ("|configuration|system|environment|application|".indexOf(tokenType.toLowerCase()) != -1) {
+			if ("|configuration|system|environment|application|data".indexOf(tokenType.toLowerCase()) != -1) {
 				throw new RuntimeException(String.format("%s is one of the reserved token types.  Please rename your token type.",tokenType));
 			}
 			LogVisibility showLevel = HideStatus(((Element) nl.item(i)).getAttribute("Hide"), defaultVisibility);
