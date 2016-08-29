@@ -54,10 +54,12 @@ public class RunPie {
 		// String job="RunCmdError.xml";
 		// String job="LogFilenameTest.xml";
 		// String job="EmptyScanTest.xml";
-		// String job="Add_RescanTables.xml";
+		String job="Add_RescanTables.xml";
         // String job="BranchingTest.xml";
-		// String job="AIP_OnBoard.xml";
-		String job="EPV.xml";
+	    // String job="AIP_OnBoard.xml";
+		// String job="EPV.xml";
+		// String job="RemoveStarRisk.xml";
+		//String job="BlankDefinition.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

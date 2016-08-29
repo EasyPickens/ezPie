@@ -87,17 +87,17 @@ public class CastScan extends RunCommand {
 			_session.addLogMessage(nodeName, String.format("%s Step", _actionName), String.format("Starting the %s step of %s (started: %s)", nodeName, _actionName, _sdf.format(new Date())));
 			params[1][1] = String.format("Started: %s", sdf.format(new Date()));
 			switch (nodeName) {
-			case "BackupDatabase":
-				params[0][1] = "Backup Database";
-				SqlUtilities.ExecuteScalar(_connection, String.format("UPDATE fnma_measure8.scan_manager SET dblog_name = null WHERE pkey = %d", _jobKey), null, _session.updateScanManager());
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
-				backupDatabase(castAction);
-				break;
 			case "PackageCode":
 				params[0][1] = "Package Code";
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				packageCode(castAction);
 				break;
+			case "BackupDatabase":
+				params[0][1] = "Backup Database";
+				SqlUtilities.ExecuteScalar(_connection, String.format("UPDATE fnma_measure8.scan_manager SET dblog_name = null WHERE pkey = %d", _jobKey), null, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				backupDatabase(castAction);
+				break;				
 			case "AnalyzeCode":
 				params[0][1] = "Analyze Code";
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
@@ -117,6 +117,11 @@ public class CastScan extends RunCommand {
 				params[0][1] = "Link CED Site";
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				linkSiteToAAD(castAction);
+				break;
+			case "ConfigureTransactions":
+				params[0][1] = "Configure TCC";
+				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				configureTransactions(castAction);
 				break;
 			default:
 				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastScan does not currently support this processing step.");
@@ -295,6 +300,24 @@ public class CastScan extends RunCommand {
 		executeCastAction("View Site Link Log", "%s to link the AAD and CED sites.", logFile);
 	}
 
+	protected void configureTransactions(Element castAction) {
+		String tccTemplate = optionalAttribute(castAction, "TccTemplate", _session.getRequiredTokenValue("CAST", "DbDriver"));
+
+		//@formatter:off
+		_arguments = new String[] { "CAST-TransactionConfig.exe", 
+				                    "-HideGUI",
+				                    "-ConnectProfile", StringUtilities.wrapValue(_connectionProfile),
+				                    "-ImportTemplatesSetup", StringUtilities.wrapValue(tccTemplate),
+				                    "-SaveAfterAutomatedOperations",
+				                    "-ExitAfterAutomatedOperations" };		
+		//@formatter:on
+		_workDirectory = _castFolder;
+		_timeout = 0;
+		_waitForExit = true;
+
+		executeCastAction("", "%s to configure transactions.", null);
+	}
+
 	protected void defaultRescanPattern() {
 		// Default to package, backup database, analyze, snapshot, publish, linkSite
 		Element packageCode = _action.getOwnerDocument().createElement("PackageCode");
@@ -320,7 +343,9 @@ public class CastScan extends RunCommand {
 	protected void executeCastAction(String viewLinkLabel, String timeLabel, String logFilename) {
 		_session.addLogMessage("", "Command Line", ArrayUtilities.toCommandLine(_arguments));
 		makeBatchFile();
-		_session.addLogMessage("", "CAST Log File", viewLinkLabel, "file://" + logFilename);
+		if (StringUtilities.isNotNullOrEmpty(logFilename)) {
+			_session.addLogMessage("", "CAST Log File", viewLinkLabel, "file://" + logFilename);
+		}
 		long start = System.currentTimeMillis();
 		super.executeAction();
 		// Uncomment sleep and comment out executeAction when doing local testing.
