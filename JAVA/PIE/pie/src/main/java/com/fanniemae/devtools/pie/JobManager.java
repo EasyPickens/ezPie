@@ -29,6 +29,7 @@ import com.fanniemae.devtools.pie.actions.Tokens;
 import com.fanniemae.devtools.pie.actions.UpdateStatus;
 import com.fanniemae.devtools.pie.actions.VersionFile;
 import com.fanniemae.devtools.pie.actions.WebClient;
+import com.fanniemae.devtools.pie.actions.XmlEdit;
 import com.fanniemae.devtools.pie.common.DateUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
@@ -153,6 +154,9 @@ public class JobManager {
 					break;
 				case "UpdateStatus":
 					act = new UpdateStatus(_session, eleOperation);
+					break;
+				case "XmlEdit":
+					act = new XmlEdit(_session, eleOperation);
 					break;
 				case "If":
 					act = new IfElement(_session, eleOperation);

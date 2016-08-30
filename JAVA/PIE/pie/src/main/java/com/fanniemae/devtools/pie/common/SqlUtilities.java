@@ -13,6 +13,10 @@ public class SqlUtilities {
 
 	private SqlUtilities() {
 	}
+	
+	public static Object ExecuteScalar(Element connection, String sqlCommand, Object[][] params) {
+		return ExecuteScalar(connection, sqlCommand, params, true);
+	}
 
 	public static Object ExecuteScalar(Element connection, String sqlCommand, Object[][] params, boolean updateScanManager) {
 		if (!updateScanManager)
@@ -21,8 +25,6 @@ public class SqlUtilities {
 		Object result = null;
 		DataProvider dp = new DataProvider(connection);
 		try (Connection con = dp.getConnection()) {
-//			System.out.println(con == null ? "AHHHH it is null" : "Got ONE");
-//			System.out.println(sqlCommand);
 			PreparedStatement pstmt = con.prepareStatement(sqlCommand);
 
 			if ((params != null) && (params.length > 0)) {

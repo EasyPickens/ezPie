@@ -1,6 +1,5 @@
 package com.fanniemae.devtools.pie.actions;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -23,48 +22,10 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
  * @since 2016-05-30
  * 
  */
-public class CastScan extends RunCommand {
-
-	protected String _connectionProfile;
-	protected String _applicationName;
-	protected String _version;
-	protected String _castFolder;
-
-	protected Element _connection;
-
-	protected int _jobKey;
-
-	protected DateFormat _dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+public class CastScan extends CastAction {
 
 	public CastScan(SessionManager session, Element action) {
-		super(session, action, false);
-
-		_connectionProfile = requiredAttribute("ConnectionProfile");
-		_applicationName = requiredAttribute("ApplicationName");
-		_version = requiredAttribute("ApplicationVersion");
-		_castFolder = optionalAttribute("CastFolder", _session.resolveTokens("@CAST.ProgramFolder~"));
-
-		if (FileUtilities.isInvalidDirectory(_castFolder)) {
-			throw new RuntimeException(String.format("CastFolder %s does not exist", _castFolder));
-		}
-
-		// If empty child element, build default pattern
-		NodeList castCommands = XmlUtilities.selectNodes(_action, "*");
-		if (castCommands.getLength() == 0) {
-			// Default to Package, analyze, snapshot -- consolidate added once rest tested
-			defaultRescanPattern();
-		}
-
-		if (_session.updateScanManager()) {
-			_connection = _session.getConnection("JavaScanManager");
-			if (_connection == null) {
-				throw new RuntimeException("Missing JavaScanManager connection element.");
-			}
-			String key = _session.resolveTokens("@Local.JobKey~");
-			if (StringUtilities.isNullOrEmpty(key))
-				throw new RuntimeException("Missing job primary key required to update ScanManager status.");
-			_jobKey = StringUtilities.toInteger(key, -1);
-		}
+		super(session, action);
 	}
 
 	@Override
@@ -128,6 +89,16 @@ public class CastScan extends RunCommand {
 			}
 		}
 		return "";
+	}
+	
+	@Override
+	protected void initialize() {
+		// If empty child element, build default pattern
+		NodeList castCommands = XmlUtilities.selectNodes(_action, "*");
+		if (castCommands.getLength() == 0) {
+			// Default to Package, analyze, snapshot -- consolidate added once rest tested
+			defaultRescanPattern();
+		}
 	}
 
 	protected void backupDatabase(Element castAction) {

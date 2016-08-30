@@ -258,7 +258,7 @@ public class SessionManager {
 		}
 		return value;
 	}
-
+	
 	public String getTokenValue(String tokenType, String tokenKey) {
 		return _tokenizer.getTokenValue(tokenType, tokenKey);
 	}
