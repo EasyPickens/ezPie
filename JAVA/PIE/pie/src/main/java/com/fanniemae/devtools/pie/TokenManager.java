@@ -3,6 +3,7 @@ package com.fanniemae.devtools.pie;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -132,6 +133,9 @@ public class TokenManager {
 				case "StartDateTimeString":
 					SimpleDateFormat sdfStart = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 					value = value.replace(sFullToken, sdfStart.format(_startDateTime));
+					break;
+				case "UUID":
+					value = value.replace(sFullToken, UUID.randomUUID().toString());
 					break;
 				}
 			} else if (_tokens.containsKey(sGroup) && _tokens.get(sGroup).containsKey(sKey)) {

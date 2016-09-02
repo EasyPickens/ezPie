@@ -12,11 +12,11 @@ import com.fanniemae.devtools.pie.common.SqlUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 import com.fanniemae.devtools.pie.common.XmlUtilities;
 
-public class CastOnboard extends CastAction {
+public class CastCreateSchemas extends CastAction {
 
 	protected Element _castConnection;
 
-	public CastOnboard(SessionManager session, Element action) {
+	public CastCreateSchemas(SessionManager session, Element action) {
 		super(session, action);
 	}
 
@@ -53,7 +53,7 @@ public class CastOnboard extends CastAction {
 			case "CreateManagement":
 				params[0][1] = "Create Management Schema";
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
-				createSchema(castAction, "mngt", "MngtTemplate");
+				createSchema(castAction, "mngt", "ManagementTemplate");
 				break;
 			default:
 				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastOnboard does not currently support this processing step.");
@@ -70,6 +70,9 @@ public class CastOnboard extends CastAction {
 		}
 		_castConnection = _session.getConnection(connectionID);
 		
+		String dbprefix = optionalAttribute("DbPrefix", _session.getTokenValue("LocalData", "dbprefix"));
+		_session.addToken("LocalData", "dbprefix", dbprefix);
+		
 		// If empty child element, build default pattern
 		NodeList castCommands = XmlUtilities.selectNodes(_action, "*");
 		if (castCommands.getLength() == 0) {
@@ -81,7 +84,7 @@ public class CastOnboard extends CastAction {
 	protected void createSchema(Element castAction, String dbsuffix, String tokenKey) {
 		String dbprefix = optionalAttribute(castAction, "DbPrefix", _session.getTokenValue("LocalData", "dbprefix"));
 		String schemaTemplate = optionalAttribute(castAction, "SchemaTemplate", _session.getTokenValue("CAST", tokenKey));
-		String logFile = optionalAttribute(castAction, "LogFile", FileUtilities.getRandomFilename(_session.getLogPath(), "txt"));
+		String logFile = optionalAttribute(castAction, "LogFile", FileUtilities.getRandomFilename(_session.getTokenValue("Configuration", "ApplicationPath")+"\\_Logs", "txt"));
 		String tempXml = FileUtilities.getRandomFilename(_session.getStagingPath(), "xml");
 
 		if (FileUtilities.isInvalidFile(schemaTemplate)) {
@@ -106,10 +109,11 @@ public class CastOnboard extends CastAction {
 				                    String.format("-LOG(%s)", logFile) };
 		//@formatter:on
 		_workDirectory = _castFolder;
+		_session.addLogMessage("", "Work Directory", _workDirectory);
 		_timeout = 0;
 		_waitForExit = true;
 
-		executeCastAction("View Create Schema Log", "%s to configure schema.", logFile);
+		executeCastAction("View Create Schema Log", "%s to configure schema.", null);
 		FileUtilities.deleteFile(tempXml);
 	}
 	

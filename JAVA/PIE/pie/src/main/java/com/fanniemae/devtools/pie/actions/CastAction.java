@@ -12,10 +12,6 @@ import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 
 public abstract class CastAction extends RunCommand {
-
-	protected String _connectionProfile;
-	protected String _applicationName;
-	protected String _version;
 	protected String _castFolder;
 
 	protected Element _connection;
@@ -26,10 +22,6 @@ public abstract class CastAction extends RunCommand {
 
 	public CastAction(SessionManager session, Element action) {
 		super(session, action);
-
-		_connectionProfile = requiredAttribute("ConnectionProfile");
-		_applicationName = requiredAttribute("ApplicationName");
-		_version = requiredAttribute("ApplicationVersion");
 		_castFolder = optionalAttribute("CastFolder", _session.resolveTokens("@CAST.ProgramFolder~"));
 
 		if (FileUtilities.isInvalidDirectory(_castFolder)) {

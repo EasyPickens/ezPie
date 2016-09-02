@@ -24,6 +24,10 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
  */
 public class CastScan extends CastAction {
 
+	protected String _connectionProfile;
+	protected String _applicationName;
+	protected String _version;
+	
 	public CastScan(SessionManager session, Element action) {
 		super(session, action);
 	}
@@ -84,6 +88,10 @@ public class CastScan extends CastAction {
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				configureTransactions(castAction);
 				break;
+			case "ConfigurePreferences":
+				params[0][1] = "Add License";
+				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				configurePreferences(castAction);
 			default:
 				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastScan does not currently support this processing step.");
 			}
@@ -93,6 +101,10 @@ public class CastScan extends CastAction {
 	
 	@Override
 	protected void initialize() {
+		_connectionProfile = requiredAttribute("ConnectionProfile");
+		_applicationName = requiredAttribute("ApplicationName");
+		_version = requiredAttribute("ApplicationVersion");
+		
 		// If empty child element, build default pattern
 		NodeList castCommands = XmlUtilities.selectNodes(_action, "*");
 		if (castCommands.getLength() == 0) {
@@ -272,7 +284,7 @@ public class CastScan extends CastAction {
 	}
 
 	protected void configureTransactions(Element castAction) {
-		String tccTemplate = optionalAttribute(castAction, "TccTemplate", _session.getRequiredTokenValue("CAST", "DbDriver"));
+		String tccTemplate = optionalAttribute(castAction, "TccTemplateFile", _session.getRequiredTokenValue("CAST", "TccTemplateFile"));
 
 		//@formatter:off
 		_arguments = new String[] { "CAST-TransactionConfig.exe", 
@@ -287,6 +299,26 @@ public class CastScan extends CastAction {
 		_waitForExit = true;
 
 		executeCastAction("", "%s to configure transactions.", null);
+	}
+	
+	protected void configurePreferences(Element castAction) {
+		String licenseKey = requiredAttribute(castAction, "LicenseKey");
+		String deliveryFolder = requiredAttribute(castAction, "DeliveryFolder");
+		String deploymentFolder = requiredAttribute(castAction, "DeploymentFolder");
+
+		//@formatter:off
+		_arguments = new String[] { "CAST-MS-CLI.exe", 
+				                    "ConfigurePlatformPreferences",
+				                    "-connectionProfile", StringUtilities.wrapValue(StringUtilities.wrapValue(_connectionProfile)),
+				                    "-licenseKey", StringUtilities.wrapValue(licenseKey),
+				                    "-sourceDeliveryFolder", StringUtilities.wrapValue(deliveryFolder),
+				                    "-sourceDeploymentFolder", StringUtilities.wrapValue(deploymentFolder) };		
+		//@formatter:on
+		_workDirectory = _castFolder;
+		_timeout = 0;
+		_waitForExit = true;
+
+		executeCastAction("", "%s to configure preferences.", null);
 	}
 
 	protected void defaultRescanPattern() {

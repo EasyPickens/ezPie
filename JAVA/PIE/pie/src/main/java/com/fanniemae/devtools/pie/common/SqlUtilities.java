@@ -53,7 +53,16 @@ public class SqlUtilities {
 			pstmt.close();
 			con.close();
 		} catch (SQLException e) {
-			throw new RuntimeException(String.format("Error running SQL Scalar command. %s", e.getMessage()));
+			StringBuilder sb = new StringBuilder();
+			sb.append(String.format("params is null => %s\n", (params == null)));
+			if (params != null) {
+				for(int row=0;row<params.length;row++) {
+					for(int col=0;col<params[row].length;col++) {
+						sb.append(String.format("params[%d][%d] => %s\n", row, col, params[row][col]));						
+					}
+				}
+			}
+			throw new RuntimeException(String.format("Error running SQL Scalar command (%s).\n%s\n %s", sqlCommand, sb.toString(), e.getMessage()));
 		}
 		return result;
 	}

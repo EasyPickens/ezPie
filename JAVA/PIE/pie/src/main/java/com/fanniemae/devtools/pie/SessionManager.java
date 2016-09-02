@@ -254,7 +254,7 @@ public class SessionManager {
 	public String getRequiredTokenValue(String tokenType, String tokenKey) {
 		String value = getTokenValue(tokenType, tokenKey);
 		if (StringUtilities.isNullOrEmpty(value)) {
-			throw new RuntimeException(String.format("No value is defined for the @%s,%s~ token.", tokenType, tokenKey));
+			throw new RuntimeException(String.format("No value is defined for the @%s.%s~ token.", tokenType, tokenKey));
 		}
 		return value;
 	}

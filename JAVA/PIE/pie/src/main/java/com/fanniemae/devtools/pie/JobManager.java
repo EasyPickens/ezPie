@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.actions.Action;
+import com.fanniemae.devtools.pie.actions.CastCreateSchemas;
 import com.fanniemae.devtools.pie.actions.CastScan;
 import com.fanniemae.devtools.pie.actions.ComponentScan;
 import com.fanniemae.devtools.pie.actions.Compression;
@@ -146,6 +147,9 @@ public class JobManager {
 				case "CastScan":
 					act = new CastScan(_session, eleOperation);
 					break;
+				case "CastCreateSchemas":
+					act = new CastCreateSchemas(_session, eleOperation);
+					break;					
 				case "ExecuteSql":
 					act = new ExecuteSql(_session, eleOperation);
 					break;
