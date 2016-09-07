@@ -55,6 +55,7 @@ public class Svn extends RunCommand {
 				if (FileUtilities.isInvalidDirectory(localPath)) {
 					File file = new File(localPath);
 					file.mkdirs();
+					sbCommands.appendFormatLine("svn checkout %s %s", repoURL, StringUtilities.wrapValue(localPath));
 				} else if (FileUtilities.isSvnRepository(localPath)) {
 					sbCommands.appendFormatLine("svn update %s", localPath);
 				} else if (FileUtilities.isNotEmptyDirectory(localPath)) {

@@ -183,6 +183,9 @@ public class FileUtilities {
 	}
 	
 	public static String writeFile(String filename, String contents) {
+		if (StringUtilities.isNullOrEmpty(contents)) {
+			throw new RuntimeException("Contents of request file are null or empty.");
+		}
 		try (FileWriter fw = new FileWriter(filename); BufferedWriter bw = new BufferedWriter(fw);) {
 			bw.write(contents);
 			bw.close();
