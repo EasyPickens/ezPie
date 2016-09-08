@@ -58,8 +58,8 @@ public abstract class Action {
 	
 	public String execute() {
 		String result = executeAction();
-		if (!"LogComment".equals(_actionName)) {
-		_session.addLogMessage("", String.format("%s Completed", _actionName), String.format("Elapsed time: %s", DateUtilities.elapsedTime(_start)));
+		if (!"LogComment".equals(_actionName) && !"If".equals(_actionName)) {
+			_session.addLogMessage("", String.format("%s Completed", _actionName), String.format("Elapsed time: %s", DateUtilities.elapsedTime(_start)));
 		}
 		return result;
 	}
