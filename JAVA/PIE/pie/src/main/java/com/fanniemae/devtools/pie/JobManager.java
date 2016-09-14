@@ -1,5 +1,7 @@
 package com.fanniemae.devtools.pie;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -44,8 +46,8 @@ public class JobManager {
 
 	protected SessionManager _session;
 
-	public JobManager(String settingsFilename, String jobFilename) {
-		_session = new SessionManager(settingsFilename, jobFilename);
+	public JobManager(String settingsFilename, String jobFilename, List<String> args) { 
+		_session = new SessionManager(settingsFilename, jobFilename, args);
 	}
 
 	public String getLogFilename() {

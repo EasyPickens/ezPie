@@ -55,7 +55,7 @@ public class RunPie {
 		// String job="LogFilenameTest.xml";
 		// String job="EmptyScanTest.xml";
 		
-		// String job="Add_RescanTables.xml";
+		String job="Add_RescanTables.xml";
 		
 		//String job="Backup_Tables.xml";
 		
@@ -63,11 +63,12 @@ public class RunPie {
 	    // String job="AIP_OnBoard.xml";
 		// String job="EPV.xml";
 		// String job="RemoveStarRisk.xml";
-		String job="BlankDefinition.xml";
+		// String job="BlankDefinition.xml";
+		//String job = "If_Test.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
-			JobManager jobManager = new JobManager(sSettings, job);
+			JobManager jobManager = new JobManager(sSettings, job, null);
 			logFilename = jobManager.getLogFilename();
 			viewlog(logFilename);
 			System.out.println("Running job definition " + job);

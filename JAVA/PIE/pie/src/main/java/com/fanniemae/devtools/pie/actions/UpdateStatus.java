@@ -19,7 +19,7 @@ public class UpdateStatus extends Action {
 
 	public UpdateStatus(SessionManager session, Element action) {
 		super(session, action, false);
-		_updateCommand = optionalAttribute("Command", "@ScanManager.UpdateStatus~");
+		_updateCommand = optionalAttribute("Command", "@SelfServiceScan.UpdateStatus~");
 		_connectionID = optionalAttribute("ConnectionID", "JavaScanManager");
 		_message = requiredAttribute("Message");
 

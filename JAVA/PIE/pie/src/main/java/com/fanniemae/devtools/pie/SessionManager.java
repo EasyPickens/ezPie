@@ -1,6 +1,7 @@
 package com.fanniemae.devtools.pie;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.w3c.dom.Document;
@@ -31,6 +32,8 @@ public class SessionManager {
 	protected String _templatePath;
 	protected String _pathSeparator = System.getProperty("file.separator");
 
+	protected String _jobRescanFilename = null;
+
 	protected int _memoryLimit = 20;
 	protected int _jobKey = -1;
 
@@ -46,12 +49,12 @@ public class SessionManager {
 
 	protected Map<String, DataStream> _dataSets = new HashMap<String, DataStream>();
 
-	public SessionManager(String settingsFilename, String jobFilename) {
+	public SessionManager(String settingsFilename, String jobFilename, List<String> args) {
 		if (!FileUtilities.isValidFile(settingsFilename)) {
-			if (FileUtilities.isValidFile(Miscellaneous.getApplicationRoot()+settingsFilename)) {
-				settingsFilename = Miscellaneous.getApplicationRoot()+settingsFilename;
+			if (FileUtilities.isValidFile(Miscellaneous.getApplicationRoot() + settingsFilename)) {
+				settingsFilename = Miscellaneous.getApplicationRoot() + settingsFilename;
 			} else {
-				throw new RuntimeException(String.format("Settings file not found in %s",settingsFilename));
+				throw new RuntimeException(String.format("Settings file not found in %s", settingsFilename));
 			}
 		}
 		Document xSettings = XmlUtilities.loadXmlDefinition(settingsFilename);
@@ -65,21 +68,35 @@ public class SessionManager {
 			throw new RuntimeException("Settings file is missing the Configuration element.  Please update the settings file.");
 
 		Element eleConfig = (Element) nodeConfig;
-		Boolean randomLogFilename = StringUtilities.toBoolean(eleConfig.getAttribute("RandomLogFileName"),true);
+
+		if ((args != null) && (args.size() > 0)) {
+			for (int i = 0; i < args.size(); i++) {
+				String[] keyValuePair = args.get(i).split("=");
+				if ("DefinitionFile".equals(keyValuePair[0])) {
+					_jobRescanFilename = keyValuePair[1];
+					break;
+				}
+			}
+		}
+
+		Boolean randomLogFilename = StringUtilities.toBoolean(eleConfig.getAttribute("RandomLogFileName"), true);
 		_appPath = FileUtilities.formatPath(eleConfig.getAttribute("ApplicationPath"), System.getProperty("user.dir"), "ApplicationPath");
 		_stagingPath = FileUtilities.formatPath(eleConfig.getAttribute("StagingPath"), String.format("%1$s_Staging", _appPath), "StagingPath");
 		_logPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _appPath), "LogPath");
 		_definitionPath = FileUtilities.formatPath(eleConfig.getAttribute("DefinitionPath"), String.format("%1$s_Definitions", _appPath), "DefinitionPath");
 		_templatePath = FileUtilities.formatPath(eleConfig.getAttribute("TemplatePath"), String.format("%1$s_Templates", _appPath), "TemplatePath");
-		if (!randomLogFilename) {
+		if (!randomLogFilename && StringUtilities.isNotNullOrEmpty(_jobRescanFilename)) {
+			_logFilename = String.format("%1$s%2$s.html", _logPath, FileUtilities.getFilenameWithoutExtension(_jobRescanFilename));
+		} else if (!randomLogFilename) {
 			_logFilename = String.format("%1$s%2$s.html", _logPath, FileUtilities.getFilenameWithoutExtension(jobFilename));
+
 		} else {
 			_logFilename = FileUtilities.getRandomFilename(_logPath, "html");
 		}
 
 		// Create Debug page.
 		_logger = new LogManager(_templatePath, _logFilename);
-		
+
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _definitionPath + jobFilename;
 			if (FileUtilities.isValidFile(sAdjustedDefinitionFilename))
@@ -103,7 +120,7 @@ public class SessionManager {
 
 			_job = xmlJobDefinition.getDocumentElement();
 			String finalJobDefinition = FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.XMLDocumentToString(xmlJobDefinition));
-			//_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + finalJobDefinition);
+			// _session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + finalJobDefinition);
 			_logger.addMessage("", "Prepared Definition", "View Definition", "file://" + finalJobDefinition);
 			_logger.addMessage("", "Adjusted Size", String.format("%,d bytes", XmlUtilities.getOuterXml(_job).length()));
 			_tokenizer.addToken("Application", "LogFilename", FileUtilities.getFilenameOnly(_logFilename));
@@ -111,18 +128,18 @@ public class SessionManager {
 			_logger.addErrorMessage(ex);
 			throw ex;
 		}
-		
+
 		_connScanManager = getConnection("JavaScanManager");
-		_updateScanManager = StringUtilities.toBoolean(getTokenValue("Configuration", "UpdateScanManager"),false);
-			
-//		String jobKey = getTokenValue("Local","JobKey");
-//		if ((_connScanManager != null) && StringUtilities.isNotNullOrEmpty(jobKey)) {
-//			_updateScanManager = true;
-////			String key = resolveTokens("@Local.JobKey~");
-////			if (StringUtilities.isNullOrEmpty(key))
-////				throw new RuntimeException("Missing job primary key required to update ScanManager status.");
-////			_jobKey = StringUtilities.toInteger(key, -1);
-//		}
+		_updateScanManager = StringUtilities.toBoolean(getTokenValue("Configuration", "UpdateScanManager"), false);
+
+		// String jobKey = getTokenValue("Local","JobKey");
+		// if ((_connScanManager != null) && StringUtilities.isNotNullOrEmpty(jobKey)) {
+		// _updateScanManager = true;
+		//// String key = resolveTokens("@Local.JobKey~");
+		//// if (StringUtilities.isNullOrEmpty(key))
+		//// throw new RuntimeException("Missing job primary key required to update ScanManager status.");
+		//// _jobKey = StringUtilities.toInteger(key, -1);
+		// }
 	}
 
 	public TokenManager getTokenizer() {
@@ -152,7 +169,7 @@ public class SessionManager {
 	public String getLineSeparator() {
 		return System.lineSeparator();
 	}
-	
+
 	public Element getConnectionScanManager() {
 		return _connScanManager;
 	}
@@ -250,7 +267,7 @@ public class SessionManager {
 	public String getFilenameHash(String value) {
 		return String.format("%1$s%2$s%3$s%4$s.dat", _appPath, "_DataCache", _pathSeparator, CryptoUtilities.hashValue(value));
 	}
-	
+
 	public String getRequiredTokenValue(String tokenType, String tokenKey) {
 		String value = getTokenValue(tokenType, tokenKey);
 		if (StringUtilities.isNullOrEmpty(value)) {
@@ -258,11 +275,11 @@ public class SessionManager {
 		}
 		return value;
 	}
-	
+
 	public String getTokenValue(String tokenType, String tokenKey) {
 		return _tokenizer.getTokenValue(tokenType, tokenKey);
 	}
-	
+
 	public String resolveTokens(String value) {
 		return _tokenizer.resolveTokens(value, null);
 	}
@@ -272,9 +289,9 @@ public class SessionManager {
 	}
 
 	public void addTokens(Node node) {
-		_tokenizer.addTokens(node);	
+		_tokenizer.addTokens(node);
 	}
-	
+
 	public void addTokens(String tokenType, String[][] kvps) {
 		_tokenizer.addTokens(tokenType, kvps);
 	}

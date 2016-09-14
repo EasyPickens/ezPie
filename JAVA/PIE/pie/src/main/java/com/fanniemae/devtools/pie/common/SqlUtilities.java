@@ -54,8 +54,10 @@ public class SqlUtilities {
 			con.close();
 		} catch (SQLException e) {
 			StringBuilder sb = new StringBuilder();
-			sb.append(String.format("params is null => %s\n", (params == null)));
+			sb.append(String.format("SQL Command: %s\n",sqlCommand));
+			sb.append(String.format("Is params array null? %s\n", (params == null)));
 			if (params != null) {
+				sb.append("Value of params array null\n");
 				for(int row=0;row<params.length;row++) {
 					for(int col=0;col<params[row].length;col++) {
 						sb.append(String.format("params[%d][%d] => %s\n", row, col, params[row][col]));						

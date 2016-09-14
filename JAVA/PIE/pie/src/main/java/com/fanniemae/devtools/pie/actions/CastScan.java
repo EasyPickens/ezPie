@@ -45,7 +45,11 @@ public class CastScan extends CastAction {
 
 		NodeList castActions = XmlUtilities.selectNodes(_action, "*");
 		int length = castActions.getLength();
-		String sqlCommand = _session.resolveTokens("@ScanManager.UpdateStatus~");
+		String sqlCommand = _session.getTokenValue("SelfServiceScan", "UpdateStatus");
+		if (_session.updateScanManager() && StringUtilities.isNullOrEmpty(sqlCommand)) {
+			throw new RuntimeException("No value for @SelfServiceScan.UpdateStatus~ token.");
+		}
+		
 		for (int i = 0; i < length; i++) {
 			Element castAction = (Element) (castActions.item(i));
 			String nodeName = castAction.getNodeName();
@@ -92,6 +96,7 @@ public class CastScan extends CastAction {
 				params[0][1] = "Add License";
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				configurePreferences(castAction);
+				break;
 			default:
 				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastScan does not currently support this processing step.");
 			}
@@ -133,13 +138,13 @@ public class CastScan extends CastAction {
 		boolean haveDbFilename = false;
 		while (Calendar.getInstance().compareTo(endTime) < 0) {
 			if (!haveDbFilename) {
-				Object logname = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.GetLogFilename~"), params, _session.updateScanManager());
+				Object logname = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@SelfServiceScan.GetLogFilename~"), params, _session.updateScanManager());
 				if (logname != null) {
 					_session.addLogMessage("", "External Activity Log", "View Database Backup Log", "file://" + (String) logname);
 					haveDbFilename = true;
 				}
 			}
-			Object value = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@ScanManager.CheckStatus~"), params, _session.updateScanManager());
+			Object value = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@SelfServiceScan.CheckStatus~"), params, _session.updateScanManager());
 			if (value != null) {
 				String status = value.toString();
 				if (status.toLowerCase().startsWith("error")) {
@@ -309,7 +314,7 @@ public class CastScan extends CastAction {
 		//@formatter:off
 		_arguments = new String[] { "CAST-MS-CLI.exe", 
 				                    "ConfigurePlatformPreferences",
-				                    "-connectionProfile", StringUtilities.wrapValue(StringUtilities.wrapValue(_connectionProfile)),
+				                    "-connectionProfile", StringUtilities.wrapValue(_connectionProfile),
 				                    "-licenseKey", StringUtilities.wrapValue(licenseKey),
 				                    "-sourceDeliveryFolder", StringUtilities.wrapValue(deliveryFolder),
 				                    "-sourceDeploymentFolder", StringUtilities.wrapValue(deploymentFolder) };		

@@ -59,7 +59,7 @@ public class RunCommand extends Action {
 		_session.addLogMessage("", "CommandLine", (_hideConsoleOutput) ? "-- Hidden --" : _commandLine);
 		
 		String waitForExit = optionalAttribute("WaitForExit", null);
-		String timeout = optionalAttribute("Timeout", null);
+		String timeout = optionalAttribute("Timeout", "2h");
 		Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
 
 		_waitForExit = StringUtilities.toBoolean(waitForExit, true);

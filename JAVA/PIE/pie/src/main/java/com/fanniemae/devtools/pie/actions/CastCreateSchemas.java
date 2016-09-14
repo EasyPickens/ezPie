@@ -33,7 +33,10 @@ public class CastCreateSchemas extends CastAction {
 
 		NodeList castActions = XmlUtilities.selectNodes(_action, "*");
 		int length = castActions.getLength();
-		String sqlCommand = _session.resolveTokens("@ScanManager.UpdateStatus~");
+		String sqlCommand = _session.getTokenValue("SelfServiceScan", "UpdateStatus");
+		if (_session.updateScanManager() && StringUtilities.isNullOrEmpty(sqlCommand)) {
+			throw new RuntimeException("No value for @SelfServiceScan.UpdateStatus~ token.");
+		}
 		for (int i = 0; i < length; i++) {
 			Element castAction = (Element) (castActions.item(i));
 			String nodeName = castAction.getNodeName();

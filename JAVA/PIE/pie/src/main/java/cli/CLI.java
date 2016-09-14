@@ -63,8 +63,9 @@ public class CLI {
 		//String logFilename = null;
 		try {
 			//System.out.println("Initializing PIE JobManager");
-			JobManager jobManager = new JobManager(_settings, _job);
 			List<String> args = cmd.getArgList();
+			JobManager jobManager = new JobManager(_settings, _job, args);
+			
 			for(int i = 0; i < args.size(); i++){
 				String[] keyValuePair = args.get(i).split("=");
 				jobManager.getSession().addToken("Local", keyValuePair[0], keyValuePair[1]);

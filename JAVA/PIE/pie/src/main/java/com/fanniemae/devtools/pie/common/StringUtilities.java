@@ -251,6 +251,10 @@ public class StringUtilities {
 	public static String wrapValue(String value) {
 		if ((value == null) || (value.indexOf(' ') == -1))
 			return value;
+		
+		if ((value.startsWith("\"") && value.endsWith("\""))) 
+			return value;
+		
 		return String.format("\"%s\"", value);
 	}
 
