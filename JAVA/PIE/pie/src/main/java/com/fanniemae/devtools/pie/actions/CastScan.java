@@ -234,6 +234,7 @@ public class CastScan extends CastAction {
 		String dbDriver = optionalAttribute(castAction, "DbDriver", _session.getRequiredTokenValue("CAST", "DbDriver"));
 		String dbUrl = optionalAttribute(castAction, "DbUrl", _session.getRequiredTokenValue("CAST", "DbUrl"));
 		String dbSchema = optionalAttribute(castAction, "DbSchema", _session.getRequiredTokenValue("CAST", "DbSchema"));
+		String dbAppCentral = optionalAttribute(castAction, "DbCentral", _session.getRequiredTokenValue("LocalData", "dbprefix")+"_central");
 		String dbUser = optionalAttribute(castAction, "DbUser", _session.getRequiredTokenValue("CAST", "DbUser"));
 		String dbPassword = optionalAttribute(castAction, "DbPassword", _session.getRequiredTokenValue("CAST", "DbPassword"));
 
@@ -245,7 +246,7 @@ public class CastScan extends CastAction {
 		                            "-user", StringUtilities.wrapValue(dbUser), 
 		                            "-password", StringUtilities.wrapValue(dbPassword), 
 		                            "-remote_url", StringUtilities.wrapValue(dbUrl), 
-		                            "-remote_schema", StringUtilities.wrapValue(dbSchema),
+		                            "-remote_schema", StringUtilities.wrapValue(dbAppCentral),
 		                            "-remote_user", StringUtilities.wrapValue(dbUser), 
 		                            "-remote_password", StringUtilities.wrapValue(dbPassword),
 		                            "-synchronize_indicators", 
