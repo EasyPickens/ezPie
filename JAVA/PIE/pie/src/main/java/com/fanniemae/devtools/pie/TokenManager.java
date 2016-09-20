@@ -94,14 +94,18 @@ public class TokenManager {
 	public String resolveTokens(String value, Object[] dataRow) {
 		if (value == null)
 			return value;
-
-		int tokenStart = value.indexOf("@");
+		
+		String rawString = (dataRow == null) ? value.replace("@Data.","|Data|") : value;
+		
+		int tokenStart = rawString.indexOf("@");
 		if (tokenStart == -1)
 			return value;
-		int tokenMid = value.indexOf(".", tokenStart);
+		
+		int tokenMid = rawString.indexOf(".", tokenStart);
 		if (tokenMid == -1)
 			return value;
-		int tokenEnd = value.indexOf("~", tokenMid);
+		
+		int tokenEnd = rawString.indexOf("~", tokenMid);
 		if (tokenEnd == -1)
 			return value;
 

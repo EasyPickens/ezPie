@@ -82,7 +82,7 @@ namespace ScanManager
                 else
                 {
                     // Set any definitions left in_progress from previous run to error. -- turned off, to test.
-                    //SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlErrorOutInProgress);
+                    SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlErrorOutInProgress);
 
                     // Check for next request
                     DataTable requests = SqlUtilities.GetData(_ConnectionString, _SqlNextJob);

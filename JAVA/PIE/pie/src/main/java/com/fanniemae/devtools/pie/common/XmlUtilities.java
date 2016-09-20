@@ -1,6 +1,8 @@
 package com.fanniemae.devtools.pie.common;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -51,10 +53,25 @@ public class XmlUtilities {
 	}
 
 	public static void SaveXmlDocument(String filename, Document xmlDoc) {
-		String xmlString = XMLDocumentToString(xmlDoc);
-		FileUtilities.writeFile(filename, xmlString);
-	}
+		
+//		String xmlString = XMLDocumentToString(xmlDoc);
+//		FileUtilities.writeFile(filename, xmlString);
+		
+		try {
+			TransformerFactory tf = TransformerFactory.newInstance();
+			Transformer transformer = tf.newTransformer();
+			//transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
+			transformer.transform(new DOMSource(xmlDoc), new StreamResult(new FileOutputStream(filename)));
+		} catch (IllegalArgumentException | TransformerException | FileNotFoundException ex) {
+			throw new RuntimeException("Error saving XML document. " + ex.getMessage(), ex);
+		}
+	}
+	
 	public static String XMLDocumentToString(Document doc) {
 		try {
 			StringWriter sw = new StringWriter();
@@ -181,6 +198,7 @@ public class XmlUtilities {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
+			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			return builder.parse(filename);
 		} catch (ParserConfigurationException | SAXException | IOException ex) {
