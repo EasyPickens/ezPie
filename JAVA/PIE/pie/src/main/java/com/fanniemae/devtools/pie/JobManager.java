@@ -45,6 +45,7 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
 public class JobManager {
 
 	protected SessionManager _session;
+	protected boolean _stopProcessing = false;
 
 	public JobManager(String settingsFilename, String jobFilename, List<String> args) { 
 		_session = new SessionManager(settingsFilename, jobFilename, args);
@@ -158,6 +159,12 @@ public class JobManager {
 				case "Sleep":
 					act = new Sleep(_session, eleOperation);
 					break;
+				case "Stop":
+					if (!_session.getAttribute(eleOperation, "Silent").equals("True")) 
+						_session.addLogMessage("Stop", "Control Action", "Stopping definition processing. No error.");
+					act = null;
+					_stopProcessing = true;
+					break;
 				case "UpdateStatus":
 					act = new UpdateStatus(_session, eleOperation);
 					break;
@@ -175,9 +182,13 @@ public class JobManager {
 				default:
 					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}
+				
 				if (act != null) {
 					act.execute();
 				}
+				
+				if (_stopProcessing) 
+					break;
 			}
 			return "";
 		} catch (Exception ex) {

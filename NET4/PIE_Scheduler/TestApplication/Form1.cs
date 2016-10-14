@@ -26,5 +26,11 @@ namespace TestApplication
             srm.ProcessQueue();
             MessageBox.Show("Request Completed.", "Done", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        private void btnPathCheck_Click(object sender, EventArgs e)
+        {
+            String stopFile = String.Format("{0}{1}stop.txt", ScanManager.Common.MiscUtilities.AppPath(), Path.DirectorySeparatorChar);
+            lblStatus.Text = stopFile;
+        }
     }
 }

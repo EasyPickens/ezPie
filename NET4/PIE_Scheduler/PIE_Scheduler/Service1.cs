@@ -42,7 +42,7 @@ namespace PIE_Scheduler
             }
             catch (Exception ex)
             {
-                LocalLog.AddLine("Error while starting timer. "+ex.Message);
+                LocalLog.AddLine("Error while starting timer. " + ex.Message);
             }
         }
 
@@ -61,7 +61,7 @@ namespace PIE_Scheduler
             try
             {
                 _timer.Stop();
-                if (DateTime.Now > _nextMessage) 
+                if (DateTime.Now > _nextMessage)
                     LocalLog.AddLine("Hourly status. Still checking every 30 seconds..");
                 _srm.ProcessQueue();
                 if (DateTime.Now > _nextMessage)
@@ -76,8 +76,18 @@ namespace PIE_Scheduler
             }
             finally
             {
-                _timer.Start();
+                String stopFile = String.Format("{0}{1}stop.txt", MiscUtilities.AppPath(), Path.DirectorySeparatorChar);
+                if (File.Exists(stopFile))
+                {
+                    LocalLog.AddLine(String.Format("Service stopped. Stop file ({0}) located on the drive.", stopFile));
+                    _timer.Stop();
+                    File.Delete(stopFile);
+                }
+                else _timer.Start();
             }
+
+
+
         }
 
         public static void logEnvironment()
