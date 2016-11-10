@@ -86,10 +86,36 @@ namespace ScanManager
 
                     // Check for next request
                     DataTable requests = SqlUtilities.GetData(_ConnectionString, _SqlNextJob);
-                    if ((requests == null) || (requests.Rows.Count == 0)) return false;
+                    if ((requests == null) || (requests.Rows.Count == 0))
+                    {
+                        // Ready the next application in the automated queue
+                        DataTable next_automated_queue = SqlUtilities.GetData(_ConnectionString, "SELECT scan_manager_pkey, code_loc_type, code_loc_url, version_name FROM fnma_measure8.automated_queue WHERE ready and scan_manager_pkey > 0 ORDER BY scan_order, id LIMIT 1");
+                        if ((next_automated_queue != null) && (next_automated_queue.Rows.Count > 0))
+                        {
+                            int scanManagerPkey = ObjectToInteger(next_automated_queue.Rows[0]["scan_manager_pkey"], "No scan_manager_pkey is definied");
+                            try
+                            {
+                                int codeLocationType = ObjectToInteger(next_automated_queue.Rows[0]["code_loc_type"], "No code_loc_type is definied");
+                                String codeLocationUrl = ObjectToString(next_automated_queue.Rows[0]["code_loc_url"], "No code_loc_url is defined.");
+                                String versionName = ObjectToString(next_automated_queue.Rows[0]["version_name"], "No version_name is defined.");
+                                String request_date = String.Format("{0:yyyy-MM-dd HH:mm:ss}", DateTime.Now);
+
+                                // Queue the next rescan
+                                SqlUtilities.ExcecuteNonQuery(_ConnectionString, String.Format("UPDATE fnma_measure8.scan_manager SET scan_requested=true, request_date='{0}', scan_status='Queued', code_url='{1}', code_version='{2}', action_requested='rescan', code_location_type={3} WHERE pkey={4}", request_date, codeLocationUrl, versionName, codeLocationType, scanManagerPkey));
+                            }
+                            catch (Exception exAutomated)
+                            {
+                                String error = exAutomated.Message;
+                                // Error out this queue item and rest for this application.
+                                SqlUtilities.ExcecuteNonQuery(_ConnectionString, String.Format("UPDATE fnma_measure8.automated_queue SET ready=false, status='ERROR' WHERE ready and scan_manager_pkey={0}", scanManagerPkey));
+                            }
+                        }
+                        return false;
+                    }
+
 
                     _JobKey = ObjectToInteger(requests.Rows[0]["pkey"], "No primary key is definied");
-                    _JobFileName = ObjectToString(requests.Rows[0]["definition_name"],"No definition file name is defined.");
+                    _JobFileName = ObjectToString(requests.Rows[0]["definition_name"], "No definition file name is defined.");
                     _RawJobFileName = _JobFileName;
 
                     // Until the UI is updated, defaulting to 'rescan'
@@ -112,7 +138,7 @@ namespace ScanManager
                             message = "OnBoarding";
                             break;
                         default:
-                            throw new Exception(String.Format("{0} action is not currently supported.", action_requested));
+                            throw new Exception(String.Format("{0} is not a valid action request.", action_requested));
                     }
                     return RunDefinition(message);
                 }
@@ -121,6 +147,17 @@ namespace ScanManager
             {
                 LocalLog.AddLine("Queue Error: " + ex.Message);
                 _AppLog.WriteEntry(ex.StackTrace, System.Diagnostics.EventLogEntryType.Error);
+
+                if (_JobKey > 0)
+                {
+                    Dictionary<String, Object> aParams = new Dictionary<string, object>();
+                    aParams.Add(":jobkey", _JobKey);
+                    aParams.Add(":jobstatus", "Error");
+                    String message = String.Format("Recorded: {0:MMMM d, yyyy HH:mm:ss}, Message: {1} ", DateTime.Now, ex.Message);
+                    if (message.Length > 99) message = message.Substring(0, 99);
+                    aParams.Add(":statusdescription", message);
+                    SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlJobFinished, aParams);
+                }
             }
             return false;
         }
@@ -154,7 +191,9 @@ namespace ScanManager
             {
                 LocalLog.AddLine("Database Backup Error: " + ex.Message);
                 aParams[":jobstatus"] = "Error";
-                aParams[":statusdescription"] = String.Format("Recorded: {0:MMMM d, yyyy HH:mm:ss}, Message: {1} ", DateTime.Now, ex.Message).Substring(0, 99);
+                String message = String.Format("Recorded: {0:MMMM d, yyyy HH:mm:ss}, Message: {1} ", DateTime.Now, ex.Message);
+                if (message.Length > 99) message = message.Substring(0, 99);
+                aParams[":statusdescription"] = message;
             }
 
             SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlUpdateStatus, aParams);
@@ -183,12 +222,16 @@ namespace ScanManager
                 // Job finished update record.
                 aParams[":jobstatus"] = "Completed";
                 aParams[":statusdescription"] = String.Format("Completed: {0:MMMM d, yyyy HH:mm:ss}", DateTime.Now);
+                // Error out this queue item and rest for this application.
             }
             catch (Exception ex)
             {
                 LocalLog.AddLine("Code Scan Error: " + ex.Message);
                 aParams[":jobstatus"] = "Error";
-                aParams[":statusdescription"] = String.Format("Recorded: {0:MMMM d, yyyy HH:mm:ss}, Message: {1} ", DateTime.Now, ex.Message).Substring(0, 99);
+                String message = String.Format("Recorded: {0:MMMM d, yyyy HH:mm:ss}, Message: {1} ", DateTime.Now, ex.Message);
+                if (message.Length > 99) message = message.Substring(0, 99);
+                aParams[":statusdescription"] = message;
+                SqlUtilities.ExcecuteNonQuery(_ConnectionString, String.Format("UPDATE fnma_measure8.automated_queue SET ready=false, status='ERROR' WHERE ready and scan_manager_pkey={0}", _JobKey));
             }
             SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlJobFinished, aParams);
             return false;
@@ -231,6 +274,9 @@ namespace ScanManager
                 LocalLog.AddLine("Code Scan Error: " + ex.Message);
                 aParams[":jobstatus"] = "Error";
                 aParams[":statusdescription"] = String.Format("Recorded: {0:MMMM d, yyyy HH:mm:ss}, Message: {1} ", DateTime.Now, ex.Message).Substring(0, 99);
+
+                // Error out this queue item and rest for this application.
+                SqlUtilities.ExcecuteNonQuery(_ConnectionString, String.Format("UPDATE fnma_measure8.automated_queue SET ready=false, status='ERROR' WHERE ready and scan_manager_pkey={0}", _JobKey));
             }
             SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlJobFinished, aParams);
             return false;

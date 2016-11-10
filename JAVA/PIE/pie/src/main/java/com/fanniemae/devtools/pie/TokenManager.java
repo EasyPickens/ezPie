@@ -142,9 +142,9 @@ public class TokenManager {
 					SimpleDateFormat sdfISO = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 					value = value.replace(sFullToken, sdfISO.format(_startDateTime));
 					break;
-				case "ElapsedTime":
+				case "ElapsedTime":  // returns minutes.
 					Date dtCurrent = new Date();
-					long seconds = (dtCurrent.getTime() - _startDateTime.getTime())/1000;
+					long seconds = (dtCurrent.getTime() - _startDateTime.getTime())/60000;
 					value = String.format("%d", seconds);
 					break;					
 				case "UUID":

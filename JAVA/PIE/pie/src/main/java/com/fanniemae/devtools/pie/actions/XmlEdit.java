@@ -11,6 +11,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.actions.xmltransforms.AppendChild;
+import com.fanniemae.devtools.pie.actions.xmltransforms.NodeExists;
 import com.fanniemae.devtools.pie.actions.xmltransforms.InsertAfter;
 import com.fanniemae.devtools.pie.actions.xmltransforms.InsertBefore;
 import com.fanniemae.devtools.pie.actions.xmltransforms.SaveFile;
@@ -84,6 +85,9 @@ public class XmlEdit extends Action {
 				break;
 			case "InsertAfter":
 				xmlTransforms.add(new InsertAfter(_session, xmlEdit, _isFolder));
+				break;
+			case "NodeExists":
+				xmlTransforms.add(new NodeExists(_session, xmlEdit, _isFolder));
 				break;
 			case "SaveFile":
 				xmlTransforms.add(new SaveFile(_session, xmlEdit, _isFolder));
