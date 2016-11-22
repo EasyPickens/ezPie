@@ -108,7 +108,11 @@ public abstract class FileSystemAction extends Action {
 			postprocessDirectory(_source);
 		}
 		//_session.addLogMessage("", String.format("%s Complete", _actionName), String.format("%,d files (%,d bytes)", _filesProcessed, _totalBytes));
-		_session.addLogMessage("", "Count", String.format("%,d files (%,d bytes) %s", _filesProcessed, _totalBytes, _countMessage));
+		if (_actionName.equals("DeleteEmpty")) {
+			_session.addLogMessage("", "Count", String.format("%,d empty files %s", _filesProcessed, _countMessage));
+		} else {
+			_session.addLogMessage("", "Count", String.format("%,d files (%,d bytes) %s", _filesProcessed, _totalBytes, _countMessage));
+		}
 		return null;
 	}
 	

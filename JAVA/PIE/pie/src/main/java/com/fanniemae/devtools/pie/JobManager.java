@@ -24,6 +24,7 @@ import com.fanniemae.devtools.pie.actions.Move;
 import com.fanniemae.devtools.pie.actions.Rename;
 import com.fanniemae.devtools.pie.actions.DataSet;
 import com.fanniemae.devtools.pie.actions.Delete;
+import com.fanniemae.devtools.pie.actions.DeleteEmpty;
 import com.fanniemae.devtools.pie.actions.LocalTokens;
 import com.fanniemae.devtools.pie.actions.RunCommand;
 import com.fanniemae.devtools.pie.actions.Sleep;
@@ -134,6 +135,9 @@ public class JobManager {
 					break;
 				case "Delete":
 					act = new Delete(_session, eleOperation);
+					break;
+				case "DeleteEmpty":
+					act = new DeleteEmpty(_session, eleOperation);
 					break;
 				case "Rename":
 					act = new Rename(_session, eleOperation);
