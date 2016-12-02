@@ -21,8 +21,8 @@ public abstract class FileSystemAction extends Action {
 	protected String _destination;
 	protected String _includeFilter = null;
 	protected String _excludeFilter = null;
-	
-	protected String _countMessage = ""; 
+
+	protected String _countMessage = "";
 
 	protected boolean _shallow = false;
 	protected boolean _skipHidden = false;
@@ -36,6 +36,9 @@ public abstract class FileSystemAction extends Action {
 
 	protected long _totalBytes = 0L;
 	protected int _filesProcessed = 0;
+	protected int _filesAltered = 0;
+
+	protected StringBuilder _sb = new StringBuilder();
 
 	public FileSystemAction(SessionManager session, Element action) {
 		super(session, action, false);
@@ -44,7 +47,7 @@ public abstract class FileSystemAction extends Action {
 		if (StringUtilities.isNotNullOrEmpty(required)) {
 			_required = StringUtilities.toBoolean(required, true);
 		}
-		
+
 		String shallow = optionalAttribute("Shallow", null);
 		if (StringUtilities.isNotNullOrEmpty(shallow)) {
 			_shallow = StringUtilities.toBoolean(shallow, false);
@@ -87,7 +90,7 @@ public abstract class FileSystemAction extends Action {
 				case "ExcludeFile":
 				case "IncludeFile":
 					throw new RuntimeException(String.format("%s child element no longer supported. Use Include or Exclude.", name));
-				default: 
+				default:
 					_session.addLogMessage("** Warning **", name, "Operation not currently supported.");
 				}
 			}
@@ -95,7 +98,7 @@ public abstract class FileSystemAction extends Action {
 			_excludeRegex = exclude.toArray(_excludeRegex);
 			_includeRegex = new Pattern[include.size()];
 			_includeRegex = include.toArray(_includeRegex);
-			if(_excludeRegex.length > 0 && _includeRegex.length > 0){
+			if (_excludeRegex.length > 0 && _includeRegex.length > 0) {
 				throw new RuntimeException("Cannot have both Exclude and Include child elements. Create a seperate element.");
 			}
 		}
@@ -107,34 +110,38 @@ public abstract class FileSystemAction extends Action {
 		if (FileUtilities.isValidDirectory(_source)) {
 			postprocessDirectory(_source);
 		}
-		//_session.addLogMessage("", String.format("%s Complete", _actionName), String.format("%,d files (%,d bytes)", _filesProcessed, _totalBytes));
-		if (_actionName.equals("DeleteEmpty")) {
+		// _session.addLogMessage("", String.format("%s Complete", _actionName), String.format("%,d files (%,d bytes)", _filesProcessed, _totalBytes));
+		if (_actionName.equals("VerifyJavaFiles")) {
+			_sb.append("Verification completed.");
+			String removedFiles = (_filesAltered > 0) ? "file://"+FileUtilities.writeRandomFile(_session.getLogPath(), ".txt", _sb.toString()) : "";
+			_session.addLogMessage("", "Count", String.format("%,d empty JAVA files found", _filesAltered), removedFiles);
+		} else if (_actionName.equals("DeleteEmpty")) {
 			_session.addLogMessage("", "Count", String.format("%,d empty files %s", _filesProcessed, _countMessage));
 		} else {
 			_session.addLogMessage("", "Count", String.format("%,d files (%,d bytes) %s", _filesProcessed, _totalBytes, _countMessage));
 		}
 		return null;
 	}
-	
-	protected List<Pattern> executeCommand(Element element){
+
+	protected List<Pattern> executeCommand(Element element) {
 		String command = _session.getAttribute(element, "Command");
 		if (StringUtilities.isNullOrEmpty(command))
 			throw new RuntimeException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
-		
+
 		String id = _session.getAttribute(element, "ID");
-		if(StringUtilities.isNullOrEmpty(id))
+		if (StringUtilities.isNullOrEmpty(id))
 			element.setAttribute("ID", "ExcludeDBResultSet");
-		
+
 		SqlConnector conn = new SqlConnector(_session, element, false);
 		conn.open();
-		
+
 		List<Pattern> excludes = new ArrayList<Pattern>();
-		
+
 		String[][] schema = conn.getDataSourceSchema();
 		String col = _session.getAttribute(element, "Column");
 		int colIndex = 0;
-		for(int i = 0; i < schema.length; i++){
-			if(col.equals(schema[i][0])){
+		for (int i = 0; i < schema.length; i++) {
+			if (col.equals(schema[i][0])) {
 				colIndex = i;
 			}
 		}
@@ -144,11 +151,11 @@ public abstract class FileSystemAction extends Action {
 			String value = escapeSpecialChar(aValues[colIndex].toString());
 			excludes.add(Pattern.compile(value));
 		}
-		
+
 		conn.close();
-		
+
 		return excludes;
-		
+
 	}
 
 	protected abstract void processFile(String source, String destination, String nameOnly);
@@ -159,7 +166,7 @@ public abstract class FileSystemAction extends Action {
 	protected void processFileSystem(String source, String destination) {
 		processFileSystem(source, destination, !_hasIncludeFilter);
 	}
-	
+
 	protected void processFileSystem(String source, String destination, boolean included) {
 		File sourceLocation = new File(source);
 		if (!sourceLocation.exists()) {
@@ -201,7 +208,7 @@ public abstract class FileSystemAction extends Action {
 			String entryPath = contents[i].getAbsolutePath();
 			if (_hasIncludeFilter && (matchesRegexFilter(entryName, _includeRegex) || matchesRegexFilter(entryPath, _includeRegex))) {
 				// include filters override exclude filters
-			} else if(_hasIncludeFilter && !matchesRegexFilter(entryName, _includeRegex) && !matchesRegexFilter(entryPath, _includeRegex) && !included) {
+			} else if (_hasIncludeFilter && !matchesRegexFilter(entryName, _includeRegex) && !matchesRegexFilter(entryPath, _includeRegex) && !included) {
 				if (contents[i].isDirectory()) {
 					processFileSystem(contents[i].getPath(), destination + File.separator + entryName, false);
 				}
@@ -209,7 +216,7 @@ public abstract class FileSystemAction extends Action {
 			} else if (_hasExcludeFilter && (matchesRegexFilter(entryName, _excludeRegex) || matchesRegexFilter(entryPath, _excludeRegex))) {
 				continue;
 			}
-			
+
 			if (contents[i].isDirectory()) {
 				processFileSystem(contents[i].getPath(), destination + File.separator + entryName, true);
 				postprocessDirectory(contents[i].getPath());
@@ -221,8 +228,8 @@ public abstract class FileSystemAction extends Action {
 			processFile(contents[i].getPath(), destination, entryName);
 		}
 	}
-	
-	protected String escapeSpecialChar(String str){
+
+	protected String escapeSpecialChar(String str) {
 		String sep = "\\\\";
 		return str.replaceAll("/", Matcher.quoteReplacement(sep));
 	}

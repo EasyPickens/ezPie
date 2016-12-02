@@ -31,6 +31,7 @@ import com.fanniemae.devtools.pie.actions.Sleep;
 import com.fanniemae.devtools.pie.actions.Svn;
 import com.fanniemae.devtools.pie.actions.Tokens;
 import com.fanniemae.devtools.pie.actions.UpdateStatus;
+import com.fanniemae.devtools.pie.actions.VerifyJavaFiles;
 import com.fanniemae.devtools.pie.actions.VersionFile;
 import com.fanniemae.devtools.pie.actions.WebClient;
 import com.fanniemae.devtools.pie.actions.XmlEdit;
@@ -183,6 +184,9 @@ public class JobManager {
 						processActions(nlSubActions);
 					}
 					break;
+				case "VerifyJavaFiles":
+					act = new VerifyJavaFiles(_session, eleOperation);
+					break;					
 				default:
 					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}

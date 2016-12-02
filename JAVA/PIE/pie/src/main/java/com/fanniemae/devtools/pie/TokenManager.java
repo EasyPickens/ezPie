@@ -144,8 +144,8 @@ public class TokenManager {
 					break;
 				case "ElapsedTime":  // returns minutes.
 					Date dtCurrent = new Date();
-					long seconds = (dtCurrent.getTime() - _startDateTime.getTime())/60000;
-					value = String.format("%d", seconds);
+					long minutes = (dtCurrent.getTime() - _startDateTime.getTime())/60000;
+					value = value.replace(sFullToken, String.format("%d", minutes));
 					break;					
 				case "UUID":
 					value = value.replace(sFullToken, UUID.randomUUID().toString());
