@@ -2,8 +2,6 @@ package com.fanniemae.devtools.pie.data.connectors;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;

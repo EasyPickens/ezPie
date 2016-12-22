@@ -2,7 +2,7 @@ package consoleapp;
 
 import java.io.IOException;
 
-import org.apache.commons.lang3.time.DurationFormatUtils;
+//import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import com.fanniemae.devtools.pie.JobManager;
 
@@ -48,30 +48,31 @@ public class RunPie {
 		// String job = "PEWholeLoanB2B.xml";
 		// String job = "SharedTest.xml";
 		// String job = "SharedA.xml";
-		// String job="DatabaseBackup.xml";
-		// String job="RescanTest.xml";
-		// String job= "ResultSet.xml";
-		// String job="RunCmdError.xml";
-		// String job="LogFilenameTest.xml";
-		// String job="EmptyScanTest.xml";
+		// String job = "DatabaseBackup.xml";
+		// String job = "RescanTest.xml";
+		// String job = "ResultSet.xml";
+		// String job = "RunCmdError.xml";
+		// String job = "LogFilenameTest.xml";
+		// String job = "EmptyScanTest.xml";
 		
-        // String job="Add_RescanTables.xml";
+        // String job = "Add_RescanTables.xml";
 		
-		//String job="Scan_Limiter.xml";
+		// String job = "Scan_Limiter.xml";
 		
-		// String job="Backup_Tables.xml";
+		// String job = "Backup_Tables.xml";
 		
-        // String job="BranchingTest.xml";
-	    // String job="AIP_OnBoard.xml";
-		// String job="EPV.xml";
-		// String job="RemoveStarRisk.xml";
-		// String job="BlankDefinition.xml";
+        // String job = "BranchingTest.xml";
+	    // String job = "AIP_OnBoard.xml";
+		// String job = "EPV.xml";
+		// String job = "RemoveStarRisk.xml";
+		// String job = "BlankDefinition.xml";
 		// String job = "If_Test.xml";
         // String job = "Xml_Test.xml";
         // String job = "Snapshot_Date.xml";
 		// String job = "RemoveStarRiskRating.xml";
 		// String job = "DeleteEmpty.xml";
-		String job = "VerifyJavaFiles.xml";
+		// String job = "VerifyJavaFiles.xml";
+		String job = "REST_Test.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.apache.commons.io.FilenameUtils;
 import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
