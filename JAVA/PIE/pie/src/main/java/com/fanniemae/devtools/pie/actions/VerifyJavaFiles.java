@@ -34,7 +34,7 @@ public class VerifyJavaFiles extends Delete {
 				if (_clearReadOnly && !sourceFile.canWrite()) {
 					sourceFile.setWritable(true);
 				}
-				_filesAltered++;
+				_filesProcessed++;
 				_sb.append(String.format("Deleting file %s (it contains no code)\n", sourceFile));
 				sourceFile.delete();
 			}

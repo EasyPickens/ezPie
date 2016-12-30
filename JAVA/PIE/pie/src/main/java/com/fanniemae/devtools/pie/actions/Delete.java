@@ -27,6 +27,7 @@ public class Delete extends FileSystemAction {
 				sourceFile.setWritable(true);
 			}
 			sourceFile.delete();
+			_filesProcessed++;
 		} catch (Exception e) {
 			RuntimeException ex = new RuntimeException(String.format("Error while trying to delete %s. Message is %s", source, e.getMessage()), e);
 			throw ex;

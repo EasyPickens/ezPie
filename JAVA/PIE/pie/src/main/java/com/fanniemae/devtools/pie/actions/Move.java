@@ -48,6 +48,7 @@ public class Move extends Copy {
 				destFile.setWritable(true);
 			}			
 			Files.move(sourcePath, destinationPath, _copyOptions);
+			_filesProcessed++;
 		} catch (IOException e) {
 			RuntimeException ex = new RuntimeException(String.format("Error while trying to move %s to %s. %s", source, destFilename, e.getMessage()), e);
 			_session.addErrorMessage(ex);

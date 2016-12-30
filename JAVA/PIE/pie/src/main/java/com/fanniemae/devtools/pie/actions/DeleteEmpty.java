@@ -24,6 +24,7 @@ public class DeleteEmpty extends Delete {
 			}
 			if (sourceFile.length() == 0) {
 				sourceFile.delete();
+				_filesProcessed++;
 			}
 		} catch (Exception e) {
 			RuntimeException ex = new RuntimeException(String.format("Error while trying to delete %s. Message is %s", source, e.getMessage()), e);

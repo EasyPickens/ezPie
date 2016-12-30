@@ -35,8 +35,8 @@ public abstract class FileSystemAction extends Action {
 	protected Pattern[] _includeRegex = null;
 
 	protected long _totalBytes = 0L;
+	protected int _filesFound = 0;
 	protected int _filesProcessed = 0;
-	protected int _filesAltered = 0;
 
 	protected StringBuilder _sb = new StringBuilder();
 
@@ -113,12 +113,12 @@ public abstract class FileSystemAction extends Action {
 		// _session.addLogMessage("", String.format("%s Complete", _actionName), String.format("%,d files (%,d bytes)", _filesProcessed, _totalBytes));
 		if (_actionName.equals("VerifyJavaFiles")) {
 			_sb.append("Verification completed.");
-			String removedFiles = (_filesAltered > 0) ? "file://"+FileUtilities.writeRandomFile(_session.getLogPath(), ".txt", _sb.toString()) : "";
-			_session.addLogMessage("", "Count", String.format("%,d empty JAVA files found", _filesAltered), removedFiles);
+			String removedFiles = (_filesProcessed > 0) ? "file://"+FileUtilities.writeRandomFile(_session.getLogPath(), ".txt", _sb.toString()) : "";
+			_session.addLogMessage("", "Count", String.format("%,d empty JAVA files found, %,d files checked.", _filesProcessed, _filesFound), removedFiles);
 		} else if (_actionName.equals("DeleteEmpty")) {
-			_session.addLogMessage("", "Count", String.format("%,d empty files %s", _filesProcessed, _countMessage));
+			_session.addLogMessage("", "Count", String.format("%,d empty files %s, %,d files checked.", _filesProcessed, _countMessage, _filesFound));
 		} else {
-			_session.addLogMessage("", "Count", String.format("%,d files (%,d bytes) %s", _filesProcessed, _totalBytes, _countMessage));
+			_session.addLogMessage("", "Count", String.format("%,d files (%,d bytes) %s, %,d files checked.", _filesProcessed, _totalBytes, _countMessage, _filesFound));
 		}
 		return null;
 	}
@@ -177,7 +177,7 @@ public abstract class FileSystemAction extends Action {
 			return;
 		} else if (sourceLocation.isFile()) {
 			_totalBytes += FileUtilities.getLength(source);
-			_filesProcessed++;
+			//_filesFound++;
 
 			if (_actionName.equals("Delete")) {
 				processFile(source, null, null);
@@ -203,6 +203,8 @@ public abstract class FileSystemAction extends Action {
 		for (int i = 0; i < contents.length; i++) {
 			if (_skipHidden && contents[i].isHidden())
 				continue;
+			if (contents[i].isFile())
+				_filesFound++;
 
 			String entryName = contents[i].getName();
 			String entryPath = contents[i].getAbsolutePath();
@@ -224,7 +226,7 @@ public abstract class FileSystemAction extends Action {
 			}
 
 			_totalBytes += contents[i].length();
-			_filesProcessed++;
+			//_filesFound++;
 			processFile(contents[i].getPath(), destination, entryName);
 		}
 	}

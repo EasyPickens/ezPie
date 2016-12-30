@@ -52,6 +52,7 @@ public class Copy extends FileSystemAction {
 				destFile.setWritable(true);
 			}
 			Files.copy(sourcePath, destinationPath, _copyOptions);
+			_filesProcessed++;
 		} catch (IOException e) {
 			RuntimeException ex = new RuntimeException(String.format("Error while trying to copy %s to %s. Message is: %s", source, destFilename, e.getMessage()), e);
 			if (FileUtilities.isValidFile(destFilename)) {
