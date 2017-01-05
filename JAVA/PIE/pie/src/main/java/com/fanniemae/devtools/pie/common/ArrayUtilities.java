@@ -39,7 +39,12 @@ public class ArrayUtilities {
 
 		int index = -1;
 		for (int i = 0; i < length; i++) {
-			if (items[i][dimension].equalsIgnoreCase(target) || (ignoreCase && items[i][dimension].equalsIgnoreCase(target))) {
+			if (items[i] == null) {
+				continue;
+			} else if ((items[i][dimension] == null) && (target == null)) {
+				index = i;
+				break;
+			} else if (items[i][dimension].equalsIgnoreCase(target) || (ignoreCase && items[i][dimension].equalsIgnoreCase(target))) {
 				index = i;
 				break;
 			}
@@ -47,8 +52,8 @@ public class ArrayUtilities {
 
 		return index;
 	}
-	
-	public static int indexOf(int[] items, int target){
+
+	public static int indexOf(int[] items, int target) {
 		int length = items.length;
 		if (length == 0) {
 			return -1;
@@ -56,7 +61,7 @@ public class ArrayUtilities {
 
 		int index = -1;
 		for (int i = 0; i < length; i++) {
-			if(items[i] == target){
+			if (items[i] == target) {
 				index = i;
 				break;
 			}
@@ -64,13 +69,13 @@ public class ArrayUtilities {
 
 		return index;
 	}
-	
+
 	public static String toString(String[] lines) {
 		ReportBuilder rb = new ReportBuilder();
 		rb.appendArray(lines);
 		return rb.toString();
 	}
-	
+
 	public static String toCommandLine(String[] arguments) {
 		if ((arguments == null) || (arguments.length == 0))
 			return "";
