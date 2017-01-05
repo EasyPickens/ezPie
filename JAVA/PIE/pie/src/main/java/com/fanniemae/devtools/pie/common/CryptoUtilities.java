@@ -5,17 +5,20 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
-*
-* @author Richard Monson
-* @since 2015-12-21
-* 
-*/
+ *
+ * @author Richard Monson
+ * @since 2015-12-21
+ * 
+ */
 public class CryptoUtilities {
 
 	public static String hashValue(String value) {
-		return byteArrayToHexString(computeSHA1Hash(value));
+		if (value == null)
+			return "";
+		else
+			return byteArrayToHexString(computeSHA1Hash(value));
 	}
-	
+
 	private static byte[] computeSHA1Hash(String value) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-1");
@@ -34,7 +37,7 @@ public class CryptoUtilities {
 		}
 		return result;
 	}
-	
+
 	// Simple string encrypting using a single byte salt.
 	public static String EncryptDecrypt(String value) {
 		byte[] aCrypt = { 0x34 };

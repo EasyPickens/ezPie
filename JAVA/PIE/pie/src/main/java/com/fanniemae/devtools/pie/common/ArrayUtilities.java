@@ -12,11 +12,11 @@ import java.util.regex.Pattern;
  */
 public class ArrayUtilities {
 	public static int indexOf(String[][] items, String target) {
-		return indexOf(items, target, 0, false);
+		return indexOf(items, target, 0, true);
 	}
 
 	public static int indexOf(String[][] items, String sTarget, int dimension) {
-		return indexOf(items, sTarget, dimension, false);
+		return indexOf(items, sTarget, dimension, true);
 	}
 
 	public static int indexOf(String[][] items, String target, boolean ignoreCase) {
@@ -27,7 +27,7 @@ public class ArrayUtilities {
 		if (items == null) {
 			return -1;
 		}
-		if (dimension > items.length) {
+		if ((dimension > items.length) || (dimension < 0)) {
 			return -1;
 		}
 
@@ -41,10 +41,12 @@ public class ArrayUtilities {
 		for (int i = 0; i < length; i++) {
 			if (items[i] == null) {
 				continue;
+			} else if ((items[i][dimension] == null) && (target != null)) {
+				continue;
 			} else if ((items[i][dimension] == null) && (target == null)) {
 				index = i;
 				break;
-			} else if (items[i][dimension].equalsIgnoreCase(target) || (ignoreCase && items[i][dimension].equalsIgnoreCase(target))) {
+			} else if (items[i][dimension].equals(target) || (ignoreCase && items[i][dimension].equalsIgnoreCase(target))) {
 				index = i;
 				break;
 			}
