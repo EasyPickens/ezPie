@@ -30,11 +30,16 @@ public class DateUtilities {
 	}
 
 	public static String toIsoString(Calendar value) {
-		return toIsoString(value.getTime());
+		return (value == null) ? "" : toIsoString(value.getTime());
+	}
+	
+	public static String elapsedTime(long start) {
+		long end = System.currentTimeMillis();
+		return elapsedTime(start, end);
 	}
 
-	public static String elapsedTime(long start) {
-		long elapsed = System.currentTimeMillis() - start;
+	public static String elapsedTime(long start, long end) {
+		long elapsed = Math.abs(end - start);
 		String elapsedPretty;
 		if (elapsed < 60000L) {
 			elapsedPretty = DurationFormatUtils.formatDuration(elapsed, "s.S' seconds'");
@@ -53,20 +58,33 @@ public class DateUtilities {
 			elapsedPretty = elapsedPretty.replace(" 1 hours ", " 1 hour ");
 		if (elapsedPretty.contains(" 1 minutes "))
 			elapsedPretty = elapsedPretty.replace(" 1 minutes ", " 1 minute ");
+		if (end - start < 0) {
+			return "Negative " + elapsedPretty;
+		}
 		return elapsedPretty;
 	}
-
+	
 	public static String elapsedTimeShort(long start) {
-		long elapsed = System.currentTimeMillis() - start;
+		long end = System.currentTimeMillis();
+		return elapsedTimeShort(start, end);
+	}
+
+	public static String elapsedTimeShort(long start, long end) {
+		long elapsed = Math.abs(end - start);
+		String elapsedPretty;
 		if (elapsed < 60000L) {
-			return DurationFormatUtils.formatDuration(elapsed, "s.S's'");
+			elapsedPretty = DurationFormatUtils.formatDuration(elapsed, "s.S's'");
 		} else if (elapsed < 3600000L) {
-			return DurationFormatUtils.formatDuration(elapsed, "m'm' s.S's'");
+			elapsedPretty = DurationFormatUtils.formatDuration(elapsed, "m'm' s.S's'");
 		} else if (elapsed < 86400000L) {
-			return DurationFormatUtils.formatDuration(elapsed, "H'h' m'm' s.S's'");
+			elapsedPretty = DurationFormatUtils.formatDuration(elapsed, "H'h' m'm' s.S's'");
 		} else {
-			return DurationFormatUtils.formatDuration(elapsed, "d'd' H'h' m'm' s.S's'");
+			elapsedPretty = DurationFormatUtils.formatDuration(elapsed, "d'd' H'h' m'm' s.S's'");
 		}
+		if (end - start < 0) {
+			return "Negative " + elapsedPretty;
+		}		
+		return elapsedPretty;
 	}
 
 }

@@ -4,8 +4,6 @@ import org.junit.Test;
 
 import junit.framework.TestCase;
 
-import com.fanniemae.devtools.pie.common.ArrayUtilities;
-
 /**
 *
 * @author Richard Monson

@@ -31,7 +31,7 @@ public class RunPie {
 		// String job = "ReportTest.xml";
 		// String job = "clmDefinition.xml";
 		// String job = "clm.xml";
-		String job = "FileDirectory_Test.xml";
+		// String job = "FileDirectory_Test.xml";
 		// String job = "AIP_AFP_Export.xml";
 		// String job = "Backup_Fnma_Apps.xml";
 		// String job = "Monthly_CQA_Report.xml";
@@ -73,6 +73,7 @@ public class RunPie {
 		// String job = "DeleteEmpty.xml";
 		// String job = "VerifyJavaFiles.xml";
 		// String job = "REST_Test.xml";
+		String job = "GeneralTest.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
