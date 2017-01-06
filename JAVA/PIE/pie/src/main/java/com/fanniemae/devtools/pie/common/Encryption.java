@@ -268,23 +268,23 @@ public class Encryption {
 		}
 	}
 
-	private static String getHash(String value, String mode) {
-		return toHexString(computeHash(mode, value));
+	private static String getHash(String hashAlgorithm, String value) {
+		return (value == null) ? "" : toHexString(computeHash(hashAlgorithm, value));
 	}
 
-	private static byte[] computeHash(String value, String mode) {
-		if (StringUtilities.isNullOrEmpty(value)) {
+	private static byte[] computeHash(String hashAlgorithm, String value) {
+		if (value == null) {
 			throw new RuntimeException("Cannot compute the hash of a null value.");
 		}
 		try {
-			MessageDigest digest = MessageDigest.getInstance(mode);
+			MessageDigest digest = MessageDigest.getInstance(hashAlgorithm);
 			digest.reset();
 			digest.update(value.getBytes("UTF-8"));
 			return digest.digest();
 		} catch (NoSuchAlgorithmException ex) {
-			throw new RuntimeException(String.format("Error running %s hash. No such algorithm.", mode), ex);
+			throw new RuntimeException(String.format("Error running %s hash. No such algorithm.", hashAlgorithm), ex);
 		} catch (UnsupportedEncodingException ex) {
-			throw new RuntimeException(String.format("Error running %s hash. Unsupported encoding exception.", mode), ex);
+			throw new RuntimeException(String.format("Error running %s hash. Unsupported encoding exception.", hashAlgorithm), ex);
 		}
 	}
 	
