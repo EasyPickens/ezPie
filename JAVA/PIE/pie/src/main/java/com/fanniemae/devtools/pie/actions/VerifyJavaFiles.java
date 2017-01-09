@@ -103,7 +103,7 @@ public class VerifyJavaFiles extends Delete {
 
 	protected void removeComments(String commentStart, String commentEnd) {
 		String comment = "";
-		int lastStart = -1;
+		int lastLength = -1;
 
 		int startComment = _fileContents.indexOf(commentStart);
 		while (startComment > -1) {
@@ -123,10 +123,10 @@ public class VerifyJavaFiles extends Delete {
 					}
 				}
 			}
-			lastStart = startComment;
-			startComment = _fileContents.indexOf(commentStart, startComment);
-			if (lastStart == startComment)
-				break;
+			if (lastLength == _fileContents.length())
+				break;			
+			lastLength = _fileContents.length();
+			startComment = _fileContents.indexOf(commentStart, startComment);			
 		}
 	}
 
