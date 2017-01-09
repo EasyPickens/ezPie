@@ -29,18 +29,18 @@ public class StringUtilities {
                                                             "yyyy-MM-dd'T'HH", "yyyy-MM-dd HH", "yyyy/MM/dd HH", "yyyy-MM-dd HH", "yyyy/MM/dd HH", 
                                                             "MM-dd-yyyy HH", "MM/dd/yyyy HH", "dd-MM-yyyy HH", "dd/MM/yyyy HH", "MM-yyyy HH", "MM/yyyy HH",
                                                             "yyyy-MM-dd", "yyyy/MM/dd", "MM-dd-yyyy", "MM/dd/yyyy", "dd-MM-yyyy", "dd/MM/yyyy", "MM-yyyy",
-                                                            "MM/yyyy", "yyyy-M-dd'T'HH:M:ss", "yyyy-M-dd HH:M:ss", "yyyy/M/dd HH:M:ss", "yyyy-M-dd HH:M:ss", 
-                                                            "yyyy/M/dd HH:M:ss", "M-dd-yyyy HH:M:ss", "M/dd/yyyy HH:M:ss", "dd-M-yyyy HH:M:ss", "dd/M/yyyy HH:M:ss",
-                                                            "M-yyyy HH:M:ss", "M/yyyy HH:M:ss", "yyyy-M-dd'T'HH:M", "yyyy-M-dd HH:M", "yyyy/M/dd HH:M", 
-                                                            "yyyy-M-dd HH:M", "yyyy/M/dd HH:M", "M-dd-yyyy HH:M", "M/dd/yyyy HH:M", "dd-M-yyyy HH:M",
-                                                            "dd/M/yyyy HH:M", "M-yyyy HH:M", "M/yyyy HH:M", "yyyy-M-dd'T'HH", "yyyy-M-dd HH", "yyyy/M/dd HH", 
+                                                            "MM/yyyy", "yyyy-M-dd'T'HH:m:ss", "yyyy-M-dd HH:m:ss", "yyyy/M/dd HH:m:ss", "yyyy-M-dd HH:m:ss", 
+                                                            "yyyy/M/dd HH:m:ss", "M-dd-yyyy HH:m:ss", "M/dd/yyyy HH:m:ss", "dd-M-yyyy HH:m:ss", "dd/M/yyyy HH:m:ss",
+                                                            "M-yyyy HH:m:ss", "M/yyyy HH:m:ss", "yyyy-M-dd'T'HH:m", "yyyy-M-dd HH:m", "yyyy/M/dd HH:m", 
+                                                            "yyyy-M-dd HH:m", "yyyy/M/dd HH:m", "M-dd-yyyy HH:m", "M/dd/yyyy HH:m", "dd-M-yyyy HH:m",
+                                                            "dd/M/yyyy HH:m", "M-yyyy HH:m", "M/yyyy HH:m", "yyyy-M-dd'T'HH", "yyyy-M-dd HH", "yyyy/M/dd HH", 
                                                             "yyyy-M-dd HH", "yyyy/M/dd HH", "M-dd-yyyy HH", "M/dd/yyyy HH", "dd-M-yyyy HH", "dd/M/yyyy HH",
                                                             "M-yyyy HH", "M/yyyy HH", "yyyy-M-dd", "yyyy/M/dd", "M-dd-yyyy", "M/dd/yyyy", "dd-M-yyyy",
-                                                            "dd/M/yyyy", "M-yyyy", "M/yyyy", "yyyy-M-d'T'HH:M:ss", "yyyy-M-d HH:M:ss", "yyyy/M/d HH:M:ss", 
-                                                            "yyyy-M-d HH:M:ss", "yyyy/M/d HH:M:ss", "M-d-yyyy HH:M:ss", "M/d/yyyy HH:M:ss", "d-M-yyyy HH:M:ss",
-                                                            "d/M/yyyy HH:M:ss", "M-yyyy HH:M:ss", "M/yyyy HH:M:ss", "yyyy-M-d'T'HH:M", "yyyy-M-d HH:M", 
-                                                            "yyyy/M/d HH:M", "yyyy-M-d HH:M", "yyyy/M/d HH:M", "M-d-yyyy HH:M", "M/d/yyyy HH:M", "d-M-yyyy HH:M",
-		                                                    "d/M/yyyy HH:M", "M-yyyy HH:M", "M/yyyy HH:M", "yyyy-M-d'T'HH", "yyyy-M-d HH", "yyyy/M/d HH", 
+                                                            "dd/M/yyyy", "M-yyyy", "M/yyyy", "yyyy-M-d'T'HH:m:ss", "yyyy-M-d HH:m:ss", "yyyy/M/d HH:m:ss", 
+                                                            "yyyy-M-d HH:m:ss", "yyyy/M/d HH:m:ss", "M-d-yyyy HH:m:ss", "M/d/yyyy HH:m:ss", "d-M-yyyy HH:m:ss",
+                                                            "d/M/yyyy HH:m:ss", "M-yyyy HH:m:ss", "M/yyyy HH:m:ss", "yyyy-M-d'T'HH:m", "yyyy-M-d HH:m", 
+                                                            "yyyy/M/d HH:m", "yyyy-M-d HH:m", "yyyy/M/d HH:m", "M-d-yyyy HH:m", "M/d/yyyy HH:m", "d-M-yyyy HH:m",
+		                                                    "d/M/yyyy HH:m", "M-yyyy HH:m", "M/yyyy HH:m", "yyyy-M-d'T'HH", "yyyy-M-d HH", "yyyy/M/d HH", 
                                                             "yyyy-M-d HH", "yyyy/M/d HH", "M-d-yyyy HH", "M/d/yyyy HH", "d-M-yyyy HH", "d/M/yyyy HH", "M-yyyy HH",
                                                             "M/yyyy HH", "yyyy-M-d", "yyyy/M/d", "M-d-yyyy", "M/d/yyyy", "d-M-yyyy", "d/M/yyyy", "M-yyyy",
                                                             "M/yyyy", "yyyy-MM-d'T'HH:mm:ss", "yyyy-MM-d HH:mm:ss", "yyyy/MM/d HH:mm:ss", "yyyy-MM-d HH:mm:ss", 
@@ -67,7 +67,9 @@ public class StringUtilities {
 		// Check for ISO 8601 Date Format (yyyy-MM-ddTHH:mm:ss)
 		if (isNotNullOrEmpty(value) && (value.length() > 14)) {
 			String sCheck = value.substring(4, 5) + value.substring(7, 8) + value.substring(10, 11) + value.substring(13, 14);
-			return sCheck.equals("--T:");
+			if (sCheck.equals("--T:") && isDate(value)) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -82,19 +84,27 @@ public class StringUtilities {
 	}
 
 	public static boolean isLong(String value) {
-		return isNullOrEmpty(value) ? false : (Pattern.matches("^[+-]?\\d+$", value) && (value.length() <= 17));
+		if (isNullOrEmpty(value)) return false;
+		value = value.trim();
+		return (Pattern.matches("^[+-]?\\d+$", value) && (value.length() <= 17));
 	}
 
 	public static boolean isInteger(String value) {
-		return isNullOrEmpty(value) ? false : (Pattern.matches("^[+-]?\\d+$", value) && (value.length() <= 8));
+		if (isNullOrEmpty(value)) return false;
+		value = value.trim();
+		return (Pattern.matches("^[+-]?\\d+$", value) && (value.length() <= 8));
 	}
 
 	public static boolean isDouble(String value) {
-		return isNullOrEmpty(value) ? false : Pattern.matches(DOUBLE_REGEX, value);
+		if (isNullOrEmpty(value)) return false;
+		value = value.trim();
+		return Pattern.matches(DOUBLE_REGEX, value);
 	}
 
 	public static boolean isBigDecimal(String value) {
-		return isNullOrEmpty(value) ? false : Pattern.matches(DOUBLE_REGEX, value);
+		if (isNullOrEmpty(value)) return false;
+		value = value.trim();
+		return Pattern.matches(DOUBLE_REGEX, value);
 	}
 
 	public static boolean isFormula(String value) {
