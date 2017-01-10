@@ -98,24 +98,27 @@ public class StringUtilities {
 	public static boolean isDouble(String value) {
 		if (isNullOrEmpty(value)) return false;
 		value = value.trim();
+		if (value.indexOf('.') == -1) return false;
 		return Pattern.matches(DOUBLE_REGEX, value);
 	}
 
 	public static boolean isBigDecimal(String value) {
 		if (isNullOrEmpty(value)) return false;
 		value = value.trim();
+		if (value.indexOf('.') == -1) return false;
 		return Pattern.matches(DOUBLE_REGEX, value);
 	}
 
-	public static boolean isFormula(String value) {
-		char[] aSymbols = ".*/+-()=<>!^#&@$%\\|{}'?".toCharArray();
-		for (int i = 0; i < aSymbols.length; i++) {
-			if (value.indexOf(aSymbols[i]) != -1) {
-				return true;
-			}
-		}
-		return false;
-	}
+//	public static boolean isFormula(String value) {
+//		if (isNullOrEmpty(value)) return false;
+//		char[] aSymbols = ".*/+-()=<>!^#&@$%\\|{}'?".toCharArray();
+//		for (int i = 0; i < aSymbols.length; i++) {
+//			if (value.indexOf(aSymbols[i]) != -1) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
 
 	public static boolean isBoolean(String value) {
 		return (isNullOrEmpty(value) || (BOOLEAN_VALUES.indexOf("|" + value.toLowerCase() + "|") == -1)) ? false : true;

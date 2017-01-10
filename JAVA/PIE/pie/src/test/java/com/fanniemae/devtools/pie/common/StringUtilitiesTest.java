@@ -294,19 +294,124 @@ public class StringUtilitiesTest extends TestCase {
 	// * isDouble
 	// ***********************************************************************************
 
-	// @Test
-	// public void testIsDouble() {
-	// fail("Not yet implemented");
-	// }
+	@Test
+	public void testIsDouble() {
+		isDouble(null, false);
+	}
+	
+	@Test
+	public void testIsDoubleEmptyString() {
+		isDouble("", false);
+	}
+	
+	@Test
+	public void testIsDoubleEmptySpace() {
+		isDouble("  ", false);
+	}
+	
+	@Test
+	public void testIsDoubleText() {
+		isDouble("Hello", false);
+	}
+	
+	@Test
+	public void testIsDoubleNumber() {
+		isDouble("345.678", true);
+	}
+	
+	@Test
+	public void testIsDoublePaddingNumber() {
+		isDouble("  345.678 ", true);
+	}
+	
+	@Test
+	public void testIsDoubleLeftPadding() {
+		isDouble("   345.678", true);
+	}	
+	
+	@Test
+	public void testIsDoubleRightPadding() {
+		isDouble("345.678  ", true);
+	}
+	
+	@Test
+	public void testIsDoubleLeadingZeros() {
+		isDouble("0000345.678", true);
+	}
+	
+	@Test
+	public void testIsDoubleInt() {
+		isDouble("123", false);
+	}
+
+	private void isDouble(String value, boolean expectedResult) {
+		if (value == null) {
+			assertEquals("IsDouble with null", expectedResult, StringUtilities.isDouble(value));
+		} else {
+			assertEquals("IsDouble with ", expectedResult, StringUtilities.isDouble(value));
+		}
+	}
 
 	// ***********************************************************************************
 	// * isBigDecimal
 	// ***********************************************************************************
+	@Test
+	public void testIsBigDecimal() {
+		isBigDecimal(null, false);
+	}
+	
+	@Test
+	public void testIsBigDecimalEmptyString() {
+		isBigDecimal("", false);
+	}
+	
+	@Test
+	public void testIsBigDecimalEmptySpace() {
+		isBigDecimal("  ", false);
+	}
+	
+	@Test
+	public void testIsBigDecimalText() {
+		isBigDecimal("Hello", false);
+	}
+	
+	@Test
+	public void testIsBigDecimalNumber() {
+		isBigDecimal("345.678", true);
+	}
+	
+	@Test
+	public void testIsBigDecimalPaddingNumber() {
+		isBigDecimal("  345.678 ", true);
+	}
+	
+	@Test
+	public void testIsBigDecimalLeftPadding() {
+		isBigDecimal("   345.678", true);
+	}	
+	
+	@Test
+	public void testIsBigDecimalRightPadding() {
+		isBigDecimal("345.678  ", true);
+	}
+	
+	@Test
+	public void testIsBigDecimalLeadingZeros() {
+		isBigDecimal("0000345.678", true);
+	}
+	
+	@Test
+	public void testIsBigDecimalInt() {
+		isBigDecimal("123", false);
+	}
 
-	// @Test
-	// public void testIsBigDecimal() {
-	// fail("Not yet implemented");
-	// }
+	private void isBigDecimal(String value, boolean expectedResult) {
+		if (value == null) {
+			assertEquals("IsBigDecimal with null", expectedResult, StringUtilities.isBigDecimal(value));
+		} else {
+			assertEquals("IsBigDecimal with ", expectedResult, StringUtilities.isBigDecimal(value));
+		}
+	}
 
 	// ***********************************************************************************
 	// * isFormula
