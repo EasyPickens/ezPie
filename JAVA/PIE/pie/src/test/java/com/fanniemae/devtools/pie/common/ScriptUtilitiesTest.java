@@ -4,6 +4,13 @@ import org.junit.Test;
 
 import junit.framework.TestCase;
 
+/**
+*
+* @author Richard Monson
+* @since 2017-01-05
+* 
+*/
+
 public class ScriptUtilitiesTest extends TestCase {
 
 	@Test

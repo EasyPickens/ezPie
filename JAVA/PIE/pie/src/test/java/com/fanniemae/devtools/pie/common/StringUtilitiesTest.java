@@ -4,8 +4,19 @@ import org.junit.Test;
 
 import junit.framework.TestCase;
 
+/**
+*
+* @author Richard Monson
+* @since 2017-01-05
+* 
+*/
+
 public class StringUtilitiesTest extends TestCase {
 
+	//***********************************************************************************
+	//* isNotNullOrEmpty 
+	//***********************************************************************************
+	
 	@Test
 	public void testIsNotNullOrEmptySimple() {
 		assertEquals("String is not null or empty",true,StringUtilities.isNotNullOrEmpty("Test"));
@@ -40,6 +51,10 @@ public class StringUtilitiesTest extends TestCase {
 	public void testIsNotNullOrEmptyRightPaddedString() {
 		assertEquals("String is right padded",true,StringUtilities.isNotNullOrEmpty("sdfsdfsd   "));
 	}
+	
+	//***********************************************************************************
+	//* isNullOrEmpty 
+	//***********************************************************************************	
 	
 	@Test
 	public void testIsNullOrEmptySimple() {
@@ -76,6 +91,10 @@ public class StringUtilitiesTest extends TestCase {
 		assertEquals("String is right padded",false,StringUtilities.isNullOrEmpty("sdfsdfsd   "));
 	}	
 	
+	//***********************************************************************************
+	//* isFormattedDate 
+	//***********************************************************************************
+	
 	@Test
 	public void testIsFormattedDate() {
 		assertEquals("Formatted date test for 2010-12-12T14:03:34", true, StringUtilities.isFormattedDate("2010-12-12T14:03:34"));
@@ -101,6 +120,10 @@ public class StringUtilitiesTest extends TestCase {
 		assertEquals("Formatted date test for null", false, StringUtilities.isFormattedDate(null));
 	}
 
+	//***********************************************************************************
+	//* isDate 
+	//***********************************************************************************
+	
 	@Test
 	public void testIsDateISO() {
 		assertEquals("IsDate with 2010-12-12T14:03:34", true, StringUtilities.isDate("2010-12-12T14:03:34"));
@@ -151,6 +174,9 @@ public class StringUtilitiesTest extends TestCase {
 		assertEquals("IsDate with 2016/14/23", false, StringUtilities.isDate("2016/14/23"));
 	}
 
+	//***********************************************************************************
+	//* isLong 
+	//***********************************************************************************
 	
 	@Test
 	public void testIsLong() {
@@ -201,92 +227,164 @@ public class StringUtilitiesTest extends TestCase {
 	public void testIsLongTextNumFirst() {
 		assertEquals("IsLong with 34hello", false, StringUtilities.isLong("34hello"));
 	}
+	
+	//***********************************************************************************
+	//* isInteger 
+	//***********************************************************************************
 
 //	@Test
 //	public void testIsInteger() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* isDouble 
+	//***********************************************************************************
+	
 //	@Test
 //	public void testIsDouble() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* isBigDecimal 
+	//***********************************************************************************
+	
 //	@Test
 //	public void testIsBigDecimal() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* isFormula 
+	//***********************************************************************************
+	
 //	@Test
 //	public void testIsFormula() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* isBoolean 
+	//***********************************************************************************
+	
 //	@Test
 //	public void testIsBoolean() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toBoolean 
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToBooleanString() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toBoolean with default 
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToBooleanStringBoolean() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toInteger  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToIntegerString() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toInteger with default  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToIntegerStringInt() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toLong  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToLongString() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toLong with default  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToLongStringLong() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toDouble  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToDoubleString() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toDouble with default  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToDoubleStringDouble() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toBigDecimal  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToBigDecimalString() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toBigDecimal with default  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToBigDecimalStringBigDecimal() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toDate  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToDateString() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//* toDate with default
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToDateStringDate() {
 //		fail("Not yet implemented");
 //	}
-//
+
+	//***********************************************************************************
+	//*  
+	//***********************************************************************************
+	
 //	@Test
 //	public void testToObject() {
 //		fail("Not yet implemented");
