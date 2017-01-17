@@ -1,5 +1,7 @@
 package com.fanniemae.devtools.pie.common;
 
+import java.math.BigDecimal;
+
 import org.junit.Test;
 
 import junit.framework.TestCase;
@@ -425,102 +427,387 @@ public class StringUtilitiesTest extends TestCase {
 	// ***********************************************************************************
 	// * isBoolean
 	// ***********************************************************************************
+	@Test
+	public void testIsBoolean() {
+		isBoolean(null, false);
+	}
+	
+	@Test
+	public void testIsBooleanEmptyString() {
+		isBoolean("", false);
+	}
+	
+	@Test
+	public void testIsBooleanEmptySpace() {
+		isBoolean("  ", false);
+	}
+	
+	@Test
+	public void testIsBooleanText() {
+		isBoolean("Hello", false);
+	}
+	
+	@Test
+	public void testIsBooleanNumber() {
+		isBoolean("yes", true);
+	}
+	
+	@Test
+	public void testIsBooleanPadding() {
+		isBoolean("  yes ", true);
+	}
+	
+	@Test
+	public void testIsBooleanLeftPadding() {
+		isBoolean("   yes", true);
+	}	
+	
+	@Test
+	public void testIsBooleanRightPadding() {
+		isBoolean("yes  ", true);
+	}
+	
+	@Test
+	public void testIsBooleanLeadingZeros() {
+		isBoolean("0000yes", false);
+	}
+	
+	@Test
+	public void testIsBooleanInt() {
+		isBoolean("123", false);
+	}
 
-	// @Test
-	// public void testIsBoolean() {
-	// fail("Not yet implemented");
-	// }
-
+	private void isBoolean(String value, boolean expectedResult) {
+		if (value == null) {
+			assertEquals("IsBoolean with null", expectedResult, StringUtilities.isBoolean(value));
+		} else {
+			assertEquals("IsBoolean with ", expectedResult, StringUtilities.isBoolean(value));
+		}
+	}
 	// ***********************************************************************************
 	// * toBoolean
 	// ***********************************************************************************
+	@Test
+	public void testtoBoolean() {
+		toBoolean(null, false);
+	}
+	
+	@Test
+	public void testtoBooleanEmptyString() {
+		toBoolean("", false);
+	}
+	
+	@Test
+	public void testtoBooleanEmptySpace() {
+		toBoolean("  ", false);
+	}
+	
+	@Test
+	public void testtoBooleanText() {
+		toBoolean("Hello", false);
+	}
+	
+	@Test
+	public void testtoBooleanNumber() {
+		toBoolean("yes", true);
+	}
+	
+	@Test
+	public void testtoBooleanPadding() {
+		toBoolean("  yes ", true);
+	}
+	
+	@Test
+	public void testtoBooleanLeftPadding() {
+		toBoolean("   yes", true);
+	}	
+	
+	@Test
+	public void testtoBooleanRightPadding() {
+		toBoolean("yes  ", true);
+	}
+	
+	@Test
+	public void testtoBooleanLeadingZeros() {
+		toBoolean("0000yes", false);
+	}
+	
+	@Test
+	public void testtoBooleanInt() {
+		toBoolean("123", false);
+	}
 
-	// @Test
-	// public void testToBooleanString() {
-	// fail("Not yet implemented");
-	// }
-
+	private void toBoolean(String value, boolean expectedResult) {
+		if (value == null) {
+			assertEquals("toBoolean with null", expectedResult, StringUtilities.toBoolean(value));
+		} else {
+			assertEquals("toBoolean with ", expectedResult, StringUtilities.toBoolean(value));
+		}
+	}
 	// ***********************************************************************************
 	// * toBoolean with default
 	// ***********************************************************************************
 
-	// @Test
-	// public void testToBooleanStringBoolean() {
-	// fail("Not yet implemented");
-	// }
+	@Test
+	public void testtoBooleanDefaultFalse() {
+		assertEquals("toBoolean with ", false, StringUtilities.toBoolean("Dog",false));
+	}
+	
+	@Test
+	public void testtoBooleanDefaultTrue() {
+		assertEquals("toBoolean with ", true, StringUtilities.toBoolean("Dog",true));
+	}
 
 	// ***********************************************************************************
 	// * toInteger
 	// ***********************************************************************************
-
-	// @Test
-	// public void testToIntegerString() {
-	// fail("Not yet implemented");
-	// }
-
+	@Test
+	public void testtoInteger() {
+		toInteger(null, 0);
+	}
+	
+	@Test
+	public void testtoIntegerEmptyString() {
+		toInteger("", 0);
+	}
+	
+	@Test
+	public void testtoIntegerEmptySpace() {
+		toInteger("  ", 0);
+	}
+	
+	@Test
+	public void testtoIntegerText() {
+		toInteger("Hello", 0);
+	}
+	
+	@Test
+	public void testtoIntegerPadding() {
+		toInteger("  -25 ", -25);
+	}
+	
+	@Test
+	public void testtoIntegerLeftPadding() {
+		toInteger("   +25", 25);
+	}	
+	
+	@Test
+	public void testtoIntegerRightPadding() {
+		toInteger("25  ", 25);
+	}
+	
+	@Test
+	public void testtoIntegerLeadingZeros() {
+		toInteger("000025", 25);
+	}
+	
+	private void toInteger(String value, int expectedResult) {
+		if (value == null) {
+			assertEquals("toInteger with null", expectedResult, StringUtilities.toInteger(value));
+		} else {
+			assertEquals("toInteger with ", expectedResult, StringUtilities.toInteger(value));
+		}
+	}
 	// ***********************************************************************************
 	// * toInteger with default
 	// ***********************************************************************************
 
-	// @Test
-	// public void testToIntegerStringInt() {
-	// fail("Not yet implemented");
-	// }
-
+	@Test
+	public void testtoIntegerDefaultFalse() {
+		assertEquals("toInteger with ", 0, StringUtilities.toInteger("Dog",0));
+	}
+	
+	@Test
+	public void testtoIntegerDefaultTrue() {
+		assertEquals("toInteger with ", 12, StringUtilities.toInteger("Dog",12));
+	}
 	// ***********************************************************************************
 	// * toLong
 	// ***********************************************************************************
-
-	// @Test
-	// public void testToLongString() {
-	// fail("Not yet implemented");
-	// }
-
+	@Test
+	public void testtoLong() {
+		toLong(null, 0L);
+	}
+	
+	@Test
+	public void testtoLongEmptyString() {
+		toLong("", 0L);
+	}
+	
+	@Test
+	public void testtoLongEmptySpace() {
+		toLong("  ", 0L);
+	}
+	
+	@Test
+	public void testtoLongText() {
+		toLong("Hello", 0L);
+	}
+	
+	@Test
+	public void testtoLongPadding() {
+		toLong("  -25 ", -25);
+	}
+	
+	@Test
+	public void testtoLongLeftPadding() {
+		toLong("   +25", 25);
+	}	
+	
+	@Test
+	public void testtoLongRightPadding() {
+		toLong("25  ", 25);
+	}
+	
+	@Test
+	public void testtoLongLeadingZeros() {
+		toLong("000025", 25);
+	}
+	
+	private void toLong(String value, long expectedResult) {
+		if (value == null) {
+			assertEquals("toLong with null", expectedResult, StringUtilities.toLong(value));
+		} else {
+			assertEquals("toLong with ", expectedResult, StringUtilities.toLong(value));
+		}
+	}
 	// ***********************************************************************************
 	// * toLong with default
 	// ***********************************************************************************
 
-	// @Test
-	// public void testToLongStringLong() {
-	// fail("Not yet implemented");
-	// }
-
+	@Test
+	public void testtoLongDefaultFalse() {
+		assertEquals("toLong with ", 0L, StringUtilities.toLong("Dog",0L));
+	}
+	
+	@Test
+	public void testtoLongDefaultTrue() {
+		assertEquals("toLong with ", 12L, StringUtilities.toLong("Dog",12L));
+	}
 	// ***********************************************************************************
 	// * toDouble
 	// ***********************************************************************************
-
-	// @Test
-	// public void testToDoubleString() {
-	// fail("Not yet implemented");
-	// }
-
+	@Test
+	public void testtoDouble() {
+		toDouble(null, 0.0);
+	}
+	
+	@Test
+	public void testtoDoubleEmptyString() {
+		toDouble("", 0.0);
+	}
+	
+	@Test
+	public void testtoDoubleEmptySpace() {
+		toDouble("  ", 0.0);
+	}
+	
+	@Test
+	public void testtoDoubleText() {
+		toDouble("Hello", 0.0);
+	}
+	
+	@Test
+	public void testtoDoublePadding() {
+		toDouble("  -25 ", -25);
+	}
+	
+	@Test
+	public void testtoDoubleLeftPadding() {
+		toDouble("   +25", 25);
+	}	
+	
+	@Test
+	public void testtoDoubleRightPadding() {
+		toDouble("25  ", 25);
+	}
+	
+	@Test
+	public void testtoDoubleLeadingZeros() {
+		toDouble("000025", 25);
+	}
+	
+	private void toDouble(String value, double expectedResult) {
+		if (value == null) {
+			assertEquals("toDouble with null", expectedResult, StringUtilities.toDouble(value));
+		} else {
+			assertEquals("toDouble with ", expectedResult, StringUtilities.toDouble(value));
+		}
+	}
 	// ***********************************************************************************
 	// * toDouble with default
 	// ***********************************************************************************
-
-	// @Test
-	// public void testToDoubleStringDouble() {
-	// fail("Not yet implemented");
-	// }
-
+	@Test
+	public void testtoDoubleDefaultFalse() {
+		assertEquals("toDouble with ", 0.0, StringUtilities.toDouble("Dog",0.0));
+	}
+	
+	@Test
+	public void testtoDoubleDefaultTrue() {
+		assertEquals("toDouble with ", 1.23, StringUtilities.toDouble("Dog",1.23));
+	}
 	// ***********************************************************************************
 	// * toBigDecimal
 	// ***********************************************************************************
-
-	// @Test
-	// public void testToBigDecimalString() {
-	// fail("Not yet implemented");
-	// }
-
+	@Test
+	public void testtoBigDecimal() {
+		toBigDecimal(null, new BigDecimal("0.0"));
+	}
+	
+	@Test
+	public void testtoBigDecimalEmptyString() {
+		toBigDecimal("", new BigDecimal("0.0"));
+	}
+	
+	@Test
+	public void testtoBigDecimalEmptySpace() {
+		toBigDecimal("  ", new BigDecimal("0.0"));
+	}
+	
+	@Test
+	public void testtoBigDecimalText() {
+		toBigDecimal("Hello", new BigDecimal("0.0"));
+	}
+	
+	@Test
+	public void testtoBigDecimalPadding() {
+		toBigDecimal("  -25 ",new BigDecimal("-25"));
+	}
+	
+	@Test
+	public void testtoBigDecimalLeftPadding() {
+		toBigDecimal("   +25", new BigDecimal("25"));
+	}	
+	
+	@Test
+	public void testtoBigDecimalRightPadding() {
+		toBigDecimal("25  ", new BigDecimal("25"));
+	}
+	
+	@Test
+	public void testtoBigDecimalLeadingZeros() {
+		toBigDecimal("000025", new BigDecimal("25"));
+	}
+	
+	private void toBigDecimal(String value, BigDecimal expectedResult) {
+		if (value == null) {
+			assertEquals("toBigDecimal with null", expectedResult, StringUtilities.toBigDecimal(value));
+		} else {
+			assertEquals("toBigDecimal with ", expectedResult, StringUtilities.toBigDecimal(value));
+		}
+	}
 	// ***********************************************************************************
 	// * toBigDecimal with default
 	// ***********************************************************************************
-
-	// @Test
-	// public void testToBigDecimalStringBigDecimal() {
-	// fail("Not yet implemented");
-	// }
-
+	@Test
+	public void testtoBigDecimalDefaultFalse() {
+		assertEquals("toBigDecimal with ",new BigDecimal("0.0"), StringUtilities.toBigDecimal("Dog",new BigDecimal("0.0")));
+	}
+	
+	@Test
+	public void testtoBigDecimalDefaultTrue() {
+		assertEquals("toBigDecimal with ",new BigDecimal("0.0001"), StringUtilities.toBigDecimal("Dog",new BigDecimal("0.0001")));
+	}
 	// ***********************************************************************************
 	// * toDate
 	// ***********************************************************************************

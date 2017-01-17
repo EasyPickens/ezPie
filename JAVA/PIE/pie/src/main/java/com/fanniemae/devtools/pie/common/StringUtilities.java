@@ -121,7 +121,7 @@ public class StringUtilities {
 //	}
 
 	public static boolean isBoolean(String value) {
-		return (isNullOrEmpty(value) || (BOOLEAN_VALUES.indexOf("|" + value.toLowerCase() + "|") == -1)) ? false : true;
+		return (isNullOrEmpty(value) || (BOOLEAN_VALUES.indexOf("|" + value.trim().toLowerCase() + "|") == -1)) ? false : true;
 	}
 
 	public static boolean toBoolean(String value) {
@@ -131,9 +131,9 @@ public class StringUtilities {
 	public static boolean toBoolean(String value, Boolean defaultValue) {
 		if (isNullOrEmpty(value))
 			return defaultValue;
-		else if ("|true|t|y|1|on|yes|".indexOf("|" + value.toLowerCase() + "|") > -1)
+		else if ("|true|t|y|1|on|yes|".indexOf("|" + value.trim().toLowerCase() + "|") > -1)
 			return true;
-		else if ("|false|f|n|0|off|no|".indexOf("|" + value.toLowerCase() + "|") > -1)
+		else if ("|false|f|n|0|off|no|".indexOf("|" + value.trim().toLowerCase() + "|") > -1)
 			return false;
 		return defaultValue;
 	}
@@ -146,7 +146,7 @@ public class StringUtilities {
 		if (isNullOrEmpty(value))
 			return defaultValue;
 		try {
-			return Integer.parseInt(value);
+			return Integer.parseInt(value.trim());
 		} catch (NumberFormatException ex) {
 			return defaultValue;
 		}
@@ -160,7 +160,7 @@ public class StringUtilities {
 		if (isNullOrEmpty(value))
 			return defaultValue;
 		try {
-			return Long.parseLong(value);
+			return Long.parseLong(value.trim());
 		} catch (NumberFormatException ex) {
 			return defaultValue;
 		}
@@ -174,7 +174,7 @@ public class StringUtilities {
 		if (isNullOrEmpty(value))
 			return defaultValue;
 		try {
-			return Double.parseDouble(value);
+			return Double.parseDouble(value.trim());
 		} catch (NumberFormatException ex) {
 			return defaultValue;
 		}
@@ -188,7 +188,7 @@ public class StringUtilities {
 		if (isNullOrEmpty(value))
 			return defaultValue;
 		try {
-			return new BigDecimal(value);
+			return new BigDecimal(value.trim());
 		} catch (NumberFormatException ex) {
 			return defaultValue;
 		}
