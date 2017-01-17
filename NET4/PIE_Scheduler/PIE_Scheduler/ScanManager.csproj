@@ -58,6 +58,7 @@
     <Compile Include="Common\MiscUtilities.cs" />
     <Compile Include="Common\RunCommand.cs" />
     <Compile Include="Common\SqlUtilities.cs" />
+    <Compile Include="Common\TokenManager.cs" />
     <Compile Include="Common\XmlUtilities.cs" />
     <Compile Include="JobCheck.cs" />
     <Compile Include="ProjectInstaller.cs">
@@ -75,6 +76,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TaskManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -83,6 +85,11 @@
     <EmbeddedResource Include="ProjectInstaller.resx">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="_SchedulerSettings.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

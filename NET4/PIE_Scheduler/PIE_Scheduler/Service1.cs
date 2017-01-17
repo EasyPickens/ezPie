@@ -30,7 +30,7 @@ namespace PIE_Scheduler
             LocalLog.AddLine("Starting ScanManager service.");
             logEnvironment();
             String path = MiscUtilities.AppParentPath() + Path.DirectorySeparatorChar;
-            _srm = new ScanManager.ScanRequestManager(path + "_Settings.xml", path + "git.jar");
+            _srm = new ScanManager.ScanRequestManager(path + "_Settings.xml", path + "pie.jar");
 
             try
             {

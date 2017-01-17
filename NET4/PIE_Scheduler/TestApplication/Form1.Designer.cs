@@ -32,11 +32,14 @@
             this.btnPathCheck = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.btnTestNew = new System.Windows.Forms.Button();
+            this.btnTestQuery = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // button1
             // 
+            this.button1.Enabled = false;
             this.button1.Location = new System.Drawing.Point(164, 12);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(108, 23);
@@ -71,11 +74,33 @@
             this.lblStatus.Size = new System.Drawing.Size(52, 17);
             this.lblStatus.Text = "lblStatus";
             // 
+            // btnTestNew
+            // 
+            this.btnTestNew.Location = new System.Drawing.Point(12, 12);
+            this.btnTestNew.Name = "btnTestNew";
+            this.btnTestNew.Size = new System.Drawing.Size(143, 23);
+            this.btnTestNew.TabIndex = 3;
+            this.btnTestNew.Text = "New Method";
+            this.btnTestNew.UseVisualStyleBackColor = true;
+            this.btnTestNew.Click += new System.EventHandler(this.btnTestNew_Click);
+            // 
+            // btnTestQuery
+            // 
+            this.btnTestQuery.Location = new System.Drawing.Point(164, 115);
+            this.btnTestQuery.Name = "btnTestQuery";
+            this.btnTestQuery.Size = new System.Drawing.Size(75, 23);
+            this.btnTestQuery.TabIndex = 4;
+            this.btnTestQuery.Text = "Test Query";
+            this.btnTestQuery.UseVisualStyleBackColor = true;
+            this.btnTestQuery.Click += new System.EventHandler(this.btnTestQuery_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Controls.Add(this.btnTestQuery);
+            this.Controls.Add(this.btnTestNew);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnPathCheck);
             this.Controls.Add(this.button1);
@@ -94,6 +119,8 @@
         private System.Windows.Forms.Button btnPathCheck;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel lblStatus;
+        private System.Windows.Forms.Button btnTestNew;
+        private System.Windows.Forms.Button btnTestQuery;
     }
 }
 
