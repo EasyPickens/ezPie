@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.Net.NetworkInformation;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace TestApplication
 {
@@ -36,6 +39,7 @@ namespace TestApplication
         private void btnTestNew_Click(object sender, EventArgs e)
         {
             ScanManager.TaskManager mgr = new ScanManager.TaskManager();
+            mgr.ProcessQueue();
         }
 
         private void btnTestQuery_Click(object sender, EventArgs e)
@@ -73,6 +77,50 @@ namespace TestApplication
 
                 }
             }
+        }
+
+        protected int _maxParallelism = 2;
+        protected int _sleepTime = 3000;
+        protected Random rnd = new Random(DateTime.Now.Millisecond);
+
+        private void btnParallel_Click(object sender, EventArgs e)
+        {
+            textBox1.Text = "";
+            Application.DoEvents();
+
+            //List<string> sites = new List<string> { "dwsys-apcast01", "dwsys-apcast02", "dwsys-dbcast01", "127.0.0.1", "dwsys-apcast01", "dwsys-apcast02", "dwsys-dbcast01", "127.0.0.1", "dwsys-apcast01", "dwsys-apcast02", "dwsys-dbcast01", "127.0.0.1" };
+            List<string> sites = new List<string> { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5", "Item 6", "Item 7", "Item 8", "Item 9", "Item 10", "Item 11", "Item 12" };
+
+            //List<PingReply> pingReplies = new List<PingReply>();
+            List<String> pingReplies = new List<String>();
+            Object mylock = new Object();
+            System.Threading.Tasks.Parallel.ForEach(sites, new ParallelOptions { MaxDegreeOfParallelism = _maxParallelism }, site =>
+            {
+                Thread.Sleep(_sleepTime + rnd.Next(200,1000));
+                Ping p = new Ping();
+                lock (mylock)
+                {
+                    //pingReplies.Add(p.Send(site));
+                    //for (int i = 0; i < 400000000; i++)
+                    //{
+                    //}
+                    DateTime started = DateTime.Now;
+                    //PingReply pr = p.Send(site);
+                    //pingReplies.Add(site + " " + pr.Address + ": " + pr.RoundtripTime + ": " + pr.Status);
+                    //pingReplies.Add(String.Format("{0} {1} {2}: {3}: {4}", started.ToString("hh:mm:ss.fff"), site, pr.Address, pr.RoundtripTime, pr.Status));
+                    //pingReplies.Add(String.Format("{0}: {1}", started.ToString("hh:mm:ss.fff"), site));
+                    textBox1.Text += String.Format("{0}: {1} {2}", started.ToString("hh:mm:ss.fff"), site, System.Environment.NewLine);
+                }
+            });
+
+            //StringBuilder sb = new StringBuilder();
+            //foreach (var s in pingReplies.ToList())
+            //{
+            //    //Response.Write(s.Address + ": " + s.RoundtripTime + ": " + s.Status + "<br />");
+            //    //sb.AppendLine(s.Address + ": " + s.RoundtripTime + ": " + s.Status);
+            //    sb.AppendLine(s);
+            //    textBox1.Text = sb.ToString();
+            //}
         }
     }
 }

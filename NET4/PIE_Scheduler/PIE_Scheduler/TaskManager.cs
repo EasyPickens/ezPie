@@ -83,7 +83,7 @@ namespace ScanManager
                 _lockFilename = MiscUtilities.LockFilename(_RawJobFileName);
                 String action_requested = MiscUtilities.ObjectToStringDefault(dr["action_requested"], "rescan");
 
-                using (FileStream fs = new FileStream(_lockFilename, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+                using (FileStream fs = new FileStream(_lockFilename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
                 {
                     using (StreamWriter sw = new StreamWriter(fs))
                     {
@@ -251,7 +251,7 @@ namespace ScanManager
             Dictionary<String, Object> sqlParameters = new Dictionary<string, object>();
             sqlParameters.Add(":inprogress", true);
             sqlParameters.Add(":scanrequested", true);
-            sqlParameters.Add(":scanstatus", processingMessage);
+            sqlParameters.Add(":jobstatus", processingMessage);
             sqlParameters.Add(":statusdescription", String.Format("Started: {0:MMMM d, yyyy HH:mm:ss}", DateTime.Now));
             sqlParameters.Add(":machinename", Environment.MachineName);
             sqlParameters.Add(":jobkey", _JobKey);
@@ -265,7 +265,7 @@ namespace ScanManager
                 // Job finished update record.
                 sqlParameters[":inprogress"] = false;
                 sqlParameters[":scanrequested"] = false;
-                sqlParameters[":scanstatus"] = "Completed";
+                sqlParameters[":jobstatus"] = "Completed";
                 sqlParameters[":statusdescription"] = String.Format("Completed: {0:MMMM d, yyyy HH:mm:ss}", DateTime.Now);
                 sqlParameters[":machinename"] = null;
 
@@ -280,7 +280,7 @@ namespace ScanManager
                 sqlParameters[":statusdescription"] = message;
                 sqlParameters[":inprogress"] = false;
                 sqlParameters[":scanrequested"] = false;
-                sqlParameters[":scanstatus"] = "Error";
+                sqlParameters[":jobstatus"] = "Error";
             }
             SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlUpdateInProgressStatus, sqlParameters);
             return false;
@@ -288,6 +288,8 @@ namespace ScanManager
 
         protected void RunJava()
         {
+            if (1 == 1) return;
+
             String args = String.Format("-s {0} -d {1} JobKey={2} DefinitionFile={3}", MiscUtilities.WrapSpaces(_SettingsFile), MiscUtilities.WrapSpaces(_JobFileName), _JobKey, _RawJobFileName);
             using (Process clientProcess = new Process())
             {
@@ -313,7 +315,7 @@ namespace ScanManager
             Dictionary<String, Object> sqlParameters = new Dictionary<string, object>();
             sqlParameters.Add(":inprogress", true);
             sqlParameters.Add(":scanrequested", true);
-            sqlParameters.Add(":scanstatus", "Ready");
+            sqlParameters.Add(":jobstatus", "Ready");
             sqlParameters.Add(":statusdescription", String.Format("Backup Started: {0:MMMM d, yyyy HH:mm:ss}", DateTime.Now));
             sqlParameters.Add(":machinename", Environment.MachineName);
             sqlParameters.Add(":jobkey", _JobKey);
@@ -332,13 +334,13 @@ namespace ScanManager
                     RunJava();
 
                     // Job finished update record.
-                    sqlParameters[":scanstatus"] = "Backup Completed";
+                    sqlParameters[":jobstatus"] = "Backup Completed";
                     sqlParameters[":statusdescription"] = String.Format("Backup Completed: {0:MMMM d, yyyy HH:mm:ss}", DateTime.Now);
                 }
                 catch (Exception ex)
                 {
                     LocalLog.AddLine("Database Backup Error: " + ex.Message);
-                    sqlParameters[":scanstatus"] = "Error";
+                    sqlParameters[":jobstatus"] = "Error";
                     String message = String.Format("Recorded: {0:MMMM d, yyyy HH:mm:ss}, Message: {1} ", DateTime.Now, ex.Message);
                     if (message.Length > 99) message = message.Substring(0, 99);
                     sqlParameters[":statusdescription"] = message;

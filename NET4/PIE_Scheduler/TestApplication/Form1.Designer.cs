@@ -34,6 +34,8 @@
             this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.btnTestNew = new System.Windows.Forms.Button();
             this.btnTestQuery = new System.Windows.Forms.Button();
+            this.btnParallel = new System.Windows.Forms.Button();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -50,7 +52,7 @@
             // 
             // btnPathCheck
             // 
-            this.btnPathCheck.Location = new System.Drawing.Point(164, 86);
+            this.btnPathCheck.Location = new System.Drawing.Point(197, 41);
             this.btnPathCheck.Name = "btnPathCheck";
             this.btnPathCheck.Size = new System.Drawing.Size(75, 23);
             this.btnPathCheck.TabIndex = 1;
@@ -62,7 +64,7 @@
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 239);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 251);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(284, 22);
             this.statusStrip1.TabIndex = 2;
@@ -86,7 +88,7 @@
             // 
             // btnTestQuery
             // 
-            this.btnTestQuery.Location = new System.Drawing.Point(164, 115);
+            this.btnTestQuery.Location = new System.Drawing.Point(197, 70);
             this.btnTestQuery.Name = "btnTestQuery";
             this.btnTestQuery.Size = new System.Drawing.Size(75, 23);
             this.btnTestQuery.TabIndex = 4;
@@ -94,11 +96,35 @@
             this.btnTestQuery.UseVisualStyleBackColor = true;
             this.btnTestQuery.Click += new System.EventHandler(this.btnTestQuery_Click);
             // 
+            // btnParallel
+            // 
+            this.btnParallel.Location = new System.Drawing.Point(197, 99);
+            this.btnParallel.Name = "btnParallel";
+            this.btnParallel.Size = new System.Drawing.Size(75, 23);
+            this.btnParallel.TabIndex = 5;
+            this.btnParallel.Text = "Parallel";
+            this.btnParallel.UseVisualStyleBackColor = true;
+            this.btnParallel.Click += new System.EventHandler(this.btnParallel_Click);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox1.Location = new System.Drawing.Point(12, 128);
+            this.textBox1.Multiline = true;
+            this.textBox1.Name = "textBox1";
+            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBox1.Size = new System.Drawing.Size(260, 108);
+            this.textBox1.TabIndex = 6;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.ClientSize = new System.Drawing.Size(284, 273);
+            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.btnParallel);
             this.Controls.Add(this.btnTestQuery);
             this.Controls.Add(this.btnTestNew);
             this.Controls.Add(this.statusStrip1);
@@ -121,6 +147,8 @@
         private System.Windows.Forms.ToolStripStatusLabel lblStatus;
         private System.Windows.Forms.Button btnTestNew;
         private System.Windows.Forms.Button btnTestQuery;
+        private System.Windows.Forms.Button btnParallel;
+        private System.Windows.Forms.TextBox textBox1;
     }
 }
 

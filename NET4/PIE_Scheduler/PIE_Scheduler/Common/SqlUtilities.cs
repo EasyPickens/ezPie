@@ -39,12 +39,12 @@ namespace ScanManager.Common
                 catch (Exception ex)
                 {
                     // Attempt to roll back the transaction.
-                    String messageRollback = "";
+                    String messageRollback = ex.Message;
                     try
                     { trans.Rollback(); }
                     catch (Exception exRollback)
                     { messageRollback = String.Format("  Rollback Exception Type {0}: {1}", exRollback.GetType(), exRollback.Message); }
-                    throw new Exception("Rolling back SQL transaction (ExecuteNonQuery)." + messageRollback, ex);
+                    throw new Exception("Rolling back SQL transaction (ExecuteNonQuery).  " + messageRollback, ex);
                 }
                 con.Close();
             }
