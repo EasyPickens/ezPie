@@ -36,6 +36,7 @@
             this.btnTestQuery = new System.Windows.Forms.Button();
             this.btnParallel = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
+            this.btnBackground = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -64,9 +65,9 @@
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 251);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 447);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(284, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(798, 22);
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -115,14 +116,25 @@
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox1.Size = new System.Drawing.Size(260, 108);
+            this.textBox1.Size = new System.Drawing.Size(774, 306);
             this.textBox1.TabIndex = 6;
+            // 
+            // btnBackground
+            // 
+            this.btnBackground.Location = new System.Drawing.Point(13, 99);
+            this.btnBackground.Name = "btnBackground";
+            this.btnBackground.Size = new System.Drawing.Size(75, 23);
+            this.btnBackground.TabIndex = 7;
+            this.btnBackground.Text = "Background";
+            this.btnBackground.UseVisualStyleBackColor = true;
+            this.btnBackground.Click += new System.EventHandler(this.btnBackground_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 273);
+            this.ClientSize = new System.Drawing.Size(798, 469);
+            this.Controls.Add(this.btnBackground);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.btnParallel);
             this.Controls.Add(this.btnTestQuery);
@@ -149,6 +161,7 @@
         private System.Windows.Forms.Button btnTestQuery;
         private System.Windows.Forms.Button btnParallel;
         private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Button btnBackground;
     }
 }
 

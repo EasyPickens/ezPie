@@ -70,9 +70,7 @@ namespace TestApplication
                     {
                         File.Delete(lockFilename);
                     }
-                    catch (Exception ex)
-                    {
-                    }
+                    catch { }
                     lblStatus.Text = "did not find the lock file: " + lockFilename;
 
                 }
@@ -96,7 +94,7 @@ namespace TestApplication
             Object mylock = new Object();
             System.Threading.Tasks.Parallel.ForEach(sites, new ParallelOptions { MaxDegreeOfParallelism = _maxParallelism }, site =>
             {
-                Thread.Sleep(_sleepTime + rnd.Next(200,1000));
+                Thread.Sleep(_sleepTime + rnd.Next(200, 1000));
                 Ping p = new Ping();
                 lock (mylock)
                 {
@@ -121,6 +119,35 @@ namespace TestApplication
             //    sb.AppendLine(s);
             //    textBox1.Text = sb.ToString();
             //}
+        }
+
+        private int _maxThreads = 2;
+        private BackgroundProcessing[] _threadPool = new BackgroundProcessing[2];
+
+        private ScanManager.TaskManager _taskManager = new ScanManager.TaskManager();
+
+        private void btnBackground_Click(object sender, EventArgs e)
+        {
+            // Look for free thread
+            for (int i = 0; i < _threadPool.Length; i++)
+            {
+                if ((_threadPool[i] == null) || _threadPool[i].IsAvailable)
+                {
+                    _threadPool[i] = new BackgroundProcessing(_taskManager);
+                    _threadPool[i].DoWork();
+                    return;
+                }
+            }
+            textBox1.Text += String.Format("Maximum number of threads ({0}) are currently running.{1}", _maxThreads, System.Environment.NewLine);
+            return;
+        }
+
+        private void BackgroundWorker_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                Thread.Sleep(1000);
+            }
         }
     }
 }

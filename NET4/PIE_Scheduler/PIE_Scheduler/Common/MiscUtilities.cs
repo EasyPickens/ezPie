@@ -99,6 +99,14 @@ namespace ScanManager.Common
             return (int)value;
         }
 
+        public static int ObjectToIntegerDefault(Object value, int defaultValue)
+        {
+            if ((value == null) || (value.GetType().Name.Equals("DBNull")))
+                return defaultValue;
+
+            return (int)value;
+        }
+
         public static String ObjectToString(Object value, String errorMessage)
         {
             if ((value == null) || (value.GetType().Name.Equals("DBNull")))

@@ -79,6 +79,7 @@
     <Compile Include="..\PIE_Scheduler\TaskManager.cs">
       <Link>TaskManager.cs</Link>
     </Compile>
+    <Compile Include="BackgroundProcessing.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

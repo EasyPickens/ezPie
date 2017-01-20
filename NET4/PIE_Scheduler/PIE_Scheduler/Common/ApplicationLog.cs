@@ -18,7 +18,7 @@ namespace ScanManager.Common
                 if (!EventLog.SourceExists(_source))
                     EventLog.CreateEventSource(_source, _logName);
             }
-            catch (Exception ex)
+            catch
             {
                 _canLog = false;
             }
@@ -40,11 +40,7 @@ namespace ScanManager.Common
                     appLog.WriteEntry(message, eventType);
                 }
             }
-            catch (Exception ex)
-            {
-                //Console.WriteLine("Error writing to the application log.");
-                //Console.WriteLine(ex.StackTrace);
-            }
+            catch { }
         }
     }
 }

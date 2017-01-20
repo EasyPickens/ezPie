@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackgroundProcessing.cs" />
     <Compile Include="Common\ApplicationLog.cs" />
     <Compile Include="Common\LocalLog.cs" />
     <Compile Include="Common\MiscUtilities.cs" />

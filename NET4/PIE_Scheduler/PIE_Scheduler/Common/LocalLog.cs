@@ -29,6 +29,15 @@ namespace ScanManager.Common
             }
         }
 
+        public static void AddLine(Exception ex)
+        {
+            using (StreamWriter sw = new StreamWriter(_logFilename, true))
+            {
+                sw.WriteLine(ex.ToString());
+                sw.Close();
+            }
+        }
+
         protected static String getCallingClassName()
         {
             String callingClassName = "No Information";

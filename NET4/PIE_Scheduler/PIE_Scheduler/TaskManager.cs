@@ -19,25 +19,21 @@ namespace ScanManager
     {
         protected XmlDocument _Settings;
 
+        protected Object _lock = new Object();
+
         protected Boolean _IsDbBackup = false;
         protected Boolean _IsSiteDeployment = false;
 
-        protected String _SettingsFile = Common.MiscUtilities.AppPath() + "\\_SchedulerSettings.xml";
+        protected String _SchedulerSettingsFile = Common.MiscUtilities.AppPath() + "\\_SchedulerSettings.xml";
+        protected String _SettingsFile;
         protected String _JarPath;
         protected String _JavaHome;
         protected String _ConnectionString;
-        protected String _lockFilename;
-
         protected String _SqlNextJob;
         protected String _SqlJobsInProgress;
         protected String _SqlUpdateInProgressStatus;
         protected String _SqlNextDbBackup;
 
-        protected int _JobKey = -1;
-        protected String _JobFileName;
-        protected String _RawJobFileName;
-
-        protected String _errorMessage;
         protected ApplicationLog _AppLog = new ApplicationLog();
         protected TokenManager _tokens;
 
@@ -45,11 +41,11 @@ namespace ScanManager
         {
             try
             {
-                if (!File.Exists(_SettingsFile))
-                    throw new FileNotFoundException(String.Format("Settings file {0} not found.", _SettingsFile));
+                if (!File.Exists(_SchedulerSettingsFile))
+                    throw new FileNotFoundException(String.Format("Settings file {0} not found.", _SchedulerSettingsFile));
 
-                LocalLog.AddLine(String.Format("Loading settings file {0}", _SettingsFile));
-                _Settings = XmlUtilities.LoadXmlFile(_SettingsFile);
+                LocalLog.AddLine(String.Format("Loading settings file {0}", _SchedulerSettingsFile));
+                _Settings = XmlUtilities.LoadXmlFile(_SchedulerSettingsFile);
                 LocalLog.AddLine("Settings file successfully loaded");
                 LocalLog.AddLine("Reading system tokens");
                 _tokens = new TokenManager(_Settings);
@@ -67,8 +63,26 @@ namespace ScanManager
             }
         }
 
+        public int ThreadPoolSize
+        {
+            get
+            {
+                String sPoolSize = _tokens.ResolveOptional("ThreadPool", "Size", "1");
+                LocalLog.AddLine("Thread pool size requested " + sPoolSize);
+                int poolSize = 1;
+                if (!int.TryParse(sPoolSize, out poolSize))
+                {
+                    LocalLog.AddLine(String.Format("Error trying to convert [{0}] to integer.", sPoolSize));
+                    poolSize = 1;
+                }
+                LocalLog.AddLine("Using thread pool size " + poolSize.ToString());
+                return poolSize;
+            }
+        }
+
         public void ProcessQueue()
         {
+            int JobKey = -1;
             try
             {
                 // Validate the processing job and update those that are no long running.
@@ -77,20 +91,20 @@ namespace ScanManager
                 DataRow dr = GetNextJob();
                 if (dr == null) return;
 
-                _JobKey = MiscUtilities.ObjectToInteger(dr["pkey"], "No primary key is definied");
-                _JobFileName = MiscUtilities.ObjectToString(dr["definition_name"], "No definition file name is defined.");
-                _RawJobFileName = _JobFileName;
-                _lockFilename = MiscUtilities.LockFilename(_RawJobFileName);
+                JobKey = MiscUtilities.ObjectToInteger(dr["pkey"], "No primary key is definied");
+                String JobFileName = MiscUtilities.ObjectToString(dr["definition_name"], "No definition file name is defined.");
+                String RawJobFileName = JobFileName;
+                String lockFilename = MiscUtilities.LockFilename(RawJobFileName);
                 String action_requested = MiscUtilities.ObjectToStringDefault(dr["action_requested"], "rescan");
 
-                using (FileStream fs = new FileStream(_lockFilename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                using (FileStream fs = new FileStream(lockFilename, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
                 {
                     using (StreamWriter sw = new StreamWriter(fs))
                     {
-                        sw.WriteLine("While file is locked open, processing thread is running.  Seeing this message proves the thread is not running, please delete this file.");
+                        sw.WriteLine("While file is locked open, processing thread is running.  Seeing this message means the thread may not be running, please delete this file.");
                         if (_IsDbBackup)
                         {
-                            BackupCastDatabase();
+                            BackupCastDatabase(JobKey, JobFileName, RawJobFileName);
                         }
                         else
                         {
@@ -98,7 +112,7 @@ namespace ScanManager
                             switch (action_requested.ToLower())
                             {
                                 case "publish":
-                                    _JobFileName = _tokens.Resolve("Scheduler", "PublishDefinition", "No publish definition defined in the settings file.  Please add a Tokens/Scheduler PublishDefinition");
+                                    JobFileName = _tokens.Resolve("Scheduler", "PublishDefinition", "No publish definition defined in the settings file.  Please add a Tokens/Scheduler PublishDefinition");
                                     message = "Publishing";
                                     break;
                                 case "empty":
@@ -106,7 +120,7 @@ namespace ScanManager
                                     message = "Processing";
                                     break;
                                 case "onboard":
-                                    _JobFileName = _tokens.Resolve("Scheduler", "OnBoardDefinition", "No onboard definition defined in the settings file.  Please add a Tokens/Scheduler OnBoardDefinition");
+                                    JobFileName = _tokens.Resolve("Scheduler", "OnBoardDefinition", "No onboard definition defined in the settings file.  Please add a Tokens/Scheduler OnBoardDefinition");
                                     message = "OnBoarding";
                                     break;
                                 default:
@@ -114,22 +128,25 @@ namespace ScanManager
                             }
 
                             // Kick off the definition
-                            RunDefinition(message);
+                            RunDefinition(JobKey, JobFileName, RawJobFileName, message);
                         }
                     }
                     fs.Close();
                 }
-                File.Delete(_lockFilename);
+                File.Delete(lockFilename);
             }
             catch (Exception ex)
             {
-                LocalLog.AddLine("Queue Error: " + ex.Message);
+                lock (_lock)
+                {
+                    LocalLog.AddLine("Queue Error: " + ex.Message);
+                }
                 _AppLog.WriteEntry(ex.StackTrace, System.Diagnostics.EventLogEntryType.Error);
 
-                if (_JobKey > 0)
+                if (JobKey > 0)
                 {
                     Dictionary<String, Object> sqlParameters = new Dictionary<string, object>();
-                    sqlParameters.Add(":jobkey", _JobKey);
+                    sqlParameters.Add(":jobkey", JobKey);
                     sqlParameters.Add(":jobstatus", "Error");
                     sqlParameters.Add(":inprogress", false);
                     sqlParameters.Add(":scanrequested", false);
@@ -161,16 +178,28 @@ namespace ScanManager
             LocalLog.AddLine(String.Format("JAVA location is {0}", _JavaHome));
 
             _JarPath = _tokens.Resolve("PieJar", "Path", "Missing path to PIE JAR. Please add the path to SchedulerSettings/Tokens/PieJar Path");
+            _SettingsFile = _tokens.Resolve("PieSettings", "Path", "Missing path to PIE Settings file. Please add the path to SchedulerSettings/Tokens/PieSettings Path");
             if (!File.Exists(_JarPath))
             {
-                _errorMessage = String.Format("JAR file {0} not found.", _JarPath);
-                FileNotFoundException ex = new FileNotFoundException(_errorMessage);
+                String errorMessage = String.Format("JAR file {0} not found.", _JarPath);
+                FileNotFoundException ex = new FileNotFoundException(errorMessage);
                 _AppLog.WriteEntry(ex.StackTrace, System.Diagnostics.EventLogEntryType.Error);
                 throw ex;
             }
             else
             {
                 LocalLog.AddLine("Using PIE JAR found at " + _JarPath);
+            }
+
+            if (!File.Exists(_SettingsFile))
+            {
+                FileNotFoundException ex = new FileNotFoundException(String.Format("PIE Settings file {0} not found.", _SettingsFile));
+                _AppLog.WriteEntry(ex.StackTrace, System.Diagnostics.EventLogEntryType.Error);
+                throw ex;
+            }
+            else
+            {
+                LocalLog.AddLine("Using PIE Settings file from " + _SettingsFile);
             }
 
             LocalLog.AddLine("Reading service mode..");
@@ -246,7 +275,7 @@ namespace ScanManager
             return null;
         }
 
-        protected Boolean RunDefinition(String processingMessage)
+        protected Boolean RunDefinition(int JobKey, String JobFileName, String RawJobFileName, String processingMessage)
         {
             Dictionary<String, Object> sqlParameters = new Dictionary<string, object>();
             sqlParameters.Add(":inprogress", true);
@@ -254,13 +283,13 @@ namespace ScanManager
             sqlParameters.Add(":jobstatus", processingMessage);
             sqlParameters.Add(":statusdescription", String.Format("Started: {0:MMMM d, yyyy HH:mm:ss}", DateTime.Now));
             sqlParameters.Add(":machinename", Environment.MachineName);
-            sqlParameters.Add(":jobkey", _JobKey);
+            sqlParameters.Add(":jobkey", JobKey);
 
             try
             {
                 SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlUpdateInProgressStatus, sqlParameters);
                 // Shell to the JAVA program and run it.
-                RunJava();
+                RunJava(JobKey, JobFileName, RawJobFileName);
 
                 // Job finished update record.
                 sqlParameters[":inprogress"] = false;
@@ -274,6 +303,7 @@ namespace ScanManager
             catch (Exception ex)
             {
                 LocalLog.AddLine("Code Scan Error: " + ex.Message);
+                LocalLog.AddLine(ex);
 
                 String message = String.Format("Recorded: {0:MMMM d, yyyy HH:mm:ss}, Message: {1} ", DateTime.Now, ex.Message);
                 if (message.Length > 99) message = message.Substring(0, 99);
@@ -281,16 +311,15 @@ namespace ScanManager
                 sqlParameters[":inprogress"] = false;
                 sqlParameters[":scanrequested"] = false;
                 sqlParameters[":jobstatus"] = "Error";
+                sqlParameters[":machinename"] = null;
             }
             SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlUpdateInProgressStatus, sqlParameters);
             return false;
         }
 
-        protected void RunJava()
+        protected void RunJava(int JobKey, string JobFileName, string RawJobFileName)
         {
-            if (1 == 1) return;
-
-            String args = String.Format("-s {0} -d {1} JobKey={2} DefinitionFile={3}", MiscUtilities.WrapSpaces(_SettingsFile), MiscUtilities.WrapSpaces(_JobFileName), _JobKey, _RawJobFileName);
+            String args = String.Format("-s {0} -d {1} JobKey={2} DefinitionFile={3}", MiscUtilities.WrapSpaces(_SettingsFile), MiscUtilities.WrapSpaces(JobFileName), JobKey, RawJobFileName);
             using (Process clientProcess = new Process())
             {
                 clientProcess.StartInfo.UseShellExecute = false;
@@ -300,17 +329,25 @@ namespace ScanManager
                 clientProcess.StartInfo.WorkingDirectory = MiscUtilities.AppParentPath();
                 clientProcess.StartInfo.FileName = MiscUtilities.WrapSpaces(_JavaHome + "java.exe");
                 clientProcess.StartInfo.Arguments = @"-jar " + MiscUtilities.WrapSpaces(_JarPath) + " " + args;
-                LocalLog.AddLine(String.Format("Command line: {0} {1}", MiscUtilities.WrapSpaces(_JavaHome + "java.exe"), @"-jar " + MiscUtilities.WrapSpaces(_JarPath) + " " + args));
+                lock (_lock)
+                {
+                    LocalLog.AddLine(String.Format("Command line: {0} {1}", MiscUtilities.WrapSpaces(_JavaHome + "java.exe"), @"-jar " + MiscUtilities.WrapSpaces(_JarPath) + " " + args));
+                }
                 clientProcess.Start();
                 string output = clientProcess.StandardOutput.ReadToEnd();
+                string errorOutput = clientProcess.StandardError.ReadToEnd();
                 clientProcess.WaitForExit();
                 int exitcode = clientProcess.ExitCode;
+                LocalLog.AddLine("Console Output: " + System.Environment.NewLine + output);
                 if (exitcode > 0)
+                {
+                    LocalLog.AddLine("ERROR OUTPUT: "+System.Environment.NewLine+errorOutput);
                     throw new Exception(String.Format("Run JAVA error ExitCode {0} running {1} {2}", exitcode, clientProcess.StartInfo.FileName, clientProcess.StartInfo.Arguments));
+                }
             }
         }
 
-        protected Boolean BackupCastDatabase()
+        protected Boolean BackupCastDatabase(int JobKey, String JobFileName, String RawJobFileName)
         {
             Dictionary<String, Object> sqlParameters = new Dictionary<string, object>();
             sqlParameters.Add(":inprogress", true);
@@ -318,9 +355,9 @@ namespace ScanManager
             sqlParameters.Add(":jobstatus", "Ready");
             sqlParameters.Add(":statusdescription", String.Format("Backup Started: {0:MMMM d, yyyy HH:mm:ss}", DateTime.Now));
             sqlParameters.Add(":machinename", Environment.MachineName);
-            sqlParameters.Add(":jobkey", _JobKey);
+            sqlParameters.Add(":jobkey", JobKey);
 
-            _JobFileName = _tokens.Resolve("Scheduler", "BackupDatabase", "Missing the {0} {1} SQL query. Please add the query into the settings file under SchedulerSettings/Tokens/{0} {1}");
+            JobFileName = _tokens.Resolve("Scheduler", "BackupDatabase", "Missing the Scheduler/BackupDatabase attribute with the name of the backup definition. SQL query. Please add the name of the backup definition to the settings file under SchedulerSettings/Tokens/Scheduler BackupDatabase");
             // Look for backup database request
             DataTable dt = SqlUtilities.GetData(_ConnectionString, _SqlNextDbBackup);
             if ((dt == null) || (dt.Rows.Count == 0)) return false;
@@ -329,9 +366,9 @@ namespace ScanManager
             {
                 try
                 {
-                    _JobKey = MiscUtilities.ObjectToInteger(dt.Rows[0]["pkey"], "No primary key is definied");
-                    sqlParameters[":jobkey"] = _JobKey;
-                    RunJava();
+                    JobKey = MiscUtilities.ObjectToInteger(dt.Rows[0]["pkey"], "No primary key is definied");
+                    sqlParameters[":jobkey"] = JobKey;
+                    RunJava(JobKey, JobFileName, RawJobFileName);
 
                     // Job finished update record.
                     sqlParameters[":jobstatus"] = "Backup Completed";
