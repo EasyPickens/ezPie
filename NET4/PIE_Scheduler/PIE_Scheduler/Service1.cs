@@ -18,7 +18,9 @@ namespace PIE_Scheduler
         private Timer _timer = null;
         private DateTime _nextMessage = DateTime.Now.AddHours(-1);
 
-        private ScanManager.ScanRequestManager _srm = null;
+        //private ScanManager.ScanRequestManager _srm = null;
+        private ScanManager.TaskManager _taskManager;
+        private ScanManager.BackgroundProcessing[] _threadPool;
 
         public Service1()
         {
@@ -27,10 +29,11 @@ namespace PIE_Scheduler
 
         protected override void OnStart(string[] args)
         {
-            LocalLog.AddLine("Starting ScanManager service.");
+            LocalLog.AddLine("Starting the mutliprocessor scheduler service.");
             logEnvironment();
             String path = MiscUtilities.AppParentPath() + Path.DirectorySeparatorChar;
-            _srm = new ScanManager.ScanRequestManager(path + "_Settings.xml", path + "git.jar");
+            _taskManager = new ScanManager.TaskManager();
+            _threadPool = new ScanManager.BackgroundProcessing[_taskManager.ThreadPoolSize];
 
             try
             {
@@ -45,6 +48,27 @@ namespace PIE_Scheduler
                 LocalLog.AddLine("Error while starting timer. " + ex.Message);
             }
         }
+
+        //protected override void OnStart(string[] args)
+        //{
+        //    LocalLog.AddLine("Starting ScanManager service.");
+        //    logEnvironment();
+        //    String path = MiscUtilities.AppParentPath() + Path.DirectorySeparatorChar;
+        //    _srm = new ScanManager.ScanRequestManager(path + "_Settings.xml", path + "pie.jar");
+
+        //    try
+        //    {
+        //        LocalLog.AddLine("Starting Timer: Interval is 30 seconds");
+        //        _timer = new Timer(30000); // every 30 seconds
+        //        _timer.Elapsed += new System.Timers.ElapsedEventHandler(pieJobCheck);
+        //        _timer.Start();
+        //        LocalLog.AddLine("Service is running.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LocalLog.AddLine("Error while starting timer. " + ex.Message);
+        //    }
+        //}
 
         protected override void OnStop()
         {
@@ -63,7 +87,17 @@ namespace PIE_Scheduler
                 _timer.Stop();
                 if (DateTime.Now > _nextMessage)
                     LocalLog.AddLine("Hourly status. Still checking every 30 seconds..");
-                _srm.ProcessQueue();
+
+                // Look for free thread
+                for (int i = 0; i < _threadPool.Length; i++)
+                {
+                    if ((_threadPool[i] == null) || _threadPool[i].IsAvailable)
+                    {
+                        _threadPool[i] = new ScanManager.BackgroundProcessing(_taskManager);
+                        _threadPool[i].DoWork();
+                    }
+                }
+
                 if (DateTime.Now > _nextMessage)
                 {
                     LocalLog.AddLine("Check complete.");
@@ -85,9 +119,6 @@ namespace PIE_Scheduler
                 }
                 else _timer.Start();
             }
-
-
-
         }
 
         public static void logEnvironment()

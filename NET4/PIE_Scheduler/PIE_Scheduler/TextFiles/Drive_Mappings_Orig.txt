@@ -1,0 +1,13 @@
+﻿REM ** FROM dwsys-apcast02 machine
+REM ** Cleanup drives **
+net use S: /delete /y
+net use I: /delete /y
+net use Z: /delete /y
+subst /d X:
+
+REM ** Remap drives **
+net use S: \\dwsys-apcast01\d$\CAST /persistent:no
+net use I: \\dwsys-apcast01\d$\CAST /persistent:no
+net use Z: \\dwsys-apcast01\d$\CAST /persistent:no
+subst X: D:\CAST
+

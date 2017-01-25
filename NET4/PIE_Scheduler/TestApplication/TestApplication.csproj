@@ -67,12 +67,19 @@
     <Compile Include="..\PIE_Scheduler\Common\SqlUtilities.cs">
       <Link>Common\SqlUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\PIE_Scheduler\Common\TokenManager.cs">
+      <Link>Common\TokenManager.cs</Link>
+    </Compile>
     <Compile Include="..\PIE_Scheduler\Common\XmlUtilities.cs">
       <Link>Common\XmlUtilities.cs</Link>
     </Compile>
     <Compile Include="..\PIE_Scheduler\ScanRequestManager.cs">
       <Link>ScanRequestManager.cs</Link>
     </Compile>
+    <Compile Include="..\PIE_Scheduler\TaskManager.cs">
+      <Link>TaskManager.cs</Link>
+    </Compile>
+    <Compile Include="BackgroundProcessing.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -102,6 +109,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\PIE_Scheduler\_SchedulerSettings.xml">
+      <Link>_SchedulerSettings.xml</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

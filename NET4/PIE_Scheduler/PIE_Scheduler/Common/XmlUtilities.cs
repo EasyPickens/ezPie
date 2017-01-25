@@ -27,6 +27,30 @@ namespace ScanManager.Common
             }
         }
 
+        public static String OptionalAttribute(XmlDocument Settings, String XPath, String Attr)
+        { return OptionalAttribute(Settings, XPath, Attr, ""); }
+
+        public static String OptionalAttribute(XmlDocument Settings, String XPath, String Attr, String DefaultValue)
+        {
+            XmlElement ele = (XmlElement)Settings.SelectSingleNode(XPath);
+            if ((ele == null) || !ele.HasAttribute(Attr))
+                return DefaultValue;
+
+            return ele.GetAttribute(Attr);
+        }
+
+        public static String RequiredAttribute(XmlDocument Settings, String XPath, String Attr)
+        { return RequiredAttribute(Settings, XPath, Attr, String.Format("Missing required {0} attribute for {1} node.", Attr, XPath)); }
+
+        public static String RequiredAttribute(XmlDocument Settings, String XPath, String Attr, String ErrorMessage)
+        {
+            XmlElement ele = (XmlElement)Settings.SelectSingleNode(XPath);
+            if ((ele == null) || !ele.HasAttribute(Attr))
+                throw new Exception(String.Format(ErrorMessage, Attr));
+
+            return ele.GetAttribute(Attr);
+        }
+
         private static void RemoveRemarkedElements(XmlNode nodeDefinition)
         {
             XmlNodeList nlRemarked = nodeDefinition.SelectNodes(".//Remark");
