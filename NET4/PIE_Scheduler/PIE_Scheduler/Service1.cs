@@ -95,7 +95,6 @@ namespace PIE_Scheduler
                     {
                         _threadPool[i] = new ScanManager.BackgroundProcessing(_taskManager);
                         _threadPool[i].DoWork();
-                        return;
                     }
                 }
 

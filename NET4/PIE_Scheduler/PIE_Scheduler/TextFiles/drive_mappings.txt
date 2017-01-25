@@ -1,0 +1,22 @@
+﻿@ECHO OFF
+REM Original mappings file cause resource contention with multiple threads.
+REM This modified one tries to avoid that by testing if drive already mapped.
+REM 
+net use s:
+if %errorlevel% NEQ 0 (
+   net use S: \\dwsys-apcast01\d$\CAST /persistent:no
+)
+
+net use I:
+if %errorlevel% NEQ 0 (
+   net use I: \\dwsys-apcast01\d$\CAST /persistent:no
+)
+
+net use Z:
+if %errorlevel% NEQ 0 (
+   net use Z: \\dwsys-apcast01\d$\CAST /persistent:no
+)
+
+if NOT Exist X:\ (
+   subst X: D:\CAST
+)
