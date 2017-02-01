@@ -11,6 +11,7 @@ import com.fanniemae.devtools.pie.actions.CastScan;
 import com.fanniemae.devtools.pie.actions.ComponentScan;
 import com.fanniemae.devtools.pie.actions.Compression;
 import com.fanniemae.devtools.pie.actions.Copy;
+import com.fanniemae.devtools.pie.actions.CreateJavaProjectFiles;
 import com.fanniemae.devtools.pie.actions.Directory;
 import com.fanniemae.devtools.pie.actions.ExecuteSql;
 import com.fanniemae.devtools.pie.actions.ExportDelimited;
@@ -186,7 +187,10 @@ public class JobManager {
 					break;
 				case "VerifyJavaFiles":
 					act = new VerifyJavaFiles(_session, eleOperation);
-					break;					
+					break;
+				case "CreateJavaProjectFiles":
+					act = new CreateJavaProjectFiles(_session, eleOperation);
+					break;
 				default:
 					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}

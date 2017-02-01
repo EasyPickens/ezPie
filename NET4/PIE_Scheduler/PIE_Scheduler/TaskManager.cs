@@ -341,7 +341,7 @@ namespace ScanManager
                 LocalLog.AddLine("Console Output: " + System.Environment.NewLine + output);
                 if (exitcode > 0)
                 {
-                    LocalLog.AddLine("ERROR OUTPUT: "+System.Environment.NewLine+errorOutput);
+                    LocalLog.AddLine("ERROR OUTPUT: " + System.Environment.NewLine + errorOutput);
                     throw new Exception(String.Format("Run JAVA error ExitCode {0} running {1} {2}", exitcode, clientProcess.StartInfo.FileName, clientProcess.StartInfo.Arguments));
                 }
             }

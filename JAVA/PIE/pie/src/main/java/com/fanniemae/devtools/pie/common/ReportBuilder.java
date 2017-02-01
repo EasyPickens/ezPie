@@ -10,6 +10,10 @@ public class ReportBuilder {
 
 	protected StringBuilder _sb = new StringBuilder();;
 	
+	public boolean hasText() {
+		return _sb.length() > 0;
+	}
+	
 	public void append(String value) {
 		_sb.append(value);
 	}
