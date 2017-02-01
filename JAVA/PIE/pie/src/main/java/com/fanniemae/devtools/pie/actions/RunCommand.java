@@ -24,6 +24,7 @@ import com.fanniemae.devtools.pie.common.StringUtilities;
  * @author Richard Monson
  * @since 2015-12-16
  * 
+ * <RunCommand WorkDirectory="" CommandLine="" HideConsoleOutput="False" WaitForExit="True" Timeout="2h" MakeBatchFile="Yes" />
  */
 public class RunCommand extends Action {
 	protected String _workDirectory;

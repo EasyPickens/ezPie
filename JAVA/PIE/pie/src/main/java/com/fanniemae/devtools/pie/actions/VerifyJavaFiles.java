@@ -11,6 +11,14 @@ import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-12-10
+ * 
+ * <VerifyJavaFiles Path="" FileSizeLimit="-1" />
+ */
+
 public class VerifyJavaFiles extends Delete {
 
 	protected int _maxSize = -1;

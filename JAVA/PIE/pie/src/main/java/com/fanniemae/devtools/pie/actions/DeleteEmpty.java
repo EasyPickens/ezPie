@@ -2,6 +2,14 @@ package com.fanniemae.devtools.pie.actions;
 
 import java.io.File;
 
+/**
+ * 
+ * @author Richard Monson
+ * @since 2016-12-10
+ * 
+ * <DeleteEmpty Path="" />
+ */
+
 import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
@@ -10,7 +18,6 @@ public class DeleteEmpty extends Delete {
 
 	public DeleteEmpty(SessionManager session, Element action) {
 		super(session, action);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -31,5 +38,4 @@ public class DeleteEmpty extends Delete {
 			throw ex;
 		}
 	}
-
 }
