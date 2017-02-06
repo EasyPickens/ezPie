@@ -10,12 +10,13 @@ using System.Timers;
 using System.IO;
 
 using ScanManager.Common;
+using System.Threading;
 
 namespace PIE_Scheduler
 {
     public partial class Service1 : ServiceBase
     {
-        private Timer _timer = null;
+        private System.Timers.Timer _timer = null;
         private DateTime _nextMessage = DateTime.Now.AddHours(-1);
 
         //private ScanManager.ScanRequestManager _srm = null;
@@ -38,7 +39,7 @@ namespace PIE_Scheduler
             try
             {
                 LocalLog.AddLine("Starting Timer: Interval is 30 seconds");
-                _timer = new Timer(30000); // every 30 seconds
+                _timer = new System.Timers.Timer(30000); // every 30 seconds
                 _timer.Elapsed += new System.Timers.ElapsedEventHandler(pieJobCheck);
                 _timer.Start();
                 LocalLog.AddLine("Service is running.");
@@ -113,9 +114,24 @@ namespace PIE_Scheduler
                 String stopFile = String.Format("{0}{1}stop.txt", MiscUtilities.AppPath(), Path.DirectorySeparatorChar);
                 if (File.Exists(stopFile))
                 {
-                    LocalLog.AddLine(String.Format("Service stopped. Stop file ({0}) located on the drive.", stopFile));
-                    _timer.Stop();
+                    LocalLog.AddLine(String.Format("Stopping service, waiting for processes to complete. Stop file ({0}) located on the drive.", stopFile));
                     File.Delete(stopFile);
+
+                    Boolean threadsRunning = true;
+                    while (threadsRunning)
+                    {
+                        threadsRunning = false;
+                        for (int i = 0; i < _threadPool.Length; i++)
+                        {
+                            if ((_threadPool[i] != null) || _threadPool[i].IsBusy)
+                            {
+                                threadsRunning = true;
+                                break;
+                            }
+                        }
+                        if (threadsRunning) Thread.Sleep(30000);
+                    }
+                    Stop();
                 }
                 else _timer.Start();
             }

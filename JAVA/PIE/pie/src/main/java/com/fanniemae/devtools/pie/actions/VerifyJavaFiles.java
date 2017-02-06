@@ -64,48 +64,6 @@ public class VerifyJavaFiles extends Delete {
 		removeComments("/*","*/");
 		removeComments("//","\n");
 		_fileContents = _fileContents.trim();
-
-//		String comment = "";
-//		int lastStart = -1;
-//		int lastEnd = -1;
-//		int startCommentBlock = fileContents.indexOf("/*");
-//		while (startCommentBlock > -1) {
-//			if (startCommentBlock >= 0) {
-//				int endCommentBlock = fileContents.indexOf("*/", startCommentBlock);
-//				if (endCommentBlock > -1) {
-//					comment = fileContents.substring(startCommentBlock, endCommentBlock + 2);
-//					fileContents = fileContents.replace(comment, "");
-//				} else {
-//					endCommentBlock = fileContents.indexOf("\n", startCommentBlock);
-//					if (endCommentBlock > -1) {
-//						comment = fileContents.substring(startCommentBlock, endCommentBlock + 1);
-//						fileContents = fileContents.replace(comment, "");
-//					}
-//				}
-//			}
-//			lastStart = startCommentBlock;
-//			startCommentBlock = fileContents.indexOf("/*", startCommentBlock);
-//			if (lastStart == startCommentBlock)
-//				break;
-//		}
-//
-//		int startCommentLine = fileContents.indexOf("//");
-//		while (startCommentLine > -1) {
-//			if (startCommentLine >= 0) {
-//				int endCommentLine = fileContents.indexOf("\n", startCommentLine);
-//				if (endCommentLine > -1) {
-//					comment = fileContents.substring(startCommentLine, endCommentLine + 1);
-//					fileContents = fileContents.replace(comment, "");
-//				} else {
-//					comment = fileContents.substring(startCommentLine, fileContents.length());
-//					fileContents = fileContents.replace(comment, "");
-//				}
-//			}
-//			lastStart = startCommentBlock;
-//			startCommentLine = fileContents.indexOf("//", startCommentLine);
-//			if (lastStart == startCommentBlock)
-//				break;
-//		}
 		return _fileContents.trim().length() > 0;
 	}
 

@@ -24,6 +24,7 @@ public class CreateJavaProjectFiles extends Action {
 	protected String _javaCodeDirectory = "src";
 	protected Boolean _overwriteExisting = false;
 	protected Boolean _shallow = false;
+	protected Boolean _hasJavaCode = false;
 	protected ArrayList<String> _usedAnalysisUnitNames = new ArrayList<String>();
 	protected ReportBuilder _filecreationLog = new ReportBuilder();
 	protected int _lineCount = 0;
@@ -63,20 +64,25 @@ public class CreateJavaProjectFiles extends Action {
 		boolean isCodeDirectory = false;
 		for (int i = 0; i < contents.length; i++) {
 			String name = contents[i].getName();
+			_hasJavaCode = (StringUtilities.isNotNullOrEmpty(name) && name.toLowerCase().endsWith(".java")) ? true : _hasJavaCode;
+			//_hasJavaCode = true;
 			if (contents[i].isDirectory() && _javaCodeDirectory.equalsIgnoreCase(name)) {
 				isCodeDirectory = true;
-			} else if (contents[i].isDirectory() && !_shallow) {
+			}
+			
+			if (contents[i].isDirectory() && !_shallow) {
 				processDirectory(contents[i].getPath());
 			}
 		}
-		if (isCodeDirectory) {
+		if (isCodeDirectory && _hasJavaCode) {
+			_hasJavaCode = false;
 			String currentPath = path.endsWith(File.separator) ? path : path + File.separator;
 			String projectFilename = currentPath + ".project";
 			String classpathFilename = currentPath + ".classpath";
 
 			if (FileUtilities.isInvalidFile(projectFilename) || (FileUtilities.isValidFile(projectFilename) && _overwriteExisting)) {
 				_lineCount++;
-				_filecreationLog.appendFormat("Creating project file %s ...", projectFilename);
+				_filecreationLog.appendFormat("Creating project   file %s ...", projectFilename);
 				analysisUnitName = createAnalysisUnitName(path, analysisUnitName);
 				writeProjectFile(analysisUnitName, projectFilename);
 				_usedAnalysisUnitNames.add(analysisUnitName);
