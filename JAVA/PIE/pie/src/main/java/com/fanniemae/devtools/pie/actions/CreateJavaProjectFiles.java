@@ -65,7 +65,6 @@ public class CreateJavaProjectFiles extends Action {
 		for (int i = 0; i < contents.length; i++) {
 			String name = contents[i].getName();
 			_hasJavaCode = (StringUtilities.isNotNullOrEmpty(name) && name.toLowerCase().endsWith(".java")) ? true : _hasJavaCode;
-			//_hasJavaCode = true;
 			if (contents[i].isDirectory() && _javaCodeDirectory.equalsIgnoreCase(name)) {
 				isCodeDirectory = true;
 			}
