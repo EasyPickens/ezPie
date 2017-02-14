@@ -18,6 +18,7 @@ namespace PIE_Scheduler
     {
         private System.Timers.Timer _timer = null;
         private DateTime _nextMessage = DateTime.Now.AddHours(-1);
+        private DateTime _nextLogCleanUp = DateTime.Now.AddHours(-1); // causes clean-up at startup.
 
         //private ScanManager.ScanRequestManager _srm = null;
         private ScanManager.TaskManager _taskManager;
@@ -88,6 +89,15 @@ namespace PIE_Scheduler
                 _timer.Stop();
                 if (DateTime.Now > _nextMessage)
                     LocalLog.AddLine("Hourly status. Still checking every 30 seconds..");
+
+                if (DateTime.Now > _nextLogCleanUp)
+                {
+                    LocalLog.AddLine("Starting to clean up old log files ...");
+                    ScanManager.Common.LogCleanUp lc = new ScanManager.Common.LogCleanUp("\\\\dwsys-wcast01\\cast-logs", ".html");
+                    LocalLog.AddLine(lc.findOrphanFiles());
+                    LocalLog.AddLine("Completed clean-up.");
+                    _nextLogCleanUp = DateTime.Now.AddHours(4);
+                }
 
                 // Look for free thread
                 for (int i = 0; i < _threadPool.Length; i++)

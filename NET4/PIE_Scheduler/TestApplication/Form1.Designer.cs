@@ -37,6 +37,7 @@
             this.btnParallel = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.btnBackground = new System.Windows.Forms.Button();
+            this.btnCleanup = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -129,11 +130,22 @@
             this.btnBackground.UseVisualStyleBackColor = true;
             this.btnBackground.Click += new System.EventHandler(this.btnBackground_Click);
             // 
+            // btnCleanup
+            // 
+            this.btnCleanup.Location = new System.Drawing.Point(278, 12);
+            this.btnCleanup.Name = "btnCleanup";
+            this.btnCleanup.Size = new System.Drawing.Size(82, 23);
+            this.btnCleanup.TabIndex = 8;
+            this.btnCleanup.Text = "Test Cleanup";
+            this.btnCleanup.UseVisualStyleBackColor = true;
+            this.btnCleanup.Click += new System.EventHandler(this.btnCleanup_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(798, 469);
+            this.Controls.Add(this.btnCleanup);
             this.Controls.Add(this.btnBackground);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.btnParallel);
@@ -162,6 +174,7 @@
         private System.Windows.Forms.Button btnParallel;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button btnBackground;
+        private System.Windows.Forms.Button btnCleanup;
     }
 }
 

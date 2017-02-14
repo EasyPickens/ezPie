@@ -122,9 +122,9 @@ namespace TestApplication
         }
 
         private int _maxThreads = 2;
-        private BackgroundProcessing[] _threadPool = new BackgroundProcessing[2];
+        private BackgroundProcessing[] _threadPool; // = new BackgroundProcessing[2];
 
-        private ScanManager.TaskManager _taskManager = new ScanManager.TaskManager();
+        private ScanManager.TaskManager _taskManager; // = new ScanManager.TaskManager();
 
         private void btnBackground_Click(object sender, EventArgs e)
         {
@@ -148,6 +148,13 @@ namespace TestApplication
             {
                 Thread.Sleep(1000);
             }
+        }
+
+        private void btnCleanup_Click(object sender, EventArgs e)
+        {
+            String logDir = "\\\\dwsys-wcast01\\cast-logs";
+            ScanManager.Common.LogCleanUp lc = new ScanManager.Common.LogCleanUp(logDir, ".html");
+            textBox1.Text = lc.findOrphanFiles();
         }
     }
 }

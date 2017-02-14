@@ -58,6 +58,9 @@
     <Compile Include="..\PIE_Scheduler\Common\LocalLog.cs">
       <Link>Common\LocalLog.cs</Link>
     </Compile>
+    <Compile Include="..\PIE_Scheduler\Common\LogCleanUp.cs">
+      <Link>Common\LogCleanUp.cs</Link>
+    </Compile>
     <Compile Include="..\PIE_Scheduler\Common\MiscUtilities.cs">
       <Link>Common\MiscUtilities.cs</Link>
     </Compile>

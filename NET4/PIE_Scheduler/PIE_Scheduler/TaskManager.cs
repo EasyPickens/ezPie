@@ -80,6 +80,11 @@ namespace ScanManager
             }
         }
 
+        public String ResolveToken(String tokenType, String tokenKey)
+        {
+            return _tokens.Resolve(tokenType, tokenKey);
+        }
+
         public void ProcessQueue()
         {
             int JobKey = -1;
