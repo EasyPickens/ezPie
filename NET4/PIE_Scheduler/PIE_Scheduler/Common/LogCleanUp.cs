@@ -8,11 +8,13 @@ namespace ScanManager.Common
 {
     public class LogCleanUp
     {
+        protected const int FILE_AGE_LIMIT_HOURS = -4;
+
         protected String _directory;
         protected String _extension;
         protected List<String> _validFiles = new List<String>();
         protected List<String> _deleteFiles = new List<String>();
-        //protected StringBuilder _report = new StringBuilder();
+        protected StringBuilder _report = new StringBuilder();
 
         public LogCleanUp(String directory, String extension)
         {
@@ -30,7 +32,7 @@ namespace ScanManager.Common
             for (int i = 0; i < listOfFiles.Length; i++)
             {
                 String name = listOfFiles[i].Name;
-                if (listOfFiles[i].CreationTime >= DateTime.Now.AddHours(-4))
+                if (listOfFiles[i].CreationTime >= DateTime.Now.AddHours(FILE_AGE_LIMIT_HOURS) || listOfFiles[i].LastAccessTime >= DateTime.Now.AddHours(FILE_AGE_LIMIT_HOURS))
                     continue;
                 else if (name.EndsWith(_extension, StringComparison.CurrentCultureIgnoreCase) && (name.Length == 37) && isValidGUID(name))
                     continue;
@@ -43,7 +45,7 @@ namespace ScanManager.Common
             for (int i = 0; i < listOfFiles.Length; i++)
             {
                 String name = listOfFiles[i].Name;
-                if (listOfFiles[i].CreationTime >= DateTime.Now.AddHours(-2))
+                if (listOfFiles[i].CreationTime >= DateTime.Now.AddHours(FILE_AGE_LIMIT_HOURS) || listOfFiles[i].LastAccessTime >= DateTime.Now.AddHours(FILE_AGE_LIMIT_HOURS))
                     continue;
                 else if (name.EndsWith(_extension, StringComparison.CurrentCultureIgnoreCase) && (name.Length == 37) && isValidGUID(name))
                 {
@@ -51,7 +53,7 @@ namespace ScanManager.Common
                     {
                         totalCount++;
                         //_report.AppendLine(String.Format("del {0}", listOfFiles[i].FullName));
-                         File.Delete(listOfFiles[i].FullName);
+                        TryDelete(listOfFiles[i].FullName);
                     }
                     else
                     {
@@ -66,7 +68,9 @@ namespace ScanManager.Common
             for (int i = 0; i < listOfFiles.Length; i++)
             {
                 String name = listOfFiles[i].Name;
-                if (name.EndsWith(".html", StringComparison.CurrentCultureIgnoreCase))
+                if (listOfFiles[i].CreationTime >= DateTime.Now.AddHours(FILE_AGE_LIMIT_HOURS) || listOfFiles[i].LastAccessTime >= DateTime.Now.AddHours(FILE_AGE_LIMIT_HOURS))
+                    continue;
+                else if (name.EndsWith(".html", StringComparison.CurrentCultureIgnoreCase))
                 {
                     // Skip the HTML files because they have been processed already.
                     continue;
@@ -75,12 +79,11 @@ namespace ScanManager.Common
                 {
                     totalCount++;
                     //_report.AppendLine(String.Format("del {0}", listOfFiles[i].FullName));
-                    File.Delete(listOfFiles[i].FullName);
+                    TryDelete(listOfFiles[i].FullName);
                 }
             }
-            //_report.AppendLine(String.Format("Number of files to delete: {0:n0}", totalCount));
-            //return _report.ToString();
-            return String.Format("Number of files deleted: {0:n0}", totalCount);
+            _report.Append(String.Format("Number of files deleted: {0:n0}", totalCount));
+            return _report.ToString();
         }
 
         protected void parseHtml(String htmlFilename)
@@ -142,6 +145,18 @@ namespace ScanManager.Common
                 }
             }
             return true;
+        }
+
+        protected void TryDelete(String Filename)
+        {
+            try
+            {
+                File.Delete(Filename);
+            }
+            catch (Exception ex)
+            {
+                _report.AppendLine(String.Format("Could not delete {0}. Reason: {1}", Filename, ex.Message));
+            }
         }
     }
 }
