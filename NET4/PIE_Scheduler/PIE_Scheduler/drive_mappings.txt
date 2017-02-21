@@ -1,0 +1,20 @@
+﻿@ECHO OFF
+net use s:
+if %errorlevel% NEQ 0 (
+   net use S: \\dwsys-apcast01\d$\CAST /persistent:no
+)
+
+net use I:
+if %errorlevel% NEQ 0 (
+   net use I: \\dwsys-apcast01\d$\CAST /persistent:no
+)
+
+net use Z:
+if %errorlevel% NEQ 0 (
+   net use Z: \\dwsys-apcast01\d$\CAST /persistent:no
+)
+
+net use X:
+if %errorlevel% NEQ 0 (
+   net use X: \\dwsys-apcast02\d$\CAST /persistent:no
+)
