@@ -209,36 +209,24 @@ public class DataWriter extends DataFormat {
 
 	protected byte[] buildHeader() throws IOException {
 		byte[] aHeader;
+		//@formatter:off
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); DataOutputStream dos = new DataOutputStream(baos)) {
-			dos.writeByte(_byteFileType); // (byte) Data file type 0=Data,
-											// 1=View
-			dos.writeBoolean(_isEncrypted); // (Boolean) Encrypted True/False
-			dos.writeUTF(_fingerPrint); // (string) The internal UUID used to
-											// identify this file.
-			dos.writeUTF(_sourceDataFilename); // (string) Write the name of
-												// the source dat file. '' if
-												// this is a dat file.
-			dos.writeBoolean(_fullRowCountKnown); // (boolean) Only used by
-													// ActiveSQL connections -
-													// may or may not know row
-													// count.
-			dos.writeLong(_fullRowCount); // (long) Row count of full record
-											// set
-			dos.writeLong(_firstRow); // (long) Row number of first data row in
-										// this file
-			dos.writeLong(_lastRow); // (long) Row number of last data row in
-										// this file
-			dos.writeLong(_indexStart); // (long) Offset to start of direct
-											// access index (Int64)
-			dos.writeLong(_schemaStart); // (long) Offset to start of
-											// Information block (Xml format)
-			dos.writeLong(_dateCreated.getTime()); // (DateTime/long) Datetime
-													// file created
-			dos.writeLong(_dateExpires.getTime()); // (DateTime/long) Datetime
-													// file expires
+			dos.writeByte(_byteFileType);          // (byte) Data file type 0=Data, 1=View
+			dos.writeBoolean(_isEncrypted);        // (Boolean) Encrypted True/False
+			dos.writeUTF(_fingerPrint);            // (string) The internal UUID used to identify this file.
+			dos.writeUTF(_sourceDataFilename);     // (string) Write the name of the source dat file. '' if this is a dat file.
+			dos.writeBoolean(_fullRowCountKnown);  // (boolean) Only used by DynamicSQL datasets - may or may not know full row count.
+			dos.writeLong(_fullRowCount);          // (long) Row count of full record set
+			dos.writeLong(_firstRow);              // (long) Row number of first data row in this file
+			dos.writeLong(_lastRow);               // (long) Row number of last data row in this file
+			dos.writeLong(_indexStart);            // (long) Offset to start of direct access index (Int64)
+			dos.writeLong(_schemaStart);           // (long) Offset to start of Information block (Xml format)
+			dos.writeLong(_dateCreated.getTime()); // (DateTime/long) Datetime file created
+			dos.writeLong(_dateExpires.getTime()); // (DateTime/long) Datetime file expires
 			baos.flush();
 			aHeader = baos.toByteArray();
 		}
+		//@formatter:on
 		return aHeader;
 	}
 

@@ -129,19 +129,32 @@ public class TokenManager {
 
 			// System tokens call methods
 			if ("System".equals(sGroup)) {
+				SimpleDateFormat sdf;
 				switch (sKey) {
 				case "CurrentDateTimeString":
-					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+					sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 					value = value.replace(sFullToken, sdf.format(new Date()));
 					break;
 				case "StartDateTimeString":
-					SimpleDateFormat sdfStart = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-					value = value.replace(sFullToken, sdfStart.format(_startDateTime));
+					sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+					value = value.replace(sFullToken, sdf.format(_startDateTime));
 					break;
 				case "ISOStartDateTime":
-					SimpleDateFormat sdfISO = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					value = value.replace(sFullToken, sdfISO.format(_startDateTime));
+					sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					value = value.replace(sFullToken, sdf.format(_startDateTime));
 					break;
+				case "Year":
+					sdf = new SimpleDateFormat("yyyy");
+					value = value.replace(sFullToken, sdf.format(_startDateTime));
+					break;					
+				case "Month":
+					sdf = new SimpleDateFormat("MM");
+					value = value.replace(sFullToken, sdf.format(_startDateTime));
+					break;					
+				case "Day":
+					sdf = new SimpleDateFormat("dd");
+					value = value.replace(sFullToken, sdf.format(_startDateTime));
+					break;					
 				case "ElapsedTime":  // returns minutes.
 					Date dtCurrent = new Date();
 					long minutes = (dtCurrent.getTime() - _startDateTime.getTime())/60000;

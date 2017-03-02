@@ -74,7 +74,8 @@ public class RunPie {
 		// String job = "VerifyJavaFiles.xml";
 		// String job = "REST_Test.xml";
 		// String job = "GeneralTest.xml";
-		String job = "CreateProjectFiles.xml";
+		// String job = "CreateProjectFiles.xml";
+		String job = "TokenTests.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

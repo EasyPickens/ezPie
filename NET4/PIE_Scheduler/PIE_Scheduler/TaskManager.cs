@@ -63,6 +63,21 @@ namespace ScanManager
             }
         }
 
+        public Boolean CleanupLogs
+        {
+            get
+            {
+                String cleanup = _tokens.ResolveOptional("Scheduler", "CleanupLogs", "True");
+                if (!String.IsNullOrEmpty(cleanup) && cleanup.StartsWith("F",StringComparison.CurrentCultureIgnoreCase))
+                {
+                    LocalLog.AddLine("Log directory clean up is disabled (Set to False)");
+                    return false;
+                }
+                LocalLog.AddLine("Log directory clean up is enabled (Set to True)");
+                return true;
+            }
+        }
+
         public int ThreadPoolSize
         {
             get

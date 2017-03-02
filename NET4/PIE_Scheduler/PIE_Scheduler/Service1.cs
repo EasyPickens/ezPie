@@ -17,8 +17,11 @@ namespace PIE_Scheduler
     public partial class Service1 : ServiceBase
     {
         private System.Timers.Timer _timer = null;
+
         private DateTime _nextMessage = DateTime.Now.AddHours(-1);
         private DateTime _nextLogCleanUp = DateTime.Now.AddHours(-1); // causes clean-up at startup.
+
+        private Boolean _CleanupLogs = true;
 
         //private ScanManager.ScanRequestManager _srm = null;
         private ScanManager.TaskManager _taskManager;
@@ -35,6 +38,7 @@ namespace PIE_Scheduler
             logEnvironment();
             String path = MiscUtilities.AppParentPath() + Path.DirectorySeparatorChar;
             _taskManager = new ScanManager.TaskManager();
+            _CleanupLogs = _taskManager.CleanupLogs;
             _threadPool = new ScanManager.BackgroundProcessing[_taskManager.ThreadPoolSize];
 
             try
@@ -90,7 +94,7 @@ namespace PIE_Scheduler
                 if (DateTime.Now > _nextMessage)
                     LocalLog.AddLine("Hourly status. Still checking every 30 seconds..");
 
-                if (DateTime.Now > _nextLogCleanUp)
+                if (_CleanupLogs && (DateTime.Now > _nextLogCleanUp))
                 {
                     LocalLog.AddLine("Starting to clean up old log files ...");
                     ScanManager.Common.LogCleanUp lc = new ScanManager.Common.LogCleanUp("\\\\dwsys-wcast01\\cast-logs", ".html");
