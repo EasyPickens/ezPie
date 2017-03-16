@@ -28,6 +28,7 @@ import com.fanniemae.devtools.pie.actions.Delete;
 import com.fanniemae.devtools.pie.actions.DeleteEmpty;
 import com.fanniemae.devtools.pie.actions.LocalTokens;
 import com.fanniemae.devtools.pie.actions.RunCommand;
+import com.fanniemae.devtools.pie.actions.SendEmail;
 import com.fanniemae.devtools.pie.actions.Sleep;
 import com.fanniemae.devtools.pie.actions.Svn;
 import com.fanniemae.devtools.pie.actions.Tokens;
@@ -191,6 +192,9 @@ public class JobManager {
 				case "CreateJavaProjectFiles":
 					act = new CreateJavaProjectFiles(_session, eleOperation);
 					break;
+				case "SendEmail":
+					act = new SendEmail(_session, eleOperation);
+					break;					
 				default:
 					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}
