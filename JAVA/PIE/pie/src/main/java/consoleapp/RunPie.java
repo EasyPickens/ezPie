@@ -5,11 +5,18 @@ import java.io.IOException;
 //import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import com.fanniemae.devtools.pie.JobManager;
+import com.fanniemae.devtools.pie.common.DataTable;
 
 public class RunPie {
 
 	public static void main(String[] args) {
-		runJobManager();
+		// runJobManager();
+		DataTable dt = new DataTable();
+		String[][] aaa = new String[][] { { "Col1", "String" }, { "Col2", "Integer" }, { "Col3", "int" } };
+		Object[] myrow = new Object[] { 1, 2 };
+		dt.setSchema(aaa);
+		dt.addRow(myrow);
+		System.out.println("Done");
 	}
 
 	protected static void runJobManager() {
@@ -54,21 +61,21 @@ public class RunPie {
 		// String job = "RunCmdError.xml";
 		// String job = "LogFilenameTest.xml";
 		// String job = "EmptyScanTest.xml";
-		
-        // String job = "Add_RescanTables.xml";
-		
+
+		// String job = "Add_RescanTables.xml";
+
 		// String job = "Scan_Limiter.xml";
-		
+
 		// String job = "Backup_Tables.xml";
-		
-        // String job = "BranchingTest.xml";
-	    // String job = "AIP_OnBoard.xml";
+
+		// String job = "BranchingTest.xml";
+		// String job = "AIP_OnBoard.xml";
 		// String job = "EPV.xml";
 		// String job = "RemoveStarRisk.xml";
 		// String job = "BlankDefinition.xml";
 		// String job = "If_Test.xml";
-        // String job = "Xml_Test.xml";
-        // String job = "Snapshot_Date.xml";
+		// String job = "Xml_Test.xml";
+		// String job = "Snapshot_Date.xml";
 		// String job = "RemoveStarRiskRating.xml";
 		// String job = "DeleteEmpty.xml";
 		// String job = "VerifyJavaFiles.xml";

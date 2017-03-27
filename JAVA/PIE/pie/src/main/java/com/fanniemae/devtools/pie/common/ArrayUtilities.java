@@ -54,6 +54,28 @@ public class ArrayUtilities {
 
 		return index;
 	}
+	
+	public static boolean contains(String[] items, String target) {
+		return indexOf(items,target) > -1;
+	}
+	
+	public static boolean notContains(String[] items, String target) {
+		return indexOf(items,target) == -1;
+	}
+	
+	public static int indexOf(String[] items, String target) {
+		if ((items == null) || (target==null) || (items.length == 0)) {
+			return -1;
+		}
+		
+		for (int i = 0; i < items.length; i++) {
+			if (target.equals(items[i])) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
 
 	public static int indexOf(int[] items, int target) {
 		int length = items.length;
