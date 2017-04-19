@@ -6,6 +6,22 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+//@formatter:off
+/**
+*  
+* Copyright (c) 2017 Fannie Mae, All rights reserved.
+* This program and the accompany materials are made available under
+* the terms of the Fannie Mae Open Source Licensing Project available 
+* at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+* 
+* ezPIE is a trademark of Fannie Mae
+* 
+* @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+* @since 2017-03-23
+* 
+*/
+//@formatter:on
+
 public class DataTable {
 
 	protected String[] _columnNames = new String[] {};
@@ -23,7 +39,7 @@ public class DataTable {
 	}
 
 	public void setSchema(String[][] schema) {
-		if (_columnCount == 0) {
+		if (_columnCount > 0) {
 			throw new RuntimeException("Datatable schema already defined.");
 		} else if ((schema != null) && (schema.length > 0)) {
 			_columnNames = new String[schema.length];
@@ -35,6 +51,18 @@ public class DataTable {
 			_columnCount = _columnNames.length;
 		}
 	}
+	
+	public int getColumnCount() {
+		return _columnCount;
+	}
+	
+	public int getRowCount() {
+		return _dataRows.size();
+	}
+	
+	public boolean containsColumn(String name) {
+		return ArrayUtilities.contains(_columnNames, name);
+	}
 
 	public void addRow(Object[] data) {
 		if (_columnCount == 0) {
@@ -45,9 +73,13 @@ public class DataTable {
 			_dataRows.add(row);
 		}
 	}
+	
+	public void gotoStart() {
+		_currentRow = 0;
+	}
 
 	public boolean endOfData() {
-		return _currentRow < _dataRows.size();
+		return _currentRow >= _dataRows.size();
 	}
 
 	public void nextRow() {
@@ -192,10 +224,49 @@ public class DataTable {
 		return getValues(_currentRow);
 	}
 
-	public Object[] getValues(int i) {
-		if ((i == 0) || (_dataRows.size() < i)) {
+	public Object[] getValues(int rowNumber) {
+		if ((rowNumber == 0) || (_dataRows.size() < rowNumber)) {
 			return null;
 		}
-		return _dataRows.get(i);
+		return _dataRows.get(rowNumber);
+	}
+	
+	public void setValue(String name, Object value) {
+		if ((name == null) || ArrayUtilities.notContains(_columnNames, name)) {
+			throw new RuntimeException(String.format("%s column not found in the datatable.", name));
+		}
+		setValue(ArrayUtilities.indexOf(_columnNames, name), value);
+	}
+	
+	public void setValue(int colIndex, Object value) {
+		_dataRows.get(_currentRow)[colIndex] = value;
+	}
+	
+	public void addColumn(String columnName, String javaDataType) {
+		if (ArrayUtilities.contains(_columnNames, columnName)) {
+			throw new RuntimeException(String.format("The data table already contains a column named %s", columnName));
+		}
+		
+		// Resize the arrays and copy the existing contents
+		String[] updatedColumnNames = new String[_columnNames.length+1];
+		Class<?>[] updatedColumnTypes = new Class<?>[_columnTypes.length+1];
+		System.arraycopy(_columnNames, 0, updatedColumnNames, 0, _columnNames.length);
+		System.arraycopy(_columnTypes, 0, updatedColumnTypes, 0, _columnTypes.length);
+		_columnNames = updatedColumnNames;
+		_columnTypes = updatedColumnTypes;
+		_columnCount = updatedColumnNames.length;
+		// load the new column name and type
+		_columnNames[_columnNames.length-1] = columnName;
+		_columnTypes[_columnNames.length-1] = DataUtilities.StringNameToJavaType(javaDataType); 
+		
+		// Update the format for each row, copy existing data, with null for new column value.
+		List<Object[]> updatedData = new ArrayList<Object[]>();
+		int length = _dataRows.size();
+		for (int i=0;i<length;i++) {
+			Object[] row = new Object[_columnCount];
+			System.arraycopy(_dataRows.get(i), 0, row, 0, Math.min(_columnCount, _dataRows.get(i).length));
+			updatedData.add(row);
+		}
+		_dataRows = updatedData;
 	}
 }
