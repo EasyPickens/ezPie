@@ -1,3 +1,16 @@
+//@formatter:off
+/**
+*  
+* Copyright (c) 2015 Fannie Mae, All rights reserved.
+* This program and the accompany materials are made available under
+* the terms of the Fannie Mae Open Source Licensing Project available 
+* at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+* 
+* ezPIE is a trademark of Fannie Mae
+* 
+*/
+//@formatter:on
+
 package com.fanniemae.devtools.pie.actions;
 
 import java.text.SimpleDateFormat;
@@ -12,10 +25,11 @@ import com.fanniemae.devtools.pie.common.StringUtilities;
 
 /**
  * 
- * @author Richard Monson
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2015-12-16
- * 
+ *
  */
+
 public abstract class Action {
 
 	protected SessionManager _session;
@@ -27,7 +41,7 @@ public abstract class Action {
 
 	protected boolean _idRequired = true;
 	protected SimpleDateFormat _sdf = new SimpleDateFormat("MMMM d, yyyy HH:mm:ss");
-	
+
 	protected long _start;
 
 	public Action(SessionManager session, Element action) {
@@ -48,14 +62,14 @@ public abstract class Action {
 		}
 
 		if (!"LogComment".equals(_actionName)) {
-		_session.addLogMessage(_actionName, "Process", String.format("Processing %s action (started: %s)", _actionName, _sdf.format(new Date())));
+			_session.addLogMessage(_actionName, "Process", String.format("Processing %s action (started: %s)", _actionName, _sdf.format(new Date())));
 		}
 		_start = System.currentTimeMillis();
 		if (StringUtilities.isNotNullOrEmpty(_id)) {
 			_session.addLogMessage("", "ID", _id);
 		}
 	}
-	
+
 	public String execute() {
 		String result = executeAction();
 		if (!"LogComment".equals(_actionName) && !"If".equals(_actionName)) {
@@ -113,11 +127,11 @@ public abstract class Action {
 		_session.addLogMessage("", attributeName, value);
 		return value;
 	}
-	
+
 	protected boolean isNotNullOrEmpty(String value) {
 		return !isNullOrEmpty(value);
 	}
-	
+
 	protected boolean isNullOrEmpty(String value) {
 		return StringUtilities.isNullOrEmpty(value);
 	}

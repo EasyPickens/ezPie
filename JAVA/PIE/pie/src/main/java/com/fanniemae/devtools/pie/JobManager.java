@@ -1,3 +1,16 @@
+//@formatter:off
+/**
+ *  
+ * Copyright (c) 2015 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+**/
+//@formatter:on
+
 package com.fanniemae.devtools.pie;
 
 import java.util.List;
@@ -15,6 +28,7 @@ import com.fanniemae.devtools.pie.actions.CreateJavaProjectFiles;
 import com.fanniemae.devtools.pie.actions.Directory;
 import com.fanniemae.devtools.pie.actions.ExecuteSql;
 import com.fanniemae.devtools.pie.actions.ExportDelimited;
+import com.fanniemae.devtools.pie.actions.GetSourceCode;
 import com.fanniemae.devtools.pie.actions.Git;
 import com.fanniemae.devtools.pie.actions.HighlightScan;
 import com.fanniemae.devtools.pie.actions.IfElement;
@@ -42,15 +56,15 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
 
 /**
  * 
- * @author Richard Monson
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2015-12-16
  * 
- */
+**/
 public class JobManager {
 
 	protected SessionManager _session;
 	protected boolean _stopProcessing = false;
-
+	
 	public JobManager(String settingsFilename, String jobFilename, List<String> args) { 
 		_session = new SessionManager(settingsFilename, jobFilename, args);
 	}
@@ -106,6 +120,7 @@ public class JobManager {
 					act = new ExportDelimited(_session, eleOperation);
 					break;
 				case "SvnCheckout":
+				case "Svn":
 					act = new Svn(_session, eleOperation);
 					break;
 				case "Directory":
@@ -123,9 +138,6 @@ public class JobManager {
 					break;
 				case "Git":
 					act = new Git(_session, eleOperation);
-					break;
-				case "Svn":
-					act = new Svn(_session, eleOperation);
 					break;
 				case "Maven":
 					act = new Maven(_session, eleOperation);
@@ -194,7 +206,10 @@ public class JobManager {
 					break;
 				case "SendEmail":
 					act = new SendEmail(_session, eleOperation);
-					break;					
+					break;	
+				case "GetSourceCode":
+					act = new GetSourceCode(_session, eleOperation);
+					break;
 				default:
 					_session.addLogMessage("** Warning **", nlActions.item(i).getNodeName(), "Operation not currently supported.");
 				}

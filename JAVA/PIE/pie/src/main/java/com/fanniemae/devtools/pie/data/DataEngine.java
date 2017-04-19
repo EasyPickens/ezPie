@@ -1,3 +1,16 @@
+//@formatter:off
+/**
+ *  
+ * Copyright (c) 2015 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+**/
+//@formatter:on
+
 package com.fanniemae.devtools.pie.data;
 
 import java.io.File;
@@ -24,7 +37,7 @@ import com.fanniemae.devtools.pie.datafiles.DataWriter;
 
 /**
  * 
- * @author Richard Monson
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2015-12-22
  * 
  */
@@ -138,6 +151,8 @@ public class DataEngine {
 
 		String connectorType = _dataSource.getAttribute("Type").toLowerCase();
 		switch (connectorType) {
+		case "":
+			throw new RuntimeException("DataSource Type attribute not defined.");
 		case "sql":
 			return new SqlConnector(_session, _dataSource, false);
 		case "directory":
@@ -148,8 +163,9 @@ public class DataEngine {
 			return new DataSetConnector(_session, _dataSource, false);
 		case "rest":
 			return new RestConnector(_session, _dataSource, false);
+		default:
+			throw new RuntimeException(String.format("Requested DataSource Type=%s not currently supported.", connectorType));
 		}
-		return null;
 	}
 
 	protected void defineProcessingGroups() {

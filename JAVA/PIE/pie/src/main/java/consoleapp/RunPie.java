@@ -1,3 +1,16 @@
+//@formatter:off
+/**
+ *  
+ * Copyright (c) 2015 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+**/
+//@formatter:on
+
 package consoleapp;
 
 import java.io.IOException;
@@ -7,16 +20,17 @@ import java.io.IOException;
 import com.fanniemae.devtools.pie.JobManager;
 import com.fanniemae.devtools.pie.common.DataTable;
 
+/**
+ * 
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2015-12-19
+ * 
+ **/
+
 public class RunPie {
 
 	public static void main(String[] args) {
-		// runJobManager();
-		DataTable dt = new DataTable();
-		String[][] aaa = new String[][] { { "Col1", "String" }, { "Col2", "Integer" }, { "Col3", "int" } };
-		Object[] myrow = new Object[] { 1, 2 };
-		dt.setSchema(aaa);
-		dt.addRow(myrow);
-		System.out.println("Done");
+		runJobManager();
 	}
 
 	protected static void runJobManager() {
@@ -82,7 +96,9 @@ public class RunPie {
 		// String job = "REST_Test.xml";
 		// String job = "GeneralTest.xml";
 		// String job = "CreateProjectFiles.xml";
-		String job = "TokenTests.xml";
+		// String job = "TokenTests.xml";
+		String job = "DbSvnCloneTest.xml";
+		// String job = "CreateProjTest2.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
@@ -106,6 +122,15 @@ public class RunPie {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	protected static void testDatatable() {
+		DataTable dt = new DataTable();
+		String[][] aaa = new String[][] { { "Col1", "String" }, { "Col2", "Integer" }, { "Col3", "int" } };
+		Object[] myrow = new Object[] { 1, 2 };
+		dt.setSchema(aaa);
+		dt.addRow(myrow);
+		System.out.println("Done");
 	}
 
 }

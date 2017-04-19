@@ -1,22 +1,34 @@
+//@formatter:off
+/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+**/
+//@formatter:on
+
 package com.fanniemae.devtools.pie.common;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-//import java.util.ArrayList;
-//import java.util.HashMap;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
-//import org.w3c.dom.NodeList;
 
 import com.fanniemae.devtools.pie.SessionManager;
-import com.fanniemae.devtools.pie.data.DataEngine;
 import com.fanniemae.devtools.pie.data.DataProvider;
-//import com.fanniemae.devtools.pie.data.connectors.SqlConnector;
+import com.fanniemae.devtools.pie.data.connectors.SqlConnector;
+
+/**
+ * 
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2016-07-20
+ */
 
 public class SqlUtilities {
 
@@ -78,50 +90,26 @@ public class SqlUtilities {
 		return result;
 	}
 
-	protected DataStream executeCommand(SessionManager _session, Element element) {
-		DataEngine de = new DataEngine(_session);
-		DataStream ds = de.getData(element);
-		return ds;
-		// DataStream ds = null;
-		// String command = _session.getAttribute(element, "Command");
-		// if (StringUtilities.isNullOrEmpty(command))
-		// throw new RuntimeException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
-		//
-		// String id = _session.getAttribute(element, "ID");
-		// if (StringUtilities.isNullOrEmpty(id))
-		// element.setAttribute("ID", "ExcludeDBResultSet");
-		//
-		// try (SqlConnector conn = new SqlConnector(_session, element, false)) {
-		// conn.open();
-		//
-		// ds = new DataStream();
-		// while (!conn.eof()) {
-		// datatable.put(datatable.size(), conn.getDataRow());
-		// }
-		//
-		// String[][] schema = conn.getDataSourceSchema();
-		// String col = _session.getAttribute(element, "Column");
-		// int colIndex = -1;
-		// for (int i = 0; i < schema.length; i++) {
-		// if (col.equals(schema[i][0])) {
-		// colIndex = i;
-		// break;
-		// }
-		// }
-		// if (colIndex == -1) {
-		// throw new RuntimeException(String.format("Data set returned does not contian a field named %s.", col));
-		// }
-		//
-		// while (!conn.eof()) {
-		// Object[] aValues = conn.getDataRow();
-		// String value = escapeSpecialChar(aValues[colIndex].toString());
-		// excludes.add(Pattern.compile(value));
-		// }
-		//
-		// conn.close();
-		// }
-		//
-		// return excludes;
+	public static DataTable executeCommand(SessionManager _session, Element element) {
+		int rowCount = 0;
+		DataTable dt = null;
+		String sqlCommand = _session.getAttribute(element, "Command");
+		if (StringUtilities.isNullOrEmpty(sqlCommand)) {
+			throw new RuntimeException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
+		}
+		element.setAttribute("ID", "TempID");
+		
+		try (SqlConnector conn = new SqlConnector(_session, element, false)) {
+			conn.open();
+			dt = new DataTable(conn.getDataSourceSchema());
+			while (!conn.eof()) {
+				dt.addRow(conn.getDataRow());
+				rowCount++;
+			}
+			conn.close();
+		}
+		_session.addLogMessage("", "Data Returned", String.format("%,d rows, %,d columns", rowCount, dt.getColumnCount()));
+		return dt;
 	}
 
 }
