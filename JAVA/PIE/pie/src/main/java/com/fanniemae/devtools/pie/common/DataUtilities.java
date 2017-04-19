@@ -130,4 +130,71 @@ public class DataUtilities {
 			throw new RuntimeException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", sTypeName));
 		}
 	}
+
+	public static Class<?> StringNameToJavaType(String typeName) {
+		try {
+			if (typeName == null) {
+				return Class.forName("java.lang.String");
+			}
+			switch (typeName.toLowerCase()) {
+			case "java.math.bigdecimal":
+			case "bigdecimaldata":
+			case "bigdecimal":
+				return Class.forName("java.math.BigDecimal");
+			case "java.lang.boolean":
+			case "booleandata":
+			case "boolean":
+				return Class.forName("java.lang.Boolean");
+			case "java.lang.byte":
+			case "bytedata":
+			case "byte":
+				return Class.forName("java.lang.Byte");
+			case "java.lang.character":
+			case "chardata":
+			case "char":
+				return Class.forName("java.lang.Character");
+			case "java.util.date":
+			case "datedata":
+			case "date":
+				return Class.forName("java.util.Date");
+			case "java.lang.double":
+			case "doubledata":
+			case "double":
+				return Class.forName("java.lang.Double");
+			case "java.lang.float":
+			case "floatdata":
+			case "float":
+				return Class.forName("java.lang.Float");
+			case "java.lang.integer":
+			case "integerdata":
+			case "integer":
+			case "int":
+				return Class.forName("java.lang.Integer");
+			case "java.lang.long":
+			case "longdata":
+			case "long":				
+				return Class.forName("java.lang.Long");
+			case "java.lang.short":
+			case "shortdata":
+			case "short":
+				return Class.forName("java.lang.Short");
+			case "java.lang.string":
+			case "stringdata":
+			case "string":
+				return Class.forName("java.lang.String");
+			case "java.sql.timestamp":
+			case "sqltimestampdata":
+			case "sqltimestamp":
+				return Class.forName("java.sql.Timestamp");
+			case "java.lang.object":
+			case "objectdata":
+			case "object":
+				return Class.forName("java.lang.Object");
+			default:
+				throw new RuntimeException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", typeName));
+			}
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(String.format("Could not convert %s into a java type name. %s", typeName, e.getMessage()));
+		}
+	}
 }

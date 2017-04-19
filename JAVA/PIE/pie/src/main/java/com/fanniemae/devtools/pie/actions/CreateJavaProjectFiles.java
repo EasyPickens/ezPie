@@ -10,13 +10,23 @@ import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.ReportBuilder;
 import com.fanniemae.devtools.pie.common.StringUtilities;
 
+//@formatter:off
 /**
- * 
- * @author Richard Monson
- * @since 2017-01-31
- * 
- * <CreateJavaProjectFiles Path="" CodeDirectoryName="src" OverwriteExisting="False" Shallow="False" />
- */
+*  
+* Copyright (c) 2017 Fannie Mae, All rights reserved.
+* This program and the accompany materials are made available under
+* the terms of the Fannie Mae Open Source Licensing Project available 
+* at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+* 
+* ezPIE is a trademark of Fannie Mae
+* 
+* @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+* @since 2017-01-31
+* 
+* Example Element:
+* <CreateJavaProjectFiles Path="" CodeDirectoryName="src" OverwriteExisting="False" Shallow="False" />
+*/
+//@formatter:on
 
 public class CreateJavaProjectFiles extends Action {
 
@@ -68,12 +78,12 @@ public class CreateJavaProjectFiles extends Action {
 			if (contents[i].isDirectory() && _javaCodeDirectory.equalsIgnoreCase(name)) {
 				isCodeDirectory = true;
 			}
-			
+
 			if (contents[i].isDirectory() && !_shallow) {
 				processDirectory(contents[i].getPath());
 			}
 		}
-		if (isCodeDirectory && _hasJavaCode) {
+		if (isCodeDirectory) { // && _hasJavaCode) {
 			_hasJavaCode = false;
 			String currentPath = path.endsWith(File.separator) ? path : path + File.separator;
 			String projectFilename = currentPath + ".project";
@@ -131,11 +141,19 @@ public class CreateJavaProjectFiles extends Action {
 		if (StringUtilities.isNotNullOrEmpty(currentAnalysisUnitName)) {
 			return currentAnalysisUnitName;
 		}
-		String analysisUnitName = currentPath.substring(_source.length() + 1).replace(File.separatorChar, '_');
+
+		String analysisUnitName = "";
+		if (StringUtilities.isNullOrEmpty(currentPath) || StringUtilities.isNullOrEmpty(_source)) {
+			throw new RuntimeException(String.format("Null path exception.  Current Path = %s, Source = %s", currentPath, _source));
+		} else if (currentPath.length() == _source.length()) {
+			analysisUnitName = currentPath.substring(currentPath.lastIndexOf(File.separatorChar) + 1);
+		} else {
+			analysisUnitName = currentPath.substring(_source.length() + 1).replace(File.separatorChar, '_');
+		}
 		if (analysisUnitName.length() > 60) {
 			analysisUnitName = analysisUnitName.substring(0, 60);
 		}
-		if (_usedAnalysisUnitNames.contains(analysisUnitName.toLowerCase())) {
+		if (StringUtilities.isNullOrEmpty(analysisUnitName) || _usedAnalysisUnitNames.contains(analysisUnitName.toLowerCase())) {
 			boolean duplicateDetected = true;
 			for (int i = 0; i < 500; i++) {
 				String tempName = String.format("$s$d", analysisUnitName, i);

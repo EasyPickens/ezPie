@@ -1,3 +1,16 @@
+//@formatter:off
+/**
+ *  
+ * Copyright (c) 2015 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+**/
+//@formatter:on
+
 package com.fanniemae.devtools.pie;
 
 import java.util.HashMap;
@@ -10,6 +23,7 @@ import org.w3c.dom.Node;
 
 import com.fanniemae.devtools.pie.common.CryptoUtilities;
 import com.fanniemae.devtools.pie.common.DataStream;
+import com.fanniemae.devtools.pie.common.DataTable;
 import com.fanniemae.devtools.pie.common.FileUtilities;
 import com.fanniemae.devtools.pie.common.Miscellaneous;
 import com.fanniemae.devtools.pie.common.StringUtilities;
@@ -17,7 +31,7 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
 
 /**
  * 
- * @author Richard Monson
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2015-12-15
  * 
  */
@@ -48,6 +62,7 @@ public class SessionManager {
 	protected Boolean _updateScanManager = false;
 
 	protected Map<String, DataStream> _dataSets = new HashMap<String, DataStream>();
+	protected DataTable _codeLocations = null;
 
 	public SessionManager(String settingsFilename, String jobFilename, List<String> args) {
 		if (!FileUtilities.isValidFile(settingsFilename)) {
@@ -327,5 +342,13 @@ public class SessionManager {
 			addLogMessage("", "DataStream Details", String.format("FileStream (%s) of %,d bytes", dataStream.getFilename(), dataStream.getSize()));
 		}
 		return dataStream;
+	}
+	
+	public void setCodeLocations(DataTable dt) {
+		_codeLocations = dt;
+	}
+	
+	public DataTable getCodeLocations() {
+		return _codeLocations;
 	}
 }
