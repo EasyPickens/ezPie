@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.common;
 
 import java.text.SimpleDateFormat;
@@ -8,14 +19,18 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 
 /**
  * 
- * @author Richard Monson
- * @since 2016-01-07
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2016-01-05
  * 
  */
-public class DateUtilities {
+
+public final class DateUtilities {
 
 	protected static SimpleDateFormat _sdfISO = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 	protected static SimpleDateFormat _sdfPretty = new SimpleDateFormat("MMMM d, yyyy HH:mm:ss");
+
+	private DateUtilities() {
+	}
 
 	public static String getCurrentDateTime() {
 		return _sdfISO.format(Calendar.getInstance().getTime());
@@ -32,7 +47,7 @@ public class DateUtilities {
 	public static String toIsoString(Calendar value) {
 		return (value == null) ? "" : toIsoString(value.getTime());
 	}
-	
+
 	public static String elapsedTime(long start) {
 		long end = System.currentTimeMillis();
 		return elapsedTime(start, end);
@@ -63,7 +78,7 @@ public class DateUtilities {
 		}
 		return elapsedPretty;
 	}
-	
+
 	public static String elapsedTimeShort(long start) {
 		long end = System.currentTimeMillis();
 		return elapsedTimeShort(start, end);
@@ -83,7 +98,7 @@ public class DateUtilities {
 		}
 		if (end - start < 0) {
 			return "Negative " + elapsedPretty;
-		}		
+		}
 		return elapsedPretty;
 	}
 

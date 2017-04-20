@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ *
+ */
+
 package com.fanniemae.devtools.pie.actions;
 
 import java.text.SimpleDateFormat;
@@ -18,10 +29,11 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
 
 /**
  * 
- * @author Richard Monson
- * @since 2016-05-30
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2016-06-15
  * 
  */
+
 public class CastScan extends CastAction {
 
 	protected String _connectionProfile;

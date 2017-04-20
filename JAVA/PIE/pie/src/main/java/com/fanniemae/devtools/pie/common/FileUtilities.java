@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2015 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.common;
 
 import java.io.BufferedReader;
@@ -12,20 +23,26 @@ import org.w3c.dom.Element;
 
 /**
  * 
- * @author Richard Monson
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2015-12-15
  * 
  */
-public class FileUtilities {
+
+public final class FileUtilities {
+
+	private FileUtilities() {
+	}
 
 	public static boolean exists(String filePath) {
-		if (filePath == null) return false;
+		if (filePath == null)
+			return false;
 		File f = new File(filePath);
 		return f.exists();
 	}
-	
+
 	public static boolean isValidDirectory(String filePath) {
-		if (filePath == null) return false;
+		if (filePath == null)
+			return false;
 		File f = new File(filePath);
 		return f.exists() && f.isDirectory();
 	}
@@ -35,7 +52,8 @@ public class FileUtilities {
 	}
 
 	public static boolean isEmptyDirectory(String filePath) {
-		if (filePath == null) return false;
+		if (filePath == null)
+			return false;
 		File f = new File(filePath);
 		return f.exists() && f.isDirectory() & (f.list().length == 0);
 	}
@@ -45,13 +63,15 @@ public class FileUtilities {
 	}
 
 	public static boolean isValidFile(String fileName) {
-		if (fileName == null) return false;
+		if (fileName == null)
+			return false;
 		File f = new File(fileName);
 		return f.exists() && f.isFile();
 	}
 
 	public static long getLength(String fileName) {
-		if (fileName == null) return 0L;
+		if (fileName == null)
+			return 0L;
 		File f = new File(fileName);
 		return f.exists() ? f.length() : 0L;
 	}
@@ -130,7 +150,7 @@ public class FileUtilities {
 		}
 		return sName;
 	}
-	
+
 	public static String getFilenameOnly(String fileName) {
 		File f = new File(fileName);
 		return f.getName();
@@ -166,22 +186,22 @@ public class FileUtilities {
 			return false;
 
 		String repoPath = !path.endsWith(File.separator) ? path + File.separator : path;
-		return isValidDirectory(repoPath+".git");
+		return isValidDirectory(repoPath + ".git");
 	}
-	
+
 	public static Boolean isSvnRepository(String path) {
 		if (path == null)
 			return false;
 
 		String repoPath = !path.endsWith(File.separator) ? path + File.separator : path;
-		return isValidDirectory(repoPath+".svn");
+		return isValidDirectory(repoPath + ".svn");
 	}
 
 	public static String writeRandomFile(String path, String extension, String contents) {
 		String filename = getRandomFilename(path, extension);
 		return writeFile(filename, contents);
 	}
-	
+
 	public static String writeFile(String filename, String contents) {
 		if (StringUtilities.isNullOrEmpty(contents)) {
 			throw new RuntimeException("Contents of request file are null or empty.");
@@ -195,7 +215,7 @@ public class FileUtilities {
 		}
 		return filename;
 	}
-	
+
 	public static String combine(String path, String filename) {
 		if (StringUtilities.isNullOrEmpty(path)) {
 			throw new RuntimeException("No path value defined.");

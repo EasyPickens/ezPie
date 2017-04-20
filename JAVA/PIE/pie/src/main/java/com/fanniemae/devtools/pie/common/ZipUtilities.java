@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.common;
 
 import java.io.File;
@@ -19,12 +30,23 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-public class ZipUtilities {
+/**
+ * 
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Tara Tritt
+ * @since 2016-05-06
+ * 
+ */
+
+public final class ZipUtilities {
 
 	protected static String TABLE_HEADER = "<table><tr><td>&nbsp;</td><td>Filename</td><td>Last Modified</td><td>Size</td></tr>";
 	protected static String TABLE_ROW = "<tr><td style=\"text-align: right;\">%,d</td><td>%s</td><td>%s</td><td style=\"text-align: right;\">%,d bytes</td></tr>";
 	protected static String TABLE_FOOTER = "<tr><td colspan=\"3\" style=\"text-align: right;\">Total Size:</td><td style=\"text-align: right;\">%,d bytes</td></tr></table>";
 
+	private ZipUtilities() {
+	}
+	
 	public static String[] zip(String directory, String zipFilename) throws IOException {
 		return zip(directory, zipFilename, null, null);
 	}

@@ -1,4 +1,3 @@
-//@formatter:off
 /**
  *  
  * Copyright (c) 2015 Fannie Mae, All rights reserved.
@@ -8,8 +7,7 @@
  * 
  * ezPIE is a trademark of Fannie Mae
  * 
-**/
-//@formatter:on
+ */
 
 package consoleapp;
 
@@ -123,7 +121,7 @@ public class RunPie {
 			e.printStackTrace();
 		}
 	}
-	
+
 	protected static void testDatatable() {
 		DataTable dt = new DataTable();
 		String[][] aaa = new String[][] { { "Col1", "String" }, { "Col2", "Integer" }, { "Col3", "int" } };

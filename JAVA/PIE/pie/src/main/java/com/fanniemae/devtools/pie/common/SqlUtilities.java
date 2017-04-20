@@ -1,4 +1,3 @@
-//@formatter:off
 /**
  *  
  * Copyright (c) 2016 Fannie Mae, All rights reserved.
@@ -8,8 +7,7 @@
  * 
  * ezPIE is a trademark of Fannie Mae
  * 
-**/
-//@formatter:on
+ */
 
 package com.fanniemae.devtools.pie.common;
 
@@ -27,10 +25,11 @@ import com.fanniemae.devtools.pie.data.connectors.SqlConnector;
 /**
  * 
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
- * @since 2016-07-20
+ * @since 2016-07-08
+ * 
  */
 
-public class SqlUtilities {
+public final class SqlUtilities {
 
 	private SqlUtilities() {
 	}
@@ -98,7 +97,7 @@ public class SqlUtilities {
 			throw new RuntimeException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
 		}
 		element.setAttribute("ID", "TempID");
-		
+
 		try (SqlConnector conn = new SqlConnector(_session, element, false)) {
 			conn.open();
 			dt = new DataTable(conn.getDataSourceSchema());

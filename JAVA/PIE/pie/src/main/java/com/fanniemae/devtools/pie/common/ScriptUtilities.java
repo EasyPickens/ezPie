@@ -1,10 +1,3 @@
-package com.fanniemae.devtools.pie.common;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-
-//@formatter:off
 /**
  *  
  * Copyright (c) 2016 Fannie Mae, All rights reserved.
@@ -14,13 +7,22 @@ import javax.script.ScriptException;
  * 
  * ezPIE is a trademark of Fannie Mae
  * 
+ */
+
+package com.fanniemae.devtools.pie.common;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+
+/**
+ * 
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
- * @since 2016-10-21
+ * @since 2016-08-17
  * 
  */
-//@formatter:on
 
-public class ScriptUtilities {
+public final class ScriptUtilities {
 
 	private ScriptUtilities() {
 	}

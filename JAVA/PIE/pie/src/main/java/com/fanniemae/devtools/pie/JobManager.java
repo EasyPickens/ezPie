@@ -1,4 +1,3 @@
-//@formatter:off
 /**
  *  
  * Copyright (c) 2015 Fannie Mae, All rights reserved.
@@ -9,7 +8,6 @@
  * ezPIE is a trademark of Fannie Mae
  * 
 **/
-//@formatter:on
 
 package com.fanniemae.devtools.pie;
 
@@ -57,6 +55,7 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
 /**
  * 
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Tara Tritt
  * @since 2015-12-16
  * 
 **/

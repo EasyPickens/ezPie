@@ -1,3 +1,14 @@
+/**
+ * 
+ * Copyright (c) 2015 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+**/
+
 package com.fanniemae.devtools.pie;
 
 import java.text.SimpleDateFormat;
@@ -17,7 +28,7 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
  * 
- * @author Richard Monson
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2015-12-14
  * 
  */
@@ -94,17 +105,17 @@ public class TokenManager {
 	public String resolveTokens(String value, Object[] dataRow) {
 		if (value == null)
 			return value;
-		
-		String rawString = (dataRow == null) ? value.replace("@Data.","|Data|") : value;
-		
+
+		String rawString = (dataRow == null) ? value.replace("@Data.", "|Data|") : value;
+
 		int tokenStart = rawString.indexOf("@");
 		if (tokenStart == -1)
 			return value;
-		
+
 		int tokenMid = rawString.indexOf(".", tokenStart);
 		if (tokenMid == -1)
 			return value;
-		
+
 		int tokenEnd = rawString.indexOf("~", tokenMid);
 		if (tokenEnd == -1)
 			return value;
@@ -146,20 +157,20 @@ public class TokenManager {
 				case "Year":
 					sdf = new SimpleDateFormat("yyyy");
 					value = value.replace(sFullToken, sdf.format(_startDateTime));
-					break;					
+					break;
 				case "Month":
 					sdf = new SimpleDateFormat("MM");
 					value = value.replace(sFullToken, sdf.format(_startDateTime));
-					break;					
+					break;
 				case "Day":
 					sdf = new SimpleDateFormat("dd");
 					value = value.replace(sFullToken, sdf.format(_startDateTime));
-					break;					
-				case "ElapsedTime":  // returns minutes.
+					break;
+				case "ElapsedTime": // returns minutes.
 					Date dtCurrent = new Date();
-					long minutes = (dtCurrent.getTime() - _startDateTime.getTime())/60000;
+					long minutes = (dtCurrent.getTime() - _startDateTime.getTime()) / 60000;
 					value = value.replace(sFullToken, String.format("%d", minutes));
-					break;					
+					break;
 				case "UUID":
 					value = value.replace(sFullToken, UUID.randomUUID().toString());
 					break;
@@ -219,7 +230,7 @@ public class TokenManager {
 		for (int i = 0; i < nodeCount; i++) {
 			String tokenType = nl.item(i).getNodeName();
 			if ("|configuration|system|environment|application|data".indexOf(tokenType.toLowerCase()) != -1) {
-				throw new RuntimeException(String.format("%s is one of the reserved token types.  Please rename your token type.",tokenType));
+				throw new RuntimeException(String.format("%s is one of the reserved token types.  Please rename your token type.", tokenType));
 			}
 			LogVisibility showLevel = HideStatus(((Element) nl.item(i)).getAttribute("Hide"), defaultVisibility);
 			NamedNodeMap attributes = nl.item(i).getAttributes();

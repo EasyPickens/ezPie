@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2017 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.actions;
 
 import java.util.Properties;
@@ -14,6 +25,13 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.devtools.pie.SessionManager;
 import com.fanniemae.devtools.pie.common.FileUtilities;
+
+/**
+ * 
+ * @author Tara Tritt
+ * @since 2017-03-16
+ * 
+ */
 
 public class SendEmail extends Action {
 

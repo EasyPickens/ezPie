@@ -1,4 +1,3 @@
-//@formatter:off
 /**
  *  
  * Copyright (c) 2015 Fannie Mae, All rights reserved.
@@ -9,7 +8,6 @@
  * ezPIE is a trademark of Fannie Mae
  * 
 **/
-//@formatter:on
 
 package com.fanniemae.devtools.pie;
 

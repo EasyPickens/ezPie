@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.common;
 
 import java.io.UnsupportedEncodingException;
@@ -16,26 +27,18 @@ import javax.crypto.spec.SecretKeySpec;
 
 import com.fanniemae.devtools.pie.SessionManager;
 
-//@formatter:off
-/****
-* Copyright 2016 Fannie Mae. Unpublished-rights reserved under the copyright 
-* laws of the United States. Use of a copyright notice is a precaution only 
-* and does not imply publication or disclosure.
-* 
-* This software contains confidential information and trade secrets of 
-* Fannie Mae. Use, disclosure, or reproduction is prohibited without the prior 
-* express written consent of Fannie Mae.
-* 
-* @author Rick Monson 
-* @since 2016-02-19
-****/
-//@formatter:on
-public class Encryption {
+/**
+ * 
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2016-06-15
+ * 
+ */
+
+public final class Encryption {
 	final protected static char[] _hexArray = "0123456789ABCDEF".toCharArray();
 	
 	protected static boolean _use256 = false;
 
-	// All methods are static, constructor is private to prevent instantiation.
 	private Encryption() {
 	}
 

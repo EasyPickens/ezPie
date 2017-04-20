@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2015 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.common;
 
 import java.math.BigDecimal;
@@ -9,11 +20,11 @@ import org.apache.commons.lang3.time.DateUtils;
 
 /**
  * 
- * @author Richard Monson
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2015-12-15
  * 
  */
-public class StringUtilities {
+public final class StringUtilities {
 
 	// @formatter:off
 	// Source: http://docs.oracle.com/javase/6/docs/api/java/lang/Double.html#valueOf%28java.lang.String%29
@@ -54,6 +65,9 @@ public class StringUtilities {
                                                             "d MMM yyyy HH:mm:ss", "d MMM yyyy", "MMM d, yyyy", "MMM dd, yyyy", "yyyy/MM", "yyyy/M",
                                                             "yyyy-MM", "yyyy-M"};
 	// @formatter:on
+	
+	private StringUtilities() {
+	}
 
 	public static boolean isNotNullOrEmpty(String value) {
 		return !isNullOrEmpty(value);
