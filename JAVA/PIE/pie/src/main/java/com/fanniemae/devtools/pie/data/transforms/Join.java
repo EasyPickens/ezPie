@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.data.transforms;
 
 import java.io.IOException;
@@ -20,6 +31,13 @@ import com.fanniemae.devtools.pie.data.DataEngine;
 import com.fanniemae.devtools.pie.datafiles.DataReader;
 import com.fanniemae.devtools.pie.datafiles.DataWriter;
 import com.fanniemae.devtools.pie.datafiles.lowlevel.DataFileEnums.DataType;
+
+/**
+ * 
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2016-02-04
+ * 
+*/
 
 public class Join extends DataTransform {
 	protected int INDEX_BUFFER_LIMIT = 10000;

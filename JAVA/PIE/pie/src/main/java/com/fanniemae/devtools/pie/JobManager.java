@@ -7,7 +7,7 @@
  * 
  * ezPIE is a trademark of Fannie Mae
  * 
-**/
+ */
 
 package com.fanniemae.devtools.pie;
 
@@ -58,7 +58,7 @@ import com.fanniemae.devtools.pie.common.XmlUtilities;
  * @author Tara Tritt
  * @since 2015-12-16
  * 
-**/
+ */
 public class JobManager {
 
 	protected SessionManager _session;

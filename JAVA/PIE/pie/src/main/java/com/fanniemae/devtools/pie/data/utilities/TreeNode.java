@@ -1,8 +1,26 @@
+/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.data.utilities;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
+/**
+ * 
+ * @author Tara Tritt
+ * @since 2016-06-30
+ * 
+ */
 
 public class TreeNode<T> implements Iterable<TreeNode<T>>{
 	private T _data;

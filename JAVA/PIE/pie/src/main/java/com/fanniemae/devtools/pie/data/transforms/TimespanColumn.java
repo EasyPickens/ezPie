@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.data.transforms;
 
 import java.text.DateFormatSymbols;
@@ -13,10 +24,11 @@ import com.fanniemae.devtools.pie.common.StringUtilities;
 
 /**
  * 
- * @author Richard Monson
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-07
  * 
- */
+*/
+
 public class TimespanColumn extends DataTransform {
 
 	protected TransformDateValue _formatDateValue;
@@ -24,10 +36,20 @@ public class TimespanColumn extends DataTransform {
 	protected int _dayOfWeekShift = 0;
 	protected Calendar _fiscalStart = Calendar.getInstance();
 
-	// Notes: (after testing.)
-	// Arrays added to improve performance. Data processing time dropped from
-	// 23.5 seconds down to 7.7 seconds on 1 million rows x 30 Date operations
-	// on test machine.
+	/**
+	 * Notes:
+	 *  
+	 * After testing the code, I decided to add populated name arrays in order to improve performance.
+	 * My i5-3570K CPU took 25.3 seconds using standard java calls, when I switched to pre-populated name
+	 * arrays the time dropped to 7.2 seconds.
+	 * 
+	 * The data set was my standard 1 million row table and consisted of 30 simultaneous date operation.
+	 * on test machine.
+	 * 
+	 * The value's in the name arrays are update based on the machine locale setting.
+	 * 
+	 */
+	
 	protected String[] _dayAbbreviations = new String[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	protected String[] _dayNames = new String[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 	protected String[] _monthAbbreviations = new String[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -112,6 +134,7 @@ public class TimespanColumn extends DataTransform {
 			}
 		}
 
+		// Will populate name arrays with correct name/abbreviation based on machine locale settings
 		DateFormatSymbols dfs = DateFormatSymbols.getInstance(oNameLocale);
 		String[] aDayAbbreviations = dfs.getShortWeekdays();
 		String[] aDayNames = dfs.getWeekdays();

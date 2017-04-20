@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.devtools.pie.data.transforms;
 
 import java.math.BigDecimal;
@@ -7,15 +18,16 @@ import com.fanniemae.devtools.pie.datafiles.lowlevel.DataFileEnums.DataType;
 
 /**
  * 
- * @author Richard Monson
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-21
  * 
- *        One row of data (IndexDataRow) used to sort. Each entry is compared until a
- *        greater than or less than is reached. If both rows are equal, the
- *        position (unique long) is checked and first row remains first. By
- *        using the file position the sort becomes a "stable sort".
+ * One row of data (IndexDataRow) used to sort. Each entry is compared until a
+ * greater than or less than is reached. If both rows are equal, the
+ * position (unique long) is checked and first row remains first. By
+ * using the file position the sort becomes a "stable sort".
  * 
- */
+*/
+
 class IndexDataRow implements Comparable<IndexDataRow> {
 	protected int _streamChannel;
 	protected long _rowStart;
