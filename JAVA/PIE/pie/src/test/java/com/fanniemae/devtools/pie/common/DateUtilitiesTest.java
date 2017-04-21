@@ -7,6 +7,8 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import com.fanniemae.ezpie.common.DateUtilities;
+
 import junit.framework.TestCase;
 
 public class DateUtilitiesTest extends TestCase {

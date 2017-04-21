@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 
 import org.junit.Test;
 
+import com.fanniemae.ezpie.common.StringUtilities;
+
 import junit.framework.TestCase;
 
 /**

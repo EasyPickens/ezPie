@@ -13,10 +13,8 @@ package consoleapp;
 
 import java.io.IOException;
 
-//import org.apache.commons.lang3.time.DurationFormatUtils;
-
-import com.fanniemae.devtools.pie.JobManager;
-import com.fanniemae.devtools.pie.common.DataTable;
+import com.fanniemae.ezpie.JobManager;
+import com.fanniemae.ezpie.common.DataTable;
 
 /**
  * 

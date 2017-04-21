@@ -2,6 +2,9 @@ package com.fanniemae.devtools.pie.common;
 
 import org.junit.Test;
 
+import com.fanniemae.ezpie.common.CryptoUtilities;
+import com.fanniemae.ezpie.common.Encryption;
+
 import junit.framework.TestCase;
 
 public class CryptoUtilitiesTest extends TestCase {

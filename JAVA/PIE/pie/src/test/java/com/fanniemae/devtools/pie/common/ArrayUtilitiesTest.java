@@ -2,6 +2,8 @@ package com.fanniemae.devtools.pie.common;
 
 import org.junit.Test;
 
+import com.fanniemae.ezpie.common.ArrayUtilities;
+
 import junit.framework.TestCase;
 
 /**
