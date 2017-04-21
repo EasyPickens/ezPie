@@ -1,4 +1,15 @@
-﻿using System;
+﻿/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,11 +18,18 @@ using System.Threading;
 using System.Diagnostics;
 using System.Reflection;
 
+/**
+ * 
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2016-08-11
+ * 
+ */
+
 namespace ScanManager.Common
 {
-    class LocalLog
+    sealed class LocalLog
     {
-        protected static String _logFilename = MiscUtilities.AppPath() + "\\ScanManagerLog.txt";
+        private static String _logFilename = MiscUtilities.AppPath() + "\\ScanManagerLog.txt";
 
         public String LogFilename
         {
@@ -38,7 +56,7 @@ namespace ScanManager.Common
             }
         }
 
-        protected static String getCallingClassName()
+        private static String getCallingClassName()
         {
             String callingClassName = "No Information";
             String callingMethod = "No Information";
@@ -65,12 +83,12 @@ namespace ScanManager.Common
             }
         }
 
-        protected static String getMoment()
+        private static String getMoment()
         {
             return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
         }
 
-        protected static String getThreadInfo()
+        private static String getThreadInfo()
         {
             return Thread.CurrentThread.ManagedThreadId.ToString();
         }

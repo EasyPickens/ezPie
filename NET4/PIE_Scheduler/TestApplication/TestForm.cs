@@ -1,4 +1,15 @@
-﻿using System;
+﻿/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,12 +22,19 @@ using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 
+/**
+ * 
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2016-08-11
+ * 
+ */
+
 namespace TestApplication
 {
-    public partial class Form1 : Form
+    public partial class TestForm : Form
     {
         protected String _settingsFile = "";
-        public Form1()
+        public TestForm()
         {
             InitializeComponent();
         }
@@ -122,9 +140,8 @@ namespace TestApplication
         }
 
         private int _maxThreads = 2;
-        private BackgroundProcessing[] _threadPool; // = new BackgroundProcessing[2];
-
-        private ScanManager.TaskManager _taskManager; // = new ScanManager.TaskManager();
+        private BackgroundProcessing[] _threadPool = new BackgroundProcessing[2];
+        private ScanManager.TaskManager _taskManager = new ScanManager.TaskManager();
 
         private void btnBackground_Click(object sender, EventArgs e)
         {

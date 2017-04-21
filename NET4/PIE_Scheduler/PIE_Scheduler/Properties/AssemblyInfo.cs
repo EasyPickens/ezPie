@@ -10,8 +10,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Fannie Mae")]
 [assembly: AssemblyProduct("Scan_Manager")]
-[assembly: AssemblyCopyright("Copyright © Fannie Mae 2016")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("Copyright © 2016 Fannie Mae, All rights reserved.")]
+[assembly: AssemblyTrademark("ezPIE is a trademark of Fannie Mae")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

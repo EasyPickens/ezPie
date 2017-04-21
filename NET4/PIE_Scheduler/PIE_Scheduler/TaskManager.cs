@@ -1,4 +1,15 @@
-﻿using System;
+﻿/**
+ *  
+ * Copyright (c) 2016 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPIE/wiki/Fannie-Mae-Open-Source-Licensing-Project
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,9 +20,12 @@ using System.Data;
 using ScanManager.Common;
 using System.Diagnostics;
 
-// Example SQL Commands found in SchedulerSettings.xml file:
-// _SqlJobsInProgress => "SELECT pkey, definition_name FROM fnma_measure8.scan_manager WHERE in_progress and machine_name=:machinename"
-// _SqlUpdateInProgressStatus => "UPDATE fnma_measure8.scan_manager SET in_progress = :inprogress, scan_requested = :scanrequested, scan_status = :jobstatus, status_description=:statusdescription WHERE in_progress and pkey = :jobkey"
+/**
+ * 
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2016-08-11
+ * 
+ */
 
 namespace ScanManager
 {

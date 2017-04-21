@@ -62,7 +62,7 @@
     <Compile Include="Common\SqlUtilities.cs" />
     <Compile Include="Common\TokenManager.cs" />
     <Compile Include="Common\XmlUtilities.cs" />
-    <Compile Include="JobCheck.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -76,7 +76,6 @@
     <Compile Include="Service1.Designer.cs">
       <DependentUpon>Service1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TaskManager.cs" />
   </ItemGroup>
