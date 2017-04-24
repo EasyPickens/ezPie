@@ -29,9 +29,8 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 target/
 .metadata/
-.settings/
 .recommenders/
-JAVA/PIE/.recommenders/caches/identified-project-coordinates.json
-JAVA/PIE/.recommenders/caches/identified-project-coordinates.json
-JAVA/PIE/.recommenders/index/http___download_eclipse_org_recommenders_models_mars_/segments.gen
-JAVA/PIE/RemoteSystemsTempFiles/.project
+JAVA/ezPIE/.recommenders/caches/identified-project-coordinates.json
+JAVA/ezPIE/.recommenders/caches/identified-project-coordinates.json
+JAVA/ezPIE/.recommenders/index/http___download_eclipse_org_recommenders_models_mars_/segments.gen
+JAVA/ezPIE/RemoteSystemsTempFiles/.project
