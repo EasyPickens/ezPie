@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<SchedulerSettings>
+  <Connections>
+    <Connection Type="Postgres" ID="CASTDatabaseServer" ConnectionString="Server=dwsys-dbcast01;Port=2280;Database=postgres;User Id=automationtest;Password=XXXX" />
+  </Connections>
+  <Tokens Hide="Values">
+    <ThreadPool Size="2" />
+    <JavaHome Path="\\dwsys-apcast01\d$\CAST\Implementation\Tools\Git\jdk1.8.0_65\bin" />
+    <PieJar Path="\\dwsys-apcast01\d$\CAST\Implementation\Tools\Git\git.jar" />
+    <PieSettings Path="\\dwsys-apcast01\d$\CAST\Implementation\Tools\Git\_Settings.xml" />
+    <PieLogs Path="" />
+    <Scheduler ConnectionID="CASTDatabaseServer" />
+    <Scheduler ServiceMode="CodeScanning" Note="ServiceMode options include: DatabaseBackup, CodeScanning, SiteDeployment.  Only one option is supported at a time." />
+    <Scheduler NextJob="UPDATE fnma_measure8.scan_manager SET machine_name=:machinename WHERE pkey=(SELECT pkey FROM fnma_measure8.scan_manager WHERE scan_requested AND in_progress = false and machine_name is null ORDER BY request_date ASC LIMIT 1); SELECT pkey, definition_name, code_version, code_url, action_requested FROM fnma_measure8.scan_manager WHERE machine_name=:machinename and scan_requested and in_progress=false LIMIT 1;" />
+    <Scheduler JobsInProgress="SELECT pkey, definition_name FROM fnma_measure8.scan_manager WHERE in_progress and machine_name=:machinename" />
+    <Scheduler UpdateInProgress="UPDATE fnma_measure8.scan_manager SET in_progress = :inprogress, scan_requested = :scanrequested, scan_status = :jobstatus, status_description=:statusdescription, machine_name=:machinename WHERE pkey = :jobkey" />
+    <Scheduler NextDbBackup="SELECT pkey, definition_name, scan_status, dbprefix FROM fnma_measure8.scan_manager WHERE in_progress and scan_status='Backup Database'" />
+    <Scheduler PublishDefinition="_Publish.xml" OnBoardDefinition="_OnBoard.xml" BackupDatabase="_BackupCedDatabase.xml" />
+    <Scheduler CleanupLogs="True" />
+  </Tokens>
+  <Remark>
+    <Scheduler xErrorOldInProgress="UPDATE fnma_measure8.scan_manager SET in_progress = false, scan_requested = false, scan_status = 'Error', status_description = 'See log for Details' WHERE in_progress and machine_name=:machinename" />
+    <Scheduler xUpdateStatus="UPDATE fnma_measure8.scan_manager SET scan_status = :jobstatus, status_description=:statusdescription WHERE pkey = :jobkey" />
+    <Scheduler xStartProcessing="UPDATE fnma_measure8.scan_manager SET scan_status = :jobstatus, status_description=:statusdescription, in_progress= true WHERE pkey = :jobkey" />
+    <Scheduler xFinishedProcessing="UPDATE fnma_measure8.scan_manager SET scan_status = :jobstatus, status_description=:statusdescription, in_progress= false, scan_requested=false WHERE pkey = :jobkey" />
+  </Remark>
+</SchedulerSettings>
