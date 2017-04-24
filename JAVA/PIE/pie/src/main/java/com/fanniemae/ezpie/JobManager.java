@@ -112,6 +112,7 @@ public class JobManager {
 					// Pull data and process
 					act = new DataSet(_session, eleOperation);
 					break;
+				case "Log":
 				case "LogComment":
 					act = new LogComment(_session, eleOperation);
 					break;

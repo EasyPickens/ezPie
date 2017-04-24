@@ -64,7 +64,7 @@ public class WebClient extends Action {
 		super(session, action, false);
 
 		_javascriptWait = StringUtilities.toInteger(_session.getAttribute(action, "JavascriptWait"), 30);
-		_connID = optionalAttribute("ConnectionID", null);
+		_connID = optionalAttribute("ConnectionName", null);
 		_conn = _session.getConnection(_connID);
 	}
 
@@ -354,7 +354,7 @@ public class WebClient extends Action {
 		String xpath = requiredAttribute(nodeStep, "XPath");
 		validateWebState(xpath, nodeStep.getNodeName(), false);
 
-		String id = requiredAttribute(nodeStep, "ID");
+		String tokenName = requiredAttribute(nodeStep, "Name");
 
 		String attrName = requiredAttribute(nodeStep, "AttributeName");
 
@@ -365,7 +365,7 @@ public class WebClient extends Action {
 			throw new RuntimeException(String.format("WebClient ReadAttribute did not find a matching element for the XPath %s", xpath));
 		}
 		String value = element.getAttribute(attrName);
-		_session.addToken("WebClient", id, value);
+		_session.addToken("WebClient", tokenName, value);
 	}
 
 	protected void downloadFile(Node nodeStep) {

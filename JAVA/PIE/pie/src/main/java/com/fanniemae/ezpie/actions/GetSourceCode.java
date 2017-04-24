@@ -50,7 +50,6 @@ public class GetSourceCode extends RunCommand {
 			File file = new File(_workDirectory);
 			file.mkdirs();
 		}
-		_session.addLogMessage("", "Local Path", _workDirectory);
 
 		_session.addToken("LocalData", "aip_appname", "MyTestApplication");
 		// build command file

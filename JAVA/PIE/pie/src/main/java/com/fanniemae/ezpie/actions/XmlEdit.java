@@ -294,13 +294,13 @@ public class XmlEdit extends Action {
 	}
 
 	protected void saveFile(Element xmlEdit) {
-		String tempName = FileUtilities.getRandomFilename(_session.getStagingPath(), "xml");
-		String filename = optionalAttribute(xmlEdit, "Filename", tempName);
-		String id = optionalAttribute(xmlEdit, "ID", "");
+		String randomFilename = FileUtilities.getRandomFilename(_session.getStagingPath(), "xml");
+		String filename = optionalAttribute(xmlEdit, "Filename", randomFilename);
+		String tokenName = optionalAttribute(xmlEdit, "Name", "");
 		XmlUtilities.SaveXmlDocument(filename, _xmlDoc);
 		String xmlLogCopy = FileUtilities.writeRandomFile(_session.getLogPath(), "txt", XmlUtilities.XMLDocumentToString(_xmlDoc));
-		if (StringUtilities.isNotNullOrEmpty(id)) {
-			_session.addToken("LocalData", id, filename);
+		if (StringUtilities.isNotNullOrEmpty(tokenName)) {
+			_session.addToken("LocalData", tokenName, filename);
 		}
 		_session.addLogMessage("", "File Saved", "View Modified Xml", "file://" + xmlLogCopy);
 	}

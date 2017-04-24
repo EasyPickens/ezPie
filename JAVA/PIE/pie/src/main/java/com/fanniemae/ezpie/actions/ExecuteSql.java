@@ -29,8 +29,8 @@ public class ExecuteSql extends Action {
 
 	public ExecuteSql(SessionManager session, Element action) {
 		super(session, action, false);
-		if (StringUtilities.isNullOrEmpty(_id))
-			_id = "LocalData";
+		if (StringUtilities.isNullOrEmpty(_name))
+			_name = "LocalData";
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class ExecuteSql extends Action {
 					kvps[i][0] = columnNames[i][0];
 					kvps[i][1] = value;
 				}
-				_session.addTokens(_id, kvps);
+				_session.addTokens(_name, kvps);
 				if (sqlConnection.eof()) {
 					_session.addLogMessage("", "End of Set", "Reached the end of the result set.");
 				} else {

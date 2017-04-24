@@ -30,13 +30,13 @@ public abstract class DataConnector implements AutoCloseable {
 	protected int _rowLimit = -1; // -1 = no limit
 
 	protected Boolean _schemaOnly = false;
-	
+
 	protected Element _connection;
 	protected Element _dataSource;
 
-	protected String _dataSourceID;
+	protected String _dataSourceName;
 	protected String _dataSourceType;
-	protected String _connectionID;
+	protected String _connectionName;
 	protected String _connectionType;
 	protected String _connectionDialect;
 	protected String _connectionString;
@@ -46,31 +46,32 @@ public abstract class DataConnector implements AutoCloseable {
 	public DataConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		_session = session;
 		_dataSource = dataSource;
-		_dataSourceID = _dataSource.getAttribute("ID");
+		_dataSourceName = _dataSource.getAttribute("Name");
 		_dataSourceType = _dataSource.getAttribute("Type");
 		_schemaOnly = isSchemaOnly;
-		
-		_connectionID = _dataSource.getAttribute("ConnectionID");
-		_connection = _session.getConnection(_connectionID);
+
+		_connectionName = _dataSource.getAttribute("ConnectionName");
+		_connection = _session.getConnection(_connectionName);
 		if (_connection != null) {
 			_connectionType = _session.getAttribute(_connection, "Type");
 			_connectionDialect = _session.getAttribute(_connection, "Dialect");
 			_connectionString = _session.getAttribute(_connection, "ConnectionString");
 		}
-		
+
 		if ("ExecuteSql".equals(dataSource.getNodeName())) {
 			_rowLimit = 1;
 			return;
 		}
-		
-		if (StringUtilities.isNullOrEmpty(_dataSourceID))
-			throw new RuntimeException(String.format("DataSource.%s is missing an ID value.", _dataSourceType));
 
-		_session.addLogMessage(String.format("DataSource.%s", _dataSourceType), "ID", _dataSourceID);
-		
+		if (StringUtilities.isNullOrEmpty(_dataSourceName)) {
+			_dataSourceName = "- Not Defined -";
+		} else {
+			_session.addLogMessage(String.format("DataSource.%s", _dataSourceType), "Name", _dataSourceName);
+		}
+
 		String sRowLimit = _session.getAttribute(_dataSource, "RowLimit");
 		_rowLimit = (StringUtilities.isNullOrEmpty(sRowLimit)) ? -1 : StringUtilities.toInteger(sRowLimit, -1);
-		if (_rowLimit != -1) 
+		if (_rowLimit != -1)
 			_session.addLogMessage("", "Row Limit", String.format("%,d", _rowLimit));
 	}
 
@@ -97,6 +98,5 @@ public abstract class DataConnector implements AutoCloseable {
 	public String[][] getDataSourceSchema() {
 		return _dataSchema;
 	}
-	
- 
+
 }

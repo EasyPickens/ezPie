@@ -96,7 +96,7 @@ public final class SqlUtilities {
 		if (StringUtilities.isNullOrEmpty(sqlCommand)) {
 			throw new RuntimeException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
 		}
-		element.setAttribute("ID", "TempID");
+		element.setAttribute("Name", "TempName");
 
 		try (SqlConnector conn = new SqlConnector(_session, element, false)) {
 			conn.open();

@@ -29,21 +29,21 @@ import com.fanniemae.ezpie.common.XmlUtilities;
 
 public class NodeExists extends XmlTransform {
 	
-	protected String _id = "NodeExists";
+	protected String _name = "NodeExists";
 
 	public NodeExists(SessionManager session, Element action, boolean isFolder) {
 		super(session, action, isFolder);
 		_xPath = requiredAttribute("XPath");
-		_id = requiredAttribute("ID");
+		_name = requiredAttribute("Name");
 	}
 
 	@Override
 	public Document execute(Document xmlDocument, File file) {
 		NodeList targetNodes = XmlUtilities.selectNodes(xmlDocument, _xPath);
 		if ((targetNodes == null) || (targetNodes.getLength() == 0)) {
-			_session.addToken("NodeExists", _id, "false");
+			_session.addToken("NodeExists", _name, "false");
 		} else {
-			_session.addToken("NodeExists", _id, "true");
+			_session.addToken("NodeExists", _name, "true");
 		}
 		return xmlDocument;
 	}

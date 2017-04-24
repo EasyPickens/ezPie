@@ -36,9 +36,9 @@ public class SaveFile extends XmlTransform {
 
 	@Override
 	public Document execute(Document xmlDocument, File file) {
-		String tempName = FileUtilities.getRandomFilename(_session.getStagingPath(), "xml");
-		String filename = (_isFolder) ? _session.getAttribute(_action, "Filename") : optionalAttribute("Filename", tempName);
-		String id = (_isFolder) ? _session.getAttribute(_action, "ID") : optionalAttribute("ID", "");
+		String randomFilename = FileUtilities.getRandomFilename(_session.getStagingPath(), "xml");
+		String filename = (_isFolder) ? _session.getAttribute(_action, "Filename") : optionalAttribute("Filename", randomFilename);
+		String tokenName = (_isFolder) ? _session.getAttribute(_action, "Name") : optionalAttribute("Name", "");
 
 		// Resolve the data tokens for filename (if any)
 		if ((file != null) && (filename.indexOf('@') > -1) && (filename.indexOf('~') > -1)) {
@@ -55,8 +55,8 @@ public class SaveFile extends XmlTransform {
 		}
 
 		XmlUtilities.SaveXmlDocument(filename, xmlDocument);
-		if (StringUtilities.isNotNullOrEmpty(id)) {
-			_session.addToken("LocalData", id, filename);
+		if (StringUtilities.isNotNullOrEmpty(tokenName)) {
+			_session.addToken("LocalData", tokenName, filename);
 		}
 
 		if (!_isFolder) {

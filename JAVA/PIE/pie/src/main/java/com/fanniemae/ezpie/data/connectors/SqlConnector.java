@@ -76,7 +76,7 @@ public class SqlConnector extends DataConnector {
 			_pstmt = _con.prepareStatement(_sqlCommand);
 			_connectionString = _con.getMetaData().getURL();
 
-			_session.addLogMessage("", "ConnectionID", _connection.getAttribute("ID"));
+			_session.addLogMessage("", "ConnectionName", _connection.getAttribute("Name"));
 
 			addSqlParameters();
 			String sCommandTimeout = _dataSource.getAttribute("CommandTimeout");
@@ -89,17 +89,6 @@ public class SqlConnector extends DataConnector {
 																		// {
 				_pstmt.setQueryTimeout(StringUtilities.toInteger(sCommandTimeout, 60));
 				_session.addLogMessage("", "Command Timeout", String.format("%,d", _pstmt.getQueryTimeout()));
-				// } else if (StringUtilities.isNotNullOrEmpty(sCommandTimeout)
-				// && isPostgreSQL()) {
-				// int iTimeout = StringUtilities.toInteger(sCommandTimeout, 60)
-				// * 1000;
-				// if (!_SqlCommand.trim().endsWith(";"))
-				// _SqlCommand = _SqlCommand.trim() + ";";
-				// _pstmt =
-				// _con.prepareStatement(String.format("SET statement_timeout TO %d; \n%s\n RESET statement_timeout;",
-				// iTimeout, _SqlCommand));
-				// _Session.addLogMessage("", "Command Timeout",
-				// String.format("%,d", iTimeout / 1000));
 			}
 
 			if (_schemaOnly) {
@@ -110,9 +99,6 @@ public class SqlConnector extends DataConnector {
 			}
 
 			_session.addLogMessage("", "Execute Query", "Send the query to the database server.");
-			// JDBC executeQuery does not support SQL queries that combine
-			// multiple statements
-			// _rs = _pstmt.executeQuery();
 			boolean isResultSet = _pstmt.execute();
 			if (isResultSet) {
 				_rs = _pstmt.getResultSet();
@@ -124,17 +110,6 @@ public class SqlConnector extends DataConnector {
 				_dataSchema[0][0] = "rowsaffected";
 				_dataSchema[0][1] = "java.lang.Integer";
 				_session.addLogMessage("", "Result Set Schema", "rowsaffected (java.lang.Integer)");
-				// // Look through up to 30 results, taking only the first ResultSet.
-				// // Could switch to a while(true), but concerned about infinite loop
-				// for (int i = 0; i < 31; i++) {
-				// isResultSet = _pstmt.getMoreResults();
-				// if (isResultSet) {
-				// _rs = _pstmt.getResultSet();
-				// break;
-				// } else if (_pstmt.getUpdateCount() == -1) {
-				// break;
-				// }
-				// }
 			}
 			_session.addLogMessage("", "Query Returned", "Database server results ready.");
 
@@ -148,7 +123,6 @@ public class SqlConnector extends DataConnector {
 				ResultSetMetaData rsmd = _rs.getMetaData();
 				_columnCount = rsmd.getColumnCount();
 				_fieldNames = new String[_columnCount];
-				// _FieldTypes = new JavaDataType[_ColumnCount];
 				_dataSchema = new String[_columnCount][2];
 
 				StringBuilder sbFields = new StringBuilder();

@@ -123,7 +123,7 @@ public class Index extends DataTransform {
 			}
 			dr.close();
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _transformName), ex);
+			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _transformElementName), ex);
 		}
 
 		if (_indexDataList.size() > 0) {

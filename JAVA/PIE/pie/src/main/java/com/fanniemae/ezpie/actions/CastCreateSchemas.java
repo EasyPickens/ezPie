@@ -85,7 +85,7 @@ public class CastCreateSchemas extends CastAction {
 
 	@Override
 	protected void initialize() {
-		String connectionID = optionalAttribute("ConnectionID", null);
+		String connectionID = optionalAttribute("ConnectionName", null);
 		if (StringUtilities.isNullOrEmpty(connectionID)) {
 			connectionID = _session.getRequiredTokenValue("CAST", "CastDatabase");
 		}

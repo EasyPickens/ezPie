@@ -75,7 +75,7 @@ public class VersionFile extends Action {
 			} catch (IOException ex) {
 				throw new RuntimeException(String.format("Error while trying to read %s the version file. %s", _filename, ex.getMessage()));
 			}
-			_session.addToken("Local", _id, prop.getProperty("Version", ""));
+			_session.addToken("Local", _name, prop.getProperty("Version", ""));
 		}
 		return null;
 	}

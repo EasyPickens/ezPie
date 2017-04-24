@@ -142,13 +142,18 @@ public class SessionManager {
 			throw ex;
 		}
 
-		_connScanManager = getConnection("JavaScanManager");
-		_updateScanManager = StringUtilities.toBoolean(getTokenValue("Configuration", "UpdateScanManager"), false);
+		// TODO: Remove exception block and make connection optional.
+		try {
+			_updateScanManager = false;
+			_connScanManager = getConnection("JavaScanManager");
+			_updateScanManager = StringUtilities.toBoolean(getTokenValue("Configuration", "UpdateScanManager"), false);
+		} catch (Exception ex) {
+		}
 
 		// String jobKey = getTokenValue("Local","JobKey");
 		// if ((_connScanManager != null) && StringUtilities.isNotNullOrEmpty(jobKey)) {
 		// _updateScanManager = true;
-		//// String key = resolveTokens("@Local.JobKey~");
+		//// String key = resolveTokens("[Local.JobKey]");
 		//// if (StringUtilities.isNullOrEmpty(key))
 		//// throw new RuntimeException("Missing job primary key required to update ScanManager status.");
 		//// _jobKey = StringUtilities.toInteger(key, -1);
@@ -209,22 +214,22 @@ public class SessionManager {
 		if (StringUtilities.isNullOrEmpty(value))
 			return defaultValue;
 
-		if ((value.indexOf("@") == -1) || (value.indexOf("~") == -1))
+		if ((value.indexOf("[") == -1) || (value.indexOf("]") == -1))
 			return value;
 
 		int iTokenSplit = 0;
 		int iTokenEnd = 0;
-		String[] aTokens = value.split("@");
+		String[] aTokens = value.split("\\[");
 
 		for (int i = 0; i < aTokens.length; i++) {
 			iTokenSplit = aTokens[i].indexOf('.');
-			iTokenEnd = aTokens[i].indexOf('~');
+			iTokenEnd = aTokens[i].indexOf(']');
 			if ((iTokenSplit == -1) || (iTokenEnd == -1))
 				continue;
 			if (iTokenSplit > iTokenEnd)
 				continue;
 
-			String sFullToken = "@" + aTokens[i].substring(0, iTokenEnd + 1);
+			String sFullToken = "[" + aTokens[i].substring(0, iTokenEnd + 1);
 			String sGroup = aTokens[i].substring(0, iTokenSplit);
 			String sKey = aTokens[i].substring(iTokenSplit + 1, iTokenEnd);
 
@@ -266,13 +271,13 @@ public class SessionManager {
 		_logger.addErrorMessage(ex);
 	}
 
-	public Element getConnection(String connectionID) {
-		if (StringUtilities.isNullOrEmpty(connectionID))
+	public Element getConnection(String connectionName) {
+		if (StringUtilities.isNullOrEmpty(connectionName))
 			return null;
 
-		Node nodeConnection = XmlUtilities.selectSingleNode(_settings, String.format("..//Connections/Connection[@ID='%s']", connectionID));
+		Node nodeConnection = XmlUtilities.selectSingleNode(_settings, String.format("..//Connections/Connection[@Name='%s']", connectionName));
 		if (nodeConnection == null) {
-			throw new RuntimeException(String.format("Requested connection %s was not found in the settings file.", connectionID));
+			throw new RuntimeException(String.format("Requested connection %s was not found in the settings file.", connectionName));
 		}
 		return (Element) nodeConnection;
 	}
@@ -284,7 +289,7 @@ public class SessionManager {
 	public String getRequiredTokenValue(String tokenType, String tokenKey) {
 		String value = getTokenValue(tokenType, tokenKey);
 		if (StringUtilities.isNullOrEmpty(value)) {
-			throw new RuntimeException(String.format("No value is defined for the @%s.%s~ token.", tokenType, tokenKey));
+			throw new RuntimeException(String.format("No value is defined for the [%s.%s] token.", tokenType, tokenKey));
 		}
 		return value;
 	}
@@ -321,19 +326,19 @@ public class SessionManager {
 		_logger.addMessagePreserveLayout(logGroup, event, description);
 	}
 
-	public void addDataSet(String id, DataStream ds) {
-		_dataSets.put(id, ds);
+	public void addDataSet(String name, DataStream ds) {
+		_dataSets.put(name, ds);
 	}
 
-	public DataStream getDataStream(String dataSetID) {
-		if (StringUtilities.isNullOrEmpty(dataSetID))
-			throw new RuntimeException("Missing required DataSetID value.");
-		addLogMessage("", "DataSetID", dataSetID);
+	public DataStream getDataStream(String name) {
+		if (StringUtilities.isNullOrEmpty(name))
+			throw new RuntimeException("Missing required DataSetName value.");
+		addLogMessage("", "DataSetName", name);
 
-		if (!_dataSets.containsKey(dataSetID))
-			throw new RuntimeException(String.format("DataSetID %s was not found in the list of available data sets.", dataSetID));
+		if (!_dataSets.containsKey(name))
+			throw new RuntimeException(String.format("DataSetName %s was not found in the list of available data sets.", name));
 
-		DataStream dataStream = _dataSets.get(dataSetID);
+		DataStream dataStream = _dataSets.get(name);
 		if (dataStream.IsMemory()) {
 			addLogMessage("", "DataStream Details", String.format("MemoryStream of %,d bytes", dataStream.getSize()));
 		} else {
@@ -341,11 +346,11 @@ public class SessionManager {
 		}
 		return dataStream;
 	}
-	
+
 	public void setCodeLocations(DataTable dt) {
 		_codeLocations = dt;
 	}
-	
+
 	public DataTable getCodeLocations() {
 		return _codeLocations;
 	}

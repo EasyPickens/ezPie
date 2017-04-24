@@ -38,9 +38,9 @@ public abstract class DataTransform {
 	protected SessionManager _session;
 	protected Element _transform;
 
-	protected String _id;
-	protected String _transformName;
-	protected String _exceptionID;
+	protected String _name;
+	protected String _transformElementName;
+	protected String _exceptionDataSetName;
 	protected String _exceptionFilename;
 	protected String _dataColumn;
 	protected String _columnType = "java.lang.String";
@@ -52,7 +52,7 @@ public abstract class DataTransform {
 	protected int _rowsReturned;
 	protected int _rowsRemoved;
 
-	protected Boolean _idRequired = true;
+	protected Boolean _nameRequired = true;
 	protected Boolean _newColumn;
 	protected Boolean _addedNewColumn;
 	
@@ -60,36 +60,36 @@ public abstract class DataTransform {
 
 	public DataTransform(SessionManager session, String transformName) {
 		_session = session;
-		_transformName = transformName;
+		_transformElementName = transformName;
 	}
 	
 	public DataTransform(SessionManager session, Element transform) {
 		this(session, transform, true);
 	}
 
-	public DataTransform(SessionManager session, Element transform, boolean idRequired) {
+	public DataTransform(SessionManager session, Element transform, boolean nameRequired) {
 		_session = session;
 		_transform = transform;
-		_idRequired = idRequired;
+		_nameRequired = nameRequired;
 
-		_id = _session.getAttribute(transform, "ID");
-		_transformName = transform.getNodeName();
+		_name = _session.getAttribute(transform, "Name");
+		_transformElementName = transform.getNodeName();
 		String sType = transform.getAttribute("Type");
 		if (StringUtilities.isNotNullOrEmpty(sType)) {
-			_transformName += "." + sType;
+			_transformElementName += "." + sType;
 		}
 
-		if (_idRequired && StringUtilities.isNullOrEmpty(_id)) {
-			throw new RuntimeException(String.format("{0} must have an ID value defined.", _transformName));
+		if (_nameRequired && StringUtilities.isNullOrEmpty(_name)) {
+			throw new RuntimeException(String.format("{0} must have an Name value defined.", _transformElementName));
 		} 
-		if (StringUtilities.isNotNullOrEmpty(_id)) {
-			_transformInfo.appendFormatLine("ID = %s", _id);
+		if (StringUtilities.isNotNullOrEmpty(_name)) {
+			_transformInfo.appendFormatLine("Name = %s", _name);
 		}
 
-		_exceptionID = _transform.getAttribute("ExceptionDataID");
-		if (StringUtilities.isNotNullOrEmpty(_exceptionID)) {
-			_exceptionFilename = FileUtilities.getDataFilename(_session.getStagingPath(), XmlUtilities.getOuterXml(_transform), _exceptionID);
-			_transformInfo.appendFormatLine("ExceptionID = %s",_exceptionID);
+		_exceptionDataSetName = _transform.getAttribute("ExceptionDataSetName");
+		if (StringUtilities.isNotNullOrEmpty(_exceptionDataSetName)) {
+			_exceptionFilename = FileUtilities.getDataFilename(_session.getStagingPath(), XmlUtilities.getOuterXml(_transform), _exceptionDataSetName);
+			_transformInfo.appendFormatLine("ExceptionID = %s",_exceptionDataSetName);
 			_transformInfo.appendFormatLine("Exception Filename = %s", _exceptionFilename);
 		}
 	}
@@ -112,7 +112,7 @@ public abstract class DataTransform {
 			bw.close();
 			outputStream = bw.getDataStream();
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _transformName), ex);
+			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _transformElementName), ex);
 
 		}
 		return outputStream;
@@ -123,7 +123,7 @@ public abstract class DataTransform {
 	public abstract Object[] processDataRow(Object[] dataRow);
 
 	public String[][] UpdateSchema(String[][] aSchema) {
-		_outColumnIndex = ArrayUtilities.indexOf(aSchema, _id, true);
+		_outColumnIndex = ArrayUtilities.indexOf(aSchema, _name, true);
 
 		if (StringUtilities.isNotNullOrEmpty(_dataColumn)) {
 			_sourceColumnIndex = ArrayUtilities.indexOf(aSchema, _dataColumn, true);
@@ -141,7 +141,7 @@ public abstract class DataTransform {
 			}
 			_newColumn = true;
 			_outColumnIndex = nLength;
-			aNewSchema[nLength][0] = _id;
+			aNewSchema[nLength][0] = _name;
 			aNewSchema[nLength][1] = _columnType;
 			return aNewSchema;
 		}
@@ -177,7 +177,7 @@ public abstract class DataTransform {
 	}
 	
 	public void addTransformLogMessage() {
-		_session.addLogMessage("", _transformName, _transformInfo.toString());
+		_session.addLogMessage("", _transformElementName, _transformInfo.toString());
 	}
 
 	public int getRowsProcessed() {
@@ -193,7 +193,7 @@ public abstract class DataTransform {
 	}
 
 	public String getID() {
-		return _id;
+		return _name;
 	}
 
 	public String getDataColumn() {

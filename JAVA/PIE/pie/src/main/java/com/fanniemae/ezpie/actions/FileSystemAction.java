@@ -147,9 +147,9 @@ public abstract class FileSystemAction extends Action {
 		if (StringUtilities.isNullOrEmpty(command))
 			throw new RuntimeException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
 
-		String id = _session.getAttribute(element, "ID");
-		if (StringUtilities.isNullOrEmpty(id))
-			element.setAttribute("ID", "ExcludeDBResultSet");
+		String name = _session.getAttribute(element, "Name");
+		if (StringUtilities.isNullOrEmpty(name))
+			element.setAttribute("Name", "ExcludeDBResultSet");
 
 		SqlConnector conn = new SqlConnector(_session, element, false);
 		conn.open();

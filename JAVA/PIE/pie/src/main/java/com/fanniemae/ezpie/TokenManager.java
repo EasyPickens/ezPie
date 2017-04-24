@@ -69,10 +69,10 @@ public class TokenManager {
 		aTokenValues.put(key, value);
 		_tokens.put(tokenType, aTokenValues);
 		if (hideIt(key)) {
-			_logger.addMessage("", "Token Added", String.format("@%s.%s~ = *****", tokenType, key, value));
+			_logger.addMessage("", "Token Added", String.format("[%s.%s] = *****", tokenType, key, value));
 			return;
 		}
-		_logger.addMessage("", "Token Added", String.format("@%s.%s~ = %s", tokenType, key, value));
+		_logger.addMessage("", "Token Added", String.format("[%s.%s] = %s", tokenType, key, value));
 	}
 
 	public void addTokens(Node tokenNode) {
@@ -106,9 +106,9 @@ public class TokenManager {
 		if (value == null)
 			return value;
 
-		String rawString = (dataRow == null) ? value.replace("@Data.", "|Data|") : value;
+		String rawString = (dataRow == null) ? value.replace("[Data.", "|Data|") : value;
 
-		int tokenStart = rawString.indexOf("@");
+		int tokenStart = rawString.indexOf("[");
 		if (tokenStart == -1)
 			return value;
 
@@ -116,21 +116,21 @@ public class TokenManager {
 		if (tokenMid == -1)
 			return value;
 
-		int tokenEnd = rawString.indexOf("~", tokenMid);
+		int tokenEnd = rawString.indexOf("]", tokenMid);
 		if (tokenEnd == -1)
 			return value;
 
 		int iTokenSplit = 0;
 		int iTokenEnd = 0;
-		String[] aTokens = value.split("@");
+		String[] aTokens = value.split("\\[");
 
 		for (int i = 0; i < aTokens.length; i++) {
 			iTokenSplit = aTokens[i].indexOf('.');
-			iTokenEnd = aTokens[i].indexOf('~');
+			iTokenEnd = aTokens[i].indexOf(']');
 			if ((iTokenSplit == -1) || (iTokenEnd == -1))
 				continue;
 
-			String sFullToken = "@" + aTokens[i].substring(0, iTokenEnd + 1);
+			String sFullToken = "[" + aTokens[i].substring(0, iTokenEnd + 1);
 			String sGroup = aTokens[i].substring(0, iTokenSplit);
 			String sKey = aTokens[i].substring(iTokenSplit + 1, iTokenEnd);
 
@@ -202,9 +202,9 @@ public class TokenManager {
 			String value = kvps[i][1];
 			tokenKeyValues.put(name, value);
 			if (hideIt(name)) {
-				sb.append(String.format("@%s.%s~", tokenType, name, value));
+				sb.append(String.format("[%s.%s]", tokenType, name, value));
 			} else {
-				sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
+				sb.append(String.format("[%s.%s] = %s", tokenType, name, value));
 			}
 		}
 		_tokens.put(tokenType, tokenKeyValues);
@@ -256,9 +256,9 @@ public class TokenManager {
 					sb.append("\n");
 
 				if (hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
-					sb.append(String.format("@%s.%s~", tokenType, name));
+					sb.append(String.format("[%s.%s]", tokenType, name));
 				} else {
-					sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
+					sb.append(String.format("[%s.%s] = %s", tokenType, name, value));
 				}
 				linesAdded++;
 				addNewLine = true;
@@ -305,9 +305,9 @@ public class TokenManager {
 			if (addNewLine)
 				sb.append("\n");
 			if (hideIt(name) && (visibility == LogVisibility.TOKEN_NAME)) {
-				sb.append(String.format("@%s.%s~", tokenType, name));
+				sb.append(String.format("[%s.%s]", tokenType, name));
 			} else {
-				sb.append(String.format("@%s.%s~ = %s", tokenType, name, value));
+				sb.append(String.format("[%s.%s] = %s", tokenType, name, value));
 			}
 			linesAdded++;
 			addNewLine = true;

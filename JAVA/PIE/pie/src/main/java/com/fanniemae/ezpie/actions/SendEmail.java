@@ -49,7 +49,7 @@ public class SendEmail extends Action {
 
 	public SendEmail(SessionManager session, Element action) {
 		super(session, action, false);
-		 _connID = requiredAttribute("ConnectionID", null);
+		 _connID = requiredAttribute("ConnectionName", null);
 		 _conn = _session.getConnection(_connID);
 		 
 		_username = requiredAttribute(_conn,"Username");

@@ -51,8 +51,8 @@ public class ComponentScan extends RunCommand{
 
 	public ComponentScan(SessionManager session, Element action) {
 		super(session, action, true);
-		_connID = requiredAttribute("ConnectionID");
-		_session.addLogMessage("", "ConnectionID", _connID);
+		_connID = requiredAttribute("ConnectionName");
+		_session.addLogMessage("", "ConnectionName", _connID);
 		
 		_conn = _session.getConnection(_connID);
 		_username = requiredAttribute(_conn, "Username");

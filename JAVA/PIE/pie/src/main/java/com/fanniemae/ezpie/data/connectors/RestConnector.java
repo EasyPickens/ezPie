@@ -39,7 +39,6 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 public class RestConnector extends DataConnector {
 	protected Element _conn;
-	protected String _connID;
 	protected String _url;
 	protected String _username;
 	protected String _password;
@@ -56,9 +55,9 @@ public class RestConnector extends DataConnector {
 
 	public RestConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
-		_connID = _session.getAttribute(dataSource, "ConnectionID");
-		_session.addLogMessage("", "ConnectionID", _connID);
-		_conn = _session.getConnection(_connID);
+		_connectionName = _session.getAttribute(dataSource, "ConnectionName");
+		_session.addLogMessage("", "ConnectionName", _connectionName);
+		_conn = _session.getConnection(_connectionName);
 		_username = _session.getAttribute(_conn, "Username");
 		_password = _session.getAttribute(_conn, "Password");
 		_proxyHost = _session.getAttribute(_conn, "ProxyHost");

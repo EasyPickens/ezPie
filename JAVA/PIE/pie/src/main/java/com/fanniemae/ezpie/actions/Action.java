@@ -33,7 +33,7 @@ public abstract class Action {
 	protected SessionManager _session;
 	protected Element _action;
 
-	protected String _id;
+	protected String _name;
 	protected String _actionType;
 	protected String _actionName;
 
@@ -51,26 +51,26 @@ public abstract class Action {
 		_action = action;
 		_idRequired = idRequired;
 
-		_id = _session.getAttribute(_action, "ID");
+		_name = _session.getAttribute(_action, "Name");
 		_actionType = _action.getAttribute("Type");
 		_actionName = StringUtilities.isNullOrEmpty(_actionType) ? _action.getNodeName() : _action.getNodeName() + "." + _actionType;
 
-		if (_idRequired && StringUtilities.isNullOrEmpty(_id)) {
-			throw new RuntimeException(String.format("%s is missing a required ID value.", _action.getNodeName()));
+		if (_idRequired && StringUtilities.isNullOrEmpty(_name)) {
+			throw new RuntimeException(String.format("%s is missing a required Name value.", _action.getNodeName()));
 		}
 
-		if (!"LogComment".equals(_actionName)) {
+		if (!"Log".equals(_actionName)) {
 			_session.addLogMessage(_actionName, "Process", String.format("Processing %s action (started: %s)", _actionName, _sdf.format(new Date())));
 		}
 		_start = System.currentTimeMillis();
-		if (StringUtilities.isNotNullOrEmpty(_id)) {
-			_session.addLogMessage("", "ID", _id);
+		if (StringUtilities.isNotNullOrEmpty(_name)) {
+			_session.addLogMessage("", "Name", _name);
 		}
 	}
 
 	public String execute() {
 		String result = executeAction();
-		if (!"LogComment".equals(_actionName) && !"If".equals(_actionName)) {
+		if (!"Log".equals(_actionName) && !"If".equals(_actionName)) {
 			_session.addLogMessage("", String.format("%s Completed", _actionName), String.format("Elapsed time: %s", DateUtilities.elapsedTime(_start)));
 		}
 		return result;

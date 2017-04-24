@@ -29,7 +29,7 @@ import com.fanniemae.ezpie.datafiles.DataReader;
 
 public class DataSetConnector extends DataConnector {
 
-	protected String _dataSetID;
+	protected String _dataSetName;
 	
 	protected DataStream _dataStream;
 	
@@ -38,11 +38,11 @@ public class DataSetConnector extends DataConnector {
 	public DataSetConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
 		
-		_dataSetID = _session.getAttribute(dataSource, "DataSetID");
-		if (StringUtilities.isNullOrEmpty(_dataSetID)) {
-			throw new RuntimeException("DataSource.DataSet is missing the required DataSetID.");
+		_dataSetName = _session.getAttribute(dataSource, "DataSetName");
+		if (StringUtilities.isNullOrEmpty(_dataSetName)) {
+			throw new RuntimeException("DataSource.DataSet is missing the required DataSetName.");
 		}
-		_dataStream = _session.getDataStream(_dataSetID);
+		_dataStream = _session.getDataStream(_dataSetName);
 	}
 	
 	public DataSetConnector(SessionManager session, DataStream dataStream, Boolean isSchemaOnly) {

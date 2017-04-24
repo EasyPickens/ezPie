@@ -38,7 +38,7 @@ public class UpdateStatus extends Action {
 	public UpdateStatus(SessionManager session, Element action) {
 		super(session, action, false);
 		_updateCommand = optionalAttribute("Command", "@SelfServiceScan.UpdateStatus~");
-		_connectionID = optionalAttribute("ConnectionID", "JavaScanManager");
+		_connectionID = optionalAttribute("ConnectionName", "JavaScanManager");
 		_message = requiredAttribute("Message");
 
 		// String key = _session.resolveTokens("@Local.JobKey~");

@@ -44,7 +44,7 @@ public class DataSet extends Action {
 		
 		for (int i = 0; i < len; i++) {
 			DataStream ds = de.getData((Element) (nl.item(i)));
-			_session.addDataSet(_id,ds);
+			_session.addDataSet(_name,ds);
 		}
 		return null;
 	}
