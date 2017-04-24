@@ -11,7 +11,7 @@ We promise to extend courtesy and respect to everyone involved in this project r
 If any member of the community violates this code of conduct, the maintainers of the ezPIE project may take action, removing issues, comments, and pull requests or blocking accounts as deemed appropriate.
 
 ## Review the License Agreement
-By creating a pull request or contributing to ezPIE you are agreeing to the [Fannie Mae Open Source License](license.md)
+By creating a pull request or contributing to ezPIE you are agreeing to the [Fannie Mae Open Source License](../LICENSE.md)
 ## Learning the Basics
 Not sure what a pull request is, or how to submit one? Take a look at GitHub's excellent help documentation first.
 
