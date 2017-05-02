@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Properties;
 
 import org.w3c.dom.Element;
@@ -53,7 +54,8 @@ public class VersionFile extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		Properties prop = new Properties();
 		if (_setVersion) {
 			Date dt = new Date();
@@ -77,6 +79,7 @@ public class VersionFile extends Action {
 			}
 			_session.addToken("Local", _name, prop.getProperty("Version", ""));
 		}
+		_session.clearDataTokens();
 		return null;
 	}
 

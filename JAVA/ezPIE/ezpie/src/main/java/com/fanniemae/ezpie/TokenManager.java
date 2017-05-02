@@ -35,6 +35,8 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 public class TokenManager {
 
 	protected HashMap<String, HashMap<String, String>> _tokens = new HashMap<String, HashMap<String, String>>();
+	protected HashMap<String, String> _dataTokens = null;
+	
 	protected LogManager _logger;
 	protected Date _startDateTime = new Date();
 
@@ -59,6 +61,14 @@ public class TokenManager {
 				break;
 			}
 		}
+	}
+	
+	public void setDataTokens(HashMap<String, String> dataTokens) {
+		_dataTokens = dataTokens;
+	}
+	
+	public void clearDataTokens() {
+		_dataTokens = null;
 	}
 
 	public void addToken(String tokenType, String key, String value) {
@@ -98,15 +108,11 @@ public class TokenManager {
 		return "";
 	}
 
-	public String resolveTokens(String sValue) {
-		return resolveTokens(sValue, null);
-	}
-
-	public String resolveTokens(String value, Object[] dataRow) {
+	public String resolveTokens(String value) {
 		if (value == null)
 			return value;
 
-		String rawString = (dataRow == null) ? value.replace("[Data.", "|Data|") : value;
+		String rawString = (_dataTokens == null) ? value.replace("[Data.", "|Data|") : value;
 
 		int tokenStart = rawString.indexOf("[");
 		if (tokenStart == -1)
@@ -135,11 +141,12 @@ public class TokenManager {
 			String sKey = aTokens[i].substring(iTokenSplit + 1, iTokenEnd);
 
 			// Skip data tokens if no row of data is provided.
-			if ((dataRow == null) && sGroup.equals("Data"))
+			if ((_dataTokens == null) && sGroup.equals("Data"))
 				continue;
-
-			// System tokens call methods
-			if ("System".equals(sGroup)) {
+			else if ("Data".equals(sGroup) && _dataTokens.containsKey(sKey)) {
+				value = value.replace(sFullToken,_dataTokens.get(sKey));
+			} else if ("System".equals(sGroup)) {
+				// System tokens call methods
 				SimpleDateFormat sdf;
 				switch (sKey) {
 				case "CurrentDateTimeString":
@@ -182,7 +189,7 @@ public class TokenManager {
 				value = value.replace(sFullToken, "");
 			}
 		}
-		return resolveTokens(value, dataRow);
+		return resolveTokens(value);
 	}
 
 	protected void loadTokenValues(String tokenType, String[][] kvps) {

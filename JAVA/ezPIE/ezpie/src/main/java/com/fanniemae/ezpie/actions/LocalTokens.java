@@ -11,6 +11,8 @@
 
 package com.fanniemae.ezpie.actions;
 
+import java.util.HashMap;
+
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
@@ -28,7 +30,7 @@ public class LocalTokens extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
 		_session.addTokens("Local", _action);
 		return "";
 	}

@@ -13,6 +13,7 @@ package com.fanniemae.ezpie.actions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.w3c.dom.Document;
@@ -79,7 +80,8 @@ public class XmlEdit extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		// Setup XmlTransformations
 		List<XmlTransform> xmlTransforms = new ArrayList<XmlTransform>();
 		NodeList nlEdits = XmlUtilities.selectNodes(_action, "*");
@@ -184,6 +186,7 @@ public class XmlEdit extends Action {
 		// _session.addLogMessage("** Warning **", nodeName, "XmlEdit does not currently support this processing step.");
 		// }
 		// }
+		_session.clearDataTokens();
 		return null;
 	}
 

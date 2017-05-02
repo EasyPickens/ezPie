@@ -13,6 +13,7 @@ package com.fanniemae.ezpie.actions;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -39,7 +40,8 @@ public class CastCreateSchemas extends CastAction {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		SimpleDateFormat sdf = new SimpleDateFormat("MMMM d, yyyy HH:mm:ss");
 		Object[][] params = new Object[3][2];
 		params[0][0] = "string";
@@ -80,6 +82,7 @@ public class CastCreateSchemas extends CastAction {
 				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastOnboard does not currently support this processing step.");
 			}
 		}
+		_session.clearDataTokens();
 		return "";
 	}
 

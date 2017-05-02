@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -58,33 +59,37 @@ public class RunCommand extends Action {
 	public RunCommand(SessionManager session, Element action, boolean bIDRequired) {
 		super(session, action, bIDRequired);
 
-		if (!action.getNodeName().equals("RunCommand"))
-			return;
-
-		_hideConsoleOutput = StringUtilities.toBoolean(optionalAttribute("HideConsoleOutput", null), false);
-		_workDirectory = requiredAttribute("WorkDirectory");
-		
-		_commandLine = _session.getAttribute(_action, "CommandLine");
-		if (StringUtilities.isNullOrEmpty(_commandLine)) {
-			throw new RuntimeException("Missing a value for CommandLine on the RunCommand element.");
-		}
-		_session.addLogMessage("", "CommandLine", (_hideConsoleOutput) ? "-- Hidden --" : _commandLine);
-		
-		String waitForExit = optionalAttribute("WaitForExit", null);
-		String timeout = optionalAttribute("Timeout", "2h");
-		Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
-
-		_waitForExit = StringUtilities.toBoolean(waitForExit, true);
-		_timeout = parseTimeout(timeout);
-
-		_arguments = parseCommandLine(_commandLine);
-		if (makeBatchFile) {
-			makeBatchFile();
-		}
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
+
+		if (_action.getNodeName().equals("RunCommand")) {
+
+			_hideConsoleOutput = StringUtilities.toBoolean(optionalAttribute("HideConsoleOutput", null), false);
+			_workDirectory = requiredAttribute("WorkDirectory");
+
+			_commandLine = _session.getAttribute(_action, "CommandLine");
+			if (StringUtilities.isNullOrEmpty(_commandLine)) {
+				throw new RuntimeException("Missing a value for CommandLine on the RunCommand element.");
+			}
+			_session.addLogMessage("", "CommandLine", (_hideConsoleOutput) ? "-- Hidden --" : _commandLine);
+
+			String waitForExit = optionalAttribute("WaitForExit", null);
+			String timeout = optionalAttribute("Timeout", "2h");
+			Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
+
+			_waitForExit = StringUtilities.toBoolean(waitForExit, true);
+			_timeout = parseTimeout(timeout);
+
+			_arguments = parseCommandLine(_commandLine);
+
+			if (makeBatchFile) {
+				makeBatchFile();
+			}
+		}
+
 		String sConsoleFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
 		Timer commandTimer = null;
 		ProcessBuilder pb = new ProcessBuilder(_arguments);
@@ -139,6 +144,7 @@ public class RunCommand extends Action {
 		} catch (IOException ex) {
 			throw new RuntimeException("Error while running external command.", ex);
 		}
+		_session.clearDataTokens();
 		// _session.addLogMessage("", "Command", "Completed");
 		return null;
 	}

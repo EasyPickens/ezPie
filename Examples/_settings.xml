@@ -1,0 +1,3 @@
+<Settings>
+   <Configuration Path="C:\Developers\Code\TestDirectory" xLogPath="\\dwsys-wcast01\cast-logs" xRandomLogFileName="False" UpdateScanManager="True" />
+</Settings>

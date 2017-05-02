@@ -11,6 +11,8 @@
 
 package com.fanniemae.ezpie.actions;
 
+import java.util.HashMap;
+
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
@@ -28,8 +30,10 @@ public class LogComment extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		_session.addLogMessage("Log", "Message", _session.getAttribute(_action, "Message"));
+		_session.clearDataTokens();
 		return "";
 	}
 }

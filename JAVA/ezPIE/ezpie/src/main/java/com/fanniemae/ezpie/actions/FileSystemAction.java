@@ -13,6 +13,7 @@ package com.fanniemae.ezpie.actions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -124,7 +125,8 @@ public abstract class FileSystemAction extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		processFileSystem(_source, _destination);
 		if (FileUtilities.isValidDirectory(_source)) {
 			postprocessDirectory(_source);
@@ -139,6 +141,7 @@ public abstract class FileSystemAction extends Action {
 		} else {
 			_session.addLogMessage("", "Count", String.format("%,d files (%,d bytes) %s, %,d files checked.", _filesProcessed, _totalBytes, _countMessage, _filesFound));
 		}
+		_session.clearDataTokens();
 		return null;
 	}
 

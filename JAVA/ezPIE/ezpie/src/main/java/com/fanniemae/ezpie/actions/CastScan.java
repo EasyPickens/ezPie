@@ -14,6 +14,7 @@ package com.fanniemae.ezpie.actions;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -45,7 +46,8 @@ public class CastScan extends CastAction {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		SimpleDateFormat sdf = new SimpleDateFormat("MMMM d, yyyy HH:mm:ss");
 		Object[][] params = new Object[3][2];
 		params[0][0] = "string";
@@ -113,6 +115,7 @@ public class CastScan extends CastAction {
 				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastScan does not currently support this processing step.");
 			}
 		}
+		_session.clearDataTokens();
 		return "";
 	}
 	
@@ -368,7 +371,7 @@ public class CastScan extends CastAction {
 			_session.addLogMessage("", "CAST Log File", viewLinkLabel, "file://" + logFilename);
 		}
 		long start = System.currentTimeMillis();
-		super.executeAction();
+		super.executeAction(null);
 		// Uncomment sleep and comment out executeAction when doing local testing.
 		// Miscellaneous.sleep(10);
 		_session.addLogMessage("", "Completed", String.format(timeLabel, DateUtilities.elapsedTime(start)));

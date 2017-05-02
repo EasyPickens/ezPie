@@ -12,6 +12,7 @@
 package com.fanniemae.ezpie.actions;
 
 import java.io.File;
+import java.util.HashMap;
 
 import org.w3c.dom.Element;
 
@@ -32,8 +33,10 @@ public class Rename extends Copy {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		processFileSystem(_source, _destination);
+		_session.clearDataTokens();
 		return null;
 	}
 

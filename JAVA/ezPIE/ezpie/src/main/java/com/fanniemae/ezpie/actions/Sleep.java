@@ -11,6 +11,8 @@
 
 package com.fanniemae.ezpie.actions;
 
+import java.util.HashMap;
+
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
@@ -36,13 +38,15 @@ public class Sleep extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		_session.addLogMessage("", "Time", String.format("Sleeping for %s seconds", _seconds));
 		try {
 			Thread.sleep(_seconds * 1000L);
 		} catch (InterruptedException e) {
 			// Fail silent - for debuging only.
 		} 
+		_session.clearDataTokens();
 		return null;
 	}
 

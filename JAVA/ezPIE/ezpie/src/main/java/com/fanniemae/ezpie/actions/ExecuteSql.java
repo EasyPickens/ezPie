@@ -11,6 +11,8 @@
 
 package com.fanniemae.ezpie.actions;
 
+import java.util.HashMap;
+
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
@@ -34,7 +36,8 @@ public class ExecuteSql extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		try (DataConnector sqlConnection = new SqlConnector(_session, _action, false)) {
 			sqlConnection.open();
 			String[][] columnNames = sqlConnection.getDataSourceSchema();
@@ -52,11 +55,18 @@ public class ExecuteSql extends Action {
 				} else {
 					_session.addLogMessage("", "End of Read", "Query returned more data, but only loading values from the first row into tokens.  Use DataSet element to work with multiple rows.");
 				}
+			} else {
+				for (int i = 0; i < columnNames.length; i++) {
+					kvps[i][0] = columnNames[i][0];
+					kvps[i][1] = "";
+				}
+				_session.addTokens(_name, kvps);
 			}
 			sqlConnection.close();
 		} catch (Exception ex) {
 			throw new RuntimeException("Error running ExecuteSql command. " + ex.getMessage(), ex);
 		}
+		_session.clearDataTokens();
 		return null;
 	}
 

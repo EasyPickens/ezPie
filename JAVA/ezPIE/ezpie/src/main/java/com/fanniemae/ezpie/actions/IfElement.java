@@ -12,6 +12,7 @@
 package com.fanniemae.ezpie.actions;
 
 import java.io.File;
+import java.util.HashMap;
 
 import org.w3c.dom.Element;
 
@@ -67,7 +68,7 @@ public class IfElement extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
 		// Element is used to control definition branching, no actual action.
 		return "";
 	}

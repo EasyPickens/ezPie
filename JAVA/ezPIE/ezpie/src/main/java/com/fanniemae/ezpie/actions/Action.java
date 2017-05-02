@@ -13,6 +13,7 @@ package com.fanniemae.ezpie.actions;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -41,6 +42,8 @@ public abstract class Action {
 	protected SimpleDateFormat _sdf = new SimpleDateFormat("MMMM d, yyyy HH:mm:ss");
 
 	protected long _start;
+	
+	protected HashMap<String, String> _dataTokens = null;
 
 	public Action(SessionManager session, Element action) {
 		this(session, action, true);
@@ -68,15 +71,15 @@ public abstract class Action {
 		}
 	}
 
-	public String execute() {
-		String result = executeAction();
+	public String execute(HashMap<String, String> dataTokens) {
+		String result = executeAction(dataTokens);
 		if (!"Log".equals(_actionName) && !"If".equals(_actionName)) {
 			_session.addLogMessage("", String.format("%s Completed", _actionName), String.format("Elapsed time: %s", DateUtilities.elapsedTime(_start)));
 		}
 		return result;
 	}
 
-	public abstract String executeAction();
+	public abstract String executeAction(HashMap<String, String> dataTokens);
 
 	protected String optionalAttribute(String attributeName, String defaultValue) {
 		return optionalAttribute(_action, attributeName, defaultValue);

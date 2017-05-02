@@ -13,6 +13,7 @@ package com.fanniemae.ezpie.actions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -39,7 +40,8 @@ public class GetSourceCode extends RunCommand {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		String datasetName = requiredAttribute("DataSetName").trim();
 		String locationTypeColumn = requiredAttribute("LocationTypeColumn").trim();
 		String locationColumn = requiredAttribute("LocationColumn").trim();
@@ -121,6 +123,7 @@ public class GetSourceCode extends RunCommand {
 			throw ex;
 		}
 
+		_session.clearDataTokens();
 		return null;
 	}
 

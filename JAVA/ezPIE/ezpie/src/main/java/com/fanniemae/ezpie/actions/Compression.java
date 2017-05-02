@@ -13,6 +13,7 @@ package com.fanniemae.ezpie.actions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -107,7 +108,8 @@ public class Compression extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		try {
 			if (_zip) {
 				String filelist = ArrayUtilities.toString(ZipUtilities.zip(_source, _zipFilename, _includeRegex, _excludeRegex));
@@ -123,6 +125,7 @@ public class Compression extends Action {
 		} catch (IOException ex) {
 			_session.addErrorMessage(ex);
 		}
+		_session.clearDataTokens();
 		return null;
 	}
 

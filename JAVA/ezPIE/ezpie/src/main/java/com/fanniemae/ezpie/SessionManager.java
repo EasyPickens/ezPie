@@ -57,9 +57,12 @@ public class SessionManager {
 	protected LogManager _logger;
 	protected TokenManager _tokenizer;
 
+	//protected HashMap<String, String> _dataTokens = null;
+	
 	protected Boolean _updateScanManager = false;
 
 	protected Map<String, DataStream> _dataSets = new HashMap<String, DataStream>();
+	
 	protected DataTable _codeLocations = null;
 
 	public SessionManager(String settingsFilename, String jobFilename, List<String> args) {
@@ -299,11 +302,7 @@ public class SessionManager {
 	}
 
 	public String resolveTokens(String value) {
-		return _tokenizer.resolveTokens(value, null);
-	}
-
-	public String resolveTokens(String value, Object[] aDataRow) {
-		return _tokenizer.resolveTokens(value, aDataRow);
+		return _tokenizer.resolveTokens(value);
 	}
 
 	public void addTokens(Node node) {
@@ -353,5 +352,13 @@ public class SessionManager {
 
 	public DataTable getCodeLocations() {
 		return _codeLocations;
+	}
+	
+	public void setDataTokens(HashMap<String, String> dataTokens) {
+		_tokenizer.setDataTokens(dataTokens);
+	}
+	
+	public void clearDataTokens() {
+		_tokenizer.clearDataTokens();
 	}
 }

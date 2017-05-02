@@ -14,6 +14,7 @@ package com.fanniemae.ezpie.actions;
 import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -84,7 +85,8 @@ public class ExportDelimited extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		_dataStream = _session.getDataStream(_dataSetID);
 
 		try (DataReader dr = new DataReader(_dataStream); FileWriter fw = new FileWriter(_outputFilename, _appendData)) {
@@ -133,7 +135,7 @@ public class ExportDelimited extends Action {
 			RuntimeException ex = new RuntimeException("Error while trying to export the data into a delimited file.", e);
 			throw ex;
 		}
-
+		_session.clearDataTokens();
 		return _outputFilename;
 	}
 

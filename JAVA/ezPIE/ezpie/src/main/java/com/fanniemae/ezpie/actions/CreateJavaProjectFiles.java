@@ -13,6 +13,7 @@ package com.fanniemae.ezpie.actions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.w3c.dom.Element;
 
@@ -61,7 +62,8 @@ public class CreateJavaProjectFiles extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		// Check to make sure path is available
 		if (FileUtilities.isInvalidDirectory(_source)) {
 			throw new RuntimeException(String.format("%s directory was not found.", _source));
@@ -71,6 +73,7 @@ public class CreateJavaProjectFiles extends Action {
 			String creationLog = FileUtilities.writeRandomFile(_session.getLogPath(), "txt", _filecreationLog.toString());
 			_session.addLogMessage("", "Files Created", String.format("View Creation Log (%,d lines)", _lineCount), "file://" + creationLog);
 		}
+		_session.clearDataTokens();
 		return null;
 	}
 

@@ -16,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -69,7 +70,8 @@ public class WebClient extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		// Get a list of web client steps
 		try (final com.gargoylesoftware.htmlunit.WebClient webClient = connect()) {
 			_webClient = webClient;
@@ -77,6 +79,7 @@ public class WebClient extends Action {
 		} catch (Exception ex) {
 			throw new RuntimeException(String.format("WebClient error %s", ex.getMessage()), ex);
 		}
+		_session.clearDataTokens();
 		return null;
 	}
 

@@ -21,6 +21,7 @@ import com.fanniemae.ezpie.common.RestUtilities;
 import com.fanniemae.ezpie.common.ZipUtilities;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import org.json.JSONArray;
@@ -83,7 +84,8 @@ public class ComponentScan extends RunCommand{
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		try {
 			//zip files and only extract out *.jar and *.dll files
 			Pattern[] includePattern = new Pattern[2];
@@ -128,8 +130,8 @@ public class ComponentScan extends RunCommand{
 		
 		//running IQ Server Jar to do component scan
 		_acceptableErrorOutput = POLICYFAILUREOUTPUT;
-		super.executeAction();
-		
+		super.executeAction(dataTokens);
+		_session.setDataTokens(dataTokens);
 		return null;
 	}
 	

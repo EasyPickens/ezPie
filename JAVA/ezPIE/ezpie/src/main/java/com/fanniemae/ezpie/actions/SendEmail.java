@@ -11,6 +11,7 @@
 
 package com.fanniemae.ezpie.actions;
 
+import java.util.HashMap;
 import java.util.Properties;
 
 import javax.mail.Message;
@@ -29,6 +30,7 @@ import com.fanniemae.ezpie.common.FileUtilities;
 /**
  * 
  * @author Tara Tritt
+ * @author Rick Monson
  * @since 2017-03-16
  * 
  */
@@ -70,7 +72,8 @@ public class SendEmail extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -101,6 +104,7 @@ public class SendEmail extends Action {
         } catch (MessagingException e) {
             throw new RuntimeException(String.format("Error while trying to send email. Message is %s", e.getMessage()));
         }
+        _session.clearDataTokens();
 		return null;
 	}
 

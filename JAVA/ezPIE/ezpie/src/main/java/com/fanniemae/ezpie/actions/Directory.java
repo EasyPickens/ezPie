@@ -78,7 +78,8 @@ public class Directory extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		try {
 			switch (_actionType) {
 			case "Copy":

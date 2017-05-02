@@ -69,7 +69,7 @@ public abstract class CastAction extends RunCommand {
 			_session.addLogMessage("", "CAST Log File", viewLinkLabel, "file://" + logFilename);
 		}
 		long start = System.currentTimeMillis();
-		super.executeAction();
+		super.executeAction(null);
 		// Uncomment sleep and comment out executeAction when doing local testing.
 		// Miscellaneous.sleep(10);
 		_session.addLogMessage("", "Completed", String.format(timeLabel, DateUtilities.elapsedTime(start)));

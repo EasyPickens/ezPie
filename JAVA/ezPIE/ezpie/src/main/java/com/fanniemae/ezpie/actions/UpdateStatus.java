@@ -11,6 +11,8 @@
 
 package com.fanniemae.ezpie.actions;
 
+import java.util.HashMap;
+
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
@@ -64,7 +66,7 @@ public class UpdateStatus extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
 		SqlUtilities.ExecuteScalar(_connection, _updateCommand, _parameters, true);
 		return null;
 	}

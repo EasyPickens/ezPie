@@ -12,6 +12,7 @@
 package com.fanniemae.ezpie.actions;
 
 import java.io.File;
+import java.util.HashMap;
 
 import org.w3c.dom.Element;
 
@@ -29,12 +30,13 @@ public class MakeDirectory extends Action {
 
 	public MakeDirectory(SessionManager session, Element action) {
 		super(session, action, false);
-		_path = requiredAttribute("Path");
-		_session.addLogMessage("", "Path", _path);
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
+		_path = requiredAttribute("Path");
+		_session.addLogMessage("", "Path", _path);		
 		File fi = new File(_path);
 		if (!fi.exists()) {
 			_session.addLogMessage("", "", String.format("Creating %s", _path));
@@ -45,6 +47,7 @@ public class MakeDirectory extends Action {
 		} else if (fi.isFile()) {
 			throw new RuntimeException(String.format("%s is the name of an existing file.", _path));
 		}
+		_session.clearDataTokens();
 		return "";
 	}
 

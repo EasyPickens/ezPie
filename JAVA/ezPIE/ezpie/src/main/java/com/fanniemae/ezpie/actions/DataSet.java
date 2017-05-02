@@ -11,6 +11,8 @@
 
 package com.fanniemae.ezpie.actions;
 
+import java.util.HashMap;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -33,7 +35,8 @@ public class DataSet extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		DataEngine de = new DataEngine(_session);
 		NodeList nl = XmlUtilities.selectNodes(_action, "DataSource");
 		
@@ -46,6 +49,7 @@ public class DataSet extends Action {
 			DataStream ds = de.getData((Element) (nl.item(i)));
 			_session.addDataSet(_name,ds);
 		}
+		_session.clearDataTokens();
 		return null;
 	}
 

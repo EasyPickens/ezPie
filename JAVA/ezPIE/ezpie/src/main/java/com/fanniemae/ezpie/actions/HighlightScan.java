@@ -19,6 +19,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+
 import org.apache.commons.io.FilenameUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -58,9 +60,11 @@ public class HighlightScan extends Action {
 	}
 
 	@Override
-	public String executeAction() {
+	public String executeAction(HashMap<String, String> dataTokens) {
 		// Get a list of Highlight Scan steps
+		_session.setDataTokens(dataTokens);
 		highlightActions(_action);
+		_session.clearDataTokens();
 		return null;
 	}
 	
