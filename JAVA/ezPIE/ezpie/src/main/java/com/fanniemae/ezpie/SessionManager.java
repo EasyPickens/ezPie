@@ -57,12 +57,12 @@ public class SessionManager {
 	protected LogManager _logger;
 	protected TokenManager _tokenizer;
 
-	//protected HashMap<String, String> _dataTokens = null;
-	
+	// protected HashMap<String, String> _dataTokens = null;
+
 	protected Boolean _updateScanManager = false;
 
 	protected Map<String, DataStream> _dataSets = new HashMap<String, DataStream>();
-	
+
 	protected DataTable _codeLocations = null;
 
 	public SessionManager(String settingsFilename, String jobFilename, List<String> args) {
@@ -212,6 +212,9 @@ public class SessionManager {
 	}
 
 	public String getAttribute(Element ele, String name, String defaultValue) {
+		if (ele == null)
+			return "";
+
 		String value = ele.getAttribute(name);
 
 		if (StringUtilities.isNullOrEmpty(value))
@@ -332,7 +335,7 @@ public class SessionManager {
 	public DataStream getDataStream(String name) {
 		if (StringUtilities.isNullOrEmpty(name))
 			throw new RuntimeException("Missing required DataSetName value.");
-		addLogMessage("", "DataSetName", name);
+		//addLogMessage("", "DataSetName", name);
 
 		if (!_dataSets.containsKey(name))
 			throw new RuntimeException(String.format("DataSetName %s was not found in the list of available data sets.", name));
@@ -353,11 +356,11 @@ public class SessionManager {
 	public DataTable getCodeLocations() {
 		return _codeLocations;
 	}
-	
+
 	public void setDataTokens(HashMap<String, String> dataTokens) {
 		_tokenizer.setDataTokens(dataTokens);
 	}
-	
+
 	public void clearDataTokens() {
 		_tokenizer.clearDataTokens();
 	}

@@ -44,6 +44,7 @@ public class DataEngine {
 	protected SessionManager _session;
 
 	protected String _stagingPath;
+	protected String[][] _schema;
 
 	protected int _memoryLimit; // in Megabytes
 	protected int _processingGroupsCount = 0;
@@ -71,6 +72,10 @@ public class DataEngine {
 
 	public String getStagingPath() {
 		return _stagingPath;
+	}
+	
+	public String[][] getSchema() {
+		return _schema;
 	}
 
 	public void setStagingPath(String path) {
@@ -112,6 +117,7 @@ public class DataEngine {
 						schema = dataOperations.get(i).UpdateSchema(schema);
 					}
 				}
+				_schema = schema;
 				dw.setDataColumns(schema);
 				long rowCount = 0;
 				while (!dc.eof()) {

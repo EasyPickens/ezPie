@@ -38,8 +38,8 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 public class ExportDelimited extends Action {
 
 	protected String _outputFilename;
-	protected String _delimiter = "|";
-	protected String _dataSetID;
+	protected String _delimiter = ",";
+	protected String _dataSetName;
 
 	protected DataStream _dataStream;
 
@@ -47,47 +47,29 @@ public class ExportDelimited extends Action {
 	protected String[] _outputColumnNames;
 	protected int[] _outputColumnIndexes;
 	protected DataType[] _outputColumnDataTypes;
+	
 	protected boolean _trimSpaces = false;
 	protected boolean _roundDoubles = false;
 	protected boolean _appendData = false;
-
 	protected boolean _writeColumnNames = true;
 
 	public ExportDelimited(SessionManager session, Element action) {
 		super(session, action, false);
 
 		_outputFilename = requiredAttribute("Filename");
-		_session.addLogMessage("", "OutputFilename", _outputFilename);
-
-		_delimiter = optionalAttribute("Delimiter", "|");
-		_session.addLogMessage("", "Delimiter", _delimiter);
-
-		String trimSpaces = optionalAttribute("TrimSpaces", null);
-		_trimSpaces = StringUtilities.toBoolean(trimSpaces, false);
-		if (StringUtilities.isNotNullOrEmpty(trimSpaces)) {
-			_session.addLogMessage("", "TrimSpaces", _trimSpaces ? "True" : "False");
-		}
-
-		String appendData = optionalAttribute("Append", null);
-		_appendData = StringUtilities.toBoolean(appendData, false);
-		if (StringUtilities.isNotNullOrEmpty(appendData)) {
-			_session.addLogMessage("", "Append", _appendData ? "True" : "False");
-		}
-
-		String roundDoubles = optionalAttribute("RoundDoubles", null);
-		_roundDoubles = StringUtilities.toBoolean(roundDoubles, false);
-		if (StringUtilities.isNotNullOrEmpty(roundDoubles)) {
-			_session.addLogMessage("", "RoundDoubles", _roundDoubles ? "True" : "False");
-		}
-
-		_dataSetID = requiredAttribute("DataSetID");
-		_writeColumnNames = StringUtilities.toBoolean(optionalAttribute("IncludeColumnNames", null), true);
+		_dataSetName = requiredAttribute("DataSetName");
+		
+		_delimiter = optionalAttribute("Delimiter", _delimiter);
+		_trimSpaces = StringUtilities.toBoolean(optionalAttribute("TrimSpaces"), _trimSpaces);
+		_appendData = StringUtilities.toBoolean(optionalAttribute("Append"), _appendData);
+		_roundDoubles = StringUtilities.toBoolean(optionalAttribute("RoundDoubles"), _roundDoubles);
+		_writeColumnNames = StringUtilities.toBoolean(optionalAttribute("IncludeColumnNames"), _writeColumnNames);
 	}
 
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
 		_session.setDataTokens(dataTokens);
-		_dataStream = _session.getDataStream(_dataSetID);
+		_dataStream = _session.getDataStream(_dataSetName);
 
 		try (DataReader dr = new DataReader(_dataStream); FileWriter fw = new FileWriter(_outputFilename, _appendData)) {
 			defineOutputColumns(dr.getColumnNames());

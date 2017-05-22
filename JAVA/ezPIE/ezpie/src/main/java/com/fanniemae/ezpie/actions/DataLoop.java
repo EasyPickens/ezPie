@@ -11,7 +11,6 @@
 
 package com.fanniemae.ezpie.actions;
 
-import java.io.FileWriter;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -43,13 +42,12 @@ public class DataLoop extends Action {
 	public String executeAction(HashMap<String, String> dataTokens) {
 		String dataSetName = requiredAttribute("DataSetName");
 		DataStream _dataStream = _session.getDataStream(dataSetName);
+		int rowNumber = 0;
 		try (DataReader dr = new DataReader(_dataStream)) {
-			int iRowCount = 0;
 			String[] colNames = dr.getColumnNames();
 			DataType[] dataTypes = dr.getDataTypes();
 			while (!dr.eof()) {
 				Object[] dataRow = dr.getDataRow();
-
 
 				HashMap<String, String> currentDataTokens = new HashMap<String, String>();
 				// Combine the tokens provided via the parameter with this row.
@@ -69,17 +67,16 @@ public class DataLoop extends Action {
 						currentDataTokens.put(colNames[i], dataRow[i].toString());
 					}
 				}
-				
+
 				NodeList childActions = XmlUtilities.selectNodes(_action, "*");
 				ProcessActions.run(_session, childActions, currentDataTokens);
-		
-				iRowCount++;
+				rowNumber++;
 			}
 			dr.close();
 			// _session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
 			// _session.addLogMessage("", "Completed", String.format("Data saved to %s", _outputFilename));
 		} catch (Exception e) {
-			RuntimeException ex = new RuntimeException("Error while trying to export the data into a delimited file.", e);
+			RuntimeException ex = new RuntimeException(String.format("Error while looping through the data (row %,d)", rowNumber), e);
 			throw ex;
 		}
 		return null;

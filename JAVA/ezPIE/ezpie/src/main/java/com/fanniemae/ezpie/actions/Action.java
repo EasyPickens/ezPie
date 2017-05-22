@@ -81,6 +81,10 @@ public abstract class Action {
 
 	public abstract String executeAction(HashMap<String, String> dataTokens);
 
+	protected String optionalAttribute(String attributeName) {
+		return optionalAttribute(_action, attributeName, null);
+	}
+	
 	protected String optionalAttribute(String attributeName, String defaultValue) {
 		return optionalAttribute(_action, attributeName, defaultValue);
 	}

@@ -64,6 +64,8 @@ public class DataWriter extends DataFormat {
 	protected int _columnCount = 0;
 	protected Map<String, String[]> _globalValues = new HashMap<>();
 	protected Map<String, List<String[]>> _columProfiles = new HashMap<>();
+	
+	protected String[][] _schema;
 
 	public DataWriter(String filename) throws IOException {
 		this(filename, 20, "", null, false);
@@ -124,8 +126,11 @@ public class DataWriter extends DataFormat {
 
 	public void setDataColumns(String[] columnNames, DataType[] dataTypes) throws IOException {
 		_dataRow = new DataRow(columnNames.length);
+		_schema = new String[columnNames.length][2];
 		for (int i = 0; i < columnNames.length; i++) {
 			defineDataColumn(i, columnNames[i], dataTypes[i]);
+			_schema[i][0] = columnNames[i];
+			_schema[i][1] = dataTypes[i].toString();
 		}
 		setupColumnWriters();
 	}
@@ -133,9 +138,11 @@ public class DataWriter extends DataFormat {
 	public void setDataColumns(String[][] columnNamesAndTypes) throws IOException {
 		int columnCount = columnNamesAndTypes.length;
 		_dataRow = new DataRow(columnCount);
-
+		_schema = new String[columnCount][2];
+		
 		for (int i = 0; i < columnCount; i++) {
 			defineDataColumn(i, columnNamesAndTypes[i][0], columnNamesAndTypes[i][1]);
+			_schema[i] = columnNamesAndTypes[i];
 		}
 		setupColumnWriters();
 	}
@@ -173,10 +180,11 @@ public class DataWriter extends DataFormat {
 			throw new IOException("No data written to either memory or file.");
 		}
 
+		populateHeaderInformation();
 		if (_bos.IsFilestream()) {
-			return new DataStream(_filename, _HeaderInformation);
+			return new DataStream(_filename, _HeaderInformation, _schema);
 		} else {
-			return new DataStream(_bos.getBuffer(),_HeaderInformation);
+			return new DataStream(_bos.getBuffer(),_HeaderInformation, _schema);
 		}
 	}
 

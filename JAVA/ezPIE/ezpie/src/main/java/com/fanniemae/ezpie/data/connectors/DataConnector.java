@@ -46,11 +46,11 @@ public abstract class DataConnector implements AutoCloseable {
 	public DataConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		_session = session;
 		_dataSource = dataSource;
-		_dataSourceName = _session.getAttribute(_dataSource,"Name");
-		_dataSourceType = _dataSource.getAttribute("Type");
+		_dataSourceName = _session.getAttribute(_dataSource, "Name");
+		_dataSourceType = _session.getAttribute(_dataSource, "Type");
 		_schemaOnly = isSchemaOnly;
-		
-		_connectionName = _session.getAttribute(_dataSource,"ConnectionName");
+
+		_connectionName = _session.getAttribute(_dataSource, "ConnectionName");
 		_connection = _session.getConnection(_connectionName);
 		if (_connection != null) {
 			_connectionType = _session.getAttribute(_connection, "Type");
@@ -58,7 +58,7 @@ public abstract class DataConnector implements AutoCloseable {
 			_connectionString = _session.getAttribute(_connection, "ConnectionString");
 		}
 
-		if ("ExecuteSql".equals(dataSource.getNodeName())) {
+		if ((dataSource != null) && "ExecuteSql".equals(dataSource.getNodeName())) {
 			_rowLimit = 1;
 			return;
 		}

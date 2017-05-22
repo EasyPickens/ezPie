@@ -27,16 +27,21 @@ public class DataStream {
     protected boolean _isMemory = true;
     protected byte[] _data;
     protected String _filename;
+    protected String[][] _schema;
     protected Map<DataFileEnums.BinaryFileInfo, Object> _headerInformation;
     
-    public DataStream(byte[] data, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation) {
+    public DataStream(byte[] data, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation, String[][] schema) {
         _data = data;
         _isMemory = true;
+        _headerInformation = headerInformation;
+        _schema = schema;
     }
     
-    public DataStream(String Filename, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation) {
+    public DataStream(String Filename, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation, String[][] schema) {
         _filename = Filename;
         _isMemory = false;
+        _headerInformation = headerInformation;
+        _schema = schema;
     }
     
     public boolean IsMemory() {
@@ -62,5 +67,9 @@ public class DataStream {
     
     public Map<DataFileEnums.BinaryFileInfo, Object> getHeader() {
     	return _headerInformation;
+    }
+    
+    public String[][] getSchema() {
+    	return _schema;
     }
 }
