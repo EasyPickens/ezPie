@@ -39,6 +39,9 @@ public class TokenManager {
 	
 	protected LogManager _logger;
 	protected Date _startDateTime = new Date();
+	
+	protected String _tokenPrefix = "[";
+	protected String _tokenSuffix = "]";
 
 	protected enum LogVisibility {
 		NONE, TOKEN_NAME, FULL
@@ -79,10 +82,10 @@ public class TokenManager {
 		aTokenValues.put(key, value);
 		_tokens.put(tokenType, aTokenValues);
 		if (hideIt(key)) {
-			_logger.addMessage("", "Token Added", String.format("[%s.%s] = *****", tokenType, key, value));
+			_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = {value hidden}", _tokenPrefix, tokenType, key, _tokenSuffix));
 			return;
 		}
-		_logger.addMessage("", "Token Added", String.format("[%s.%s] = %s", tokenType, key, value));
+		_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key,_tokenSuffix, value));
 	}
 
 	public void addTokens(Node tokenNode) {
@@ -112,9 +115,9 @@ public class TokenManager {
 		if (value == null)
 			return value;
 
-		String rawString = (_dataTokens == null) ? value.replace("[Data.", "|Data|") : value;
+		String rawString = (_dataTokens == null) ? value.replace(String.format("%sData.",_tokenPrefix), "|Data|") : value;
 
-		int tokenStart = rawString.indexOf("[");
+		int tokenStart = rawString.indexOf(_tokenPrefix);
 		if (tokenStart == -1)
 			return value;
 
@@ -122,21 +125,21 @@ public class TokenManager {
 		if (tokenMid == -1)
 			return value;
 
-		int tokenEnd = rawString.indexOf("]", tokenMid);
+		int tokenEnd = rawString.indexOf(_tokenSuffix, tokenMid);
 		if (tokenEnd == -1)
 			return value;
 
 		int iTokenSplit = 0;
 		int iTokenEnd = 0;
-		String[] aTokens = value.split("\\[");
+		String[] aTokens = value.split(String.format("\\%s",_tokenPrefix));
 
 		for (int i = 0; i < aTokens.length; i++) {
 			iTokenSplit = aTokens[i].indexOf('.');
-			iTokenEnd = aTokens[i].indexOf(']');
+			iTokenEnd = aTokens[i].indexOf(_tokenSuffix);
 			if ((iTokenSplit == -1) || (iTokenEnd == -1))
 				continue;
 
-			String sFullToken = "[" + aTokens[i].substring(0, iTokenEnd + 1);
+			String sFullToken = _tokenPrefix + aTokens[i].substring(0, iTokenEnd + 1);
 			String sGroup = aTokens[i].substring(0, iTokenSplit);
 			String sKey = aTokens[i].substring(iTokenSplit + 1, iTokenEnd);
 
@@ -209,9 +212,9 @@ public class TokenManager {
 			String value = kvps[i][1];
 			tokenKeyValues.put(name, value);
 			if (hideIt(name)) {
-				sb.append(String.format("[%s.%s]", tokenType, name, value));
+				sb.append(String.format("%1$s%2$s.%3$s%4$s", _tokenPrefix, tokenType, name, _tokenSuffix));
 			} else {
-				sb.append(String.format("[%s.%s] = %s", tokenType, name, value));
+				sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, value));
 			}
 		}
 		_tokens.put(tokenType, tokenKeyValues);
@@ -263,9 +266,9 @@ public class TokenManager {
 					sb.append("\n");
 
 				if (hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
-					sb.append(String.format("[%s.%s]", tokenType, name));
+					sb.append(String.format("%1$s%%2$s.%3$s%4$s = {value hidden}", _tokenPrefix, tokenType, name, _tokenSuffix));
 				} else {
-					sb.append(String.format("[%s.%s] = %s", tokenType, name, value));
+					sb.append(String.format("%1$s%%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, value));
 				}
 				linesAdded++;
 				addNewLine = true;
@@ -312,9 +315,9 @@ public class TokenManager {
 			if (addNewLine)
 				sb.append("\n");
 			if (hideIt(name) && (visibility == LogVisibility.TOKEN_NAME)) {
-				sb.append(String.format("[%s.%s]", tokenType, name));
+				sb.append(String.format("%1$s%%2$s.%3$s%4$s = {value hidden}", _tokenPrefix, tokenType, name, _tokenSuffix));
 			} else {
-				sb.append(String.format("[%s.%s] = %s", tokenType, name, value));
+				sb.append(String.format("%1$s%%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, value));
 			}
 			linesAdded++;
 			addNewLine = true;
