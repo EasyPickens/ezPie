@@ -63,7 +63,8 @@ public class DataSet extends Action {
 
 		// pull all the DataSource elements
 		for (int i = 0; i < length; i++) {
-			_dataStreams.add(de.getData((Element) (nl.item(i))));
+			DataStream ds = de.getData((Element) (nl.item(i)));
+			_dataStreams.add(ds);
 		}
 
 		// check for any loop elements
@@ -119,6 +120,8 @@ public class DataSet extends Action {
 			for (int streamNumber = 0; streamNumber < length; streamNumber++) {
 				DataStream dataStream = _dataStreams.get(streamNumber);
 				String[][] schema = dataStream.getSchema();
+				if ((schema == null) || (schema.length == 0)) 
+					continue;
 				int[] columnIndexes = new int[schema.length];
 
 				for (int columnNumber = 0; columnNumber < schema.length; columnNumber++) {
@@ -142,7 +145,7 @@ public class DataSet extends Action {
 					dc.close();
 					_session.addLogMessage("", String.format("DataSource #%d", streamNumber + 1), String.format("%,d data rows added", rowCount));
 				} catch (Exception e) {
-					_session.addErrorMessage(e);
+					throw new RuntimeException("Error while writing the combined data file. ERROR: " + e.getMessage());
 				}
 
 			}
@@ -158,8 +161,10 @@ public class DataSet extends Action {
 			fullDataStream = dw.getDataStream();
 			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", fullRowCount, fullDataStream.getSize(), fullDataStream.IsMemory() ? "memorystream" : "filestream"));
 			_session.addDataSet(_name, fullDataStream);
+		} catch (RuntimeException ex) {
+			throw ex;
 		} catch (IOException e) {
-			_session.addErrorMessage(e);
+			throw new RuntimeException("Error while writing the combined data file. " + e.getMessage());
 		}
 	}
 

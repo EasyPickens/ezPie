@@ -364,4 +364,44 @@ public class SessionManager {
 	public void clearDataTokens() {
 		_tokenizer.clearDataTokens();
 	}
+	
+	public String optionalAttribute(Node node, String attributeName, String defaultValue) {
+		return optionalAttribute((Element) node, attributeName, defaultValue);
+	}
+	
+	public String optionalAttribute(Element element, String attributeName) {
+		return optionalAttribute(element, attributeName, null);
+	}
+
+	public String optionalAttribute(Element element, String attributeName, String defaultValue) {
+		String value = getAttribute(element, attributeName);
+		if (StringUtilities.isNullOrEmpty(value)) {
+			value = resolveTokens(defaultValue);
+		} else {
+			addLogMessage("", attributeName, value);
+		}
+		return value;
+	}
+
+	public String requiredAttribute(Node node, String attributeName) {
+		return requiredAttribute((Element) node, attributeName);
+	}
+
+	public String requiredAttribute(Element element, String attributeName) {
+		String errorMessage = String.format("Missing a value for %s on the %s element.", attributeName, element.getNodeName());
+		return requiredAttribute(element, attributeName, errorMessage);
+	}
+
+	public String requiredAttribute(Node node, String attributeName, String errorMessage) {
+		return requiredAttribute((Element) node, attributeName, errorMessage);
+	}
+
+	public String requiredAttribute(Element element, String attributeName, String errorMessage) {
+		String value = getAttribute(element, attributeName);
+		if (StringUtilities.isNullOrEmpty(value)) {
+			throw new RuntimeException(errorMessage);
+		}
+		addLogMessage("", attributeName, value);
+		return value;
+	}
 }

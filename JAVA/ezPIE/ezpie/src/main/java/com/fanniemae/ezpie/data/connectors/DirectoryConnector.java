@@ -114,6 +114,15 @@ public class DirectoryConnector extends DataConnector {
 			_dataSchema[i][1] = DATA_TYPES[i];
 		}
 
+		String newLine = System.getProperty("line.separator");
+		StringBuilder schemaReport = new StringBuilder();
+		for (int i = 0; i < _dataSchema.length; i++) {
+			if (i > 0)
+				schemaReport.append(newLine);
+			schemaReport.append(String.format("%s (%s)", _dataSchema[i][0], _dataSchema[i][1]));
+		}
+		_session.addLogMessage("", "Data Schema", schemaReport.toString());
+		
 		saveDirectory(_path);
 	}
 

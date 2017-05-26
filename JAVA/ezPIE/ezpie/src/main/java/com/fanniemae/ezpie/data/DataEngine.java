@@ -28,6 +28,7 @@ import com.fanniemae.ezpie.data.connectors.DataConnector;
 import com.fanniemae.ezpie.data.connectors.DataSetConnector;
 import com.fanniemae.ezpie.data.connectors.DelimitedConnector;
 import com.fanniemae.ezpie.data.connectors.DirectoryConnector;
+import com.fanniemae.ezpie.data.connectors.ExcelConnector;
 import com.fanniemae.ezpie.data.connectors.RestConnector;
 import com.fanniemae.ezpie.data.connectors.SqlConnector;
 import com.fanniemae.ezpie.data.transforms.DataTransform;
@@ -122,6 +123,8 @@ public class DataEngine {
 				long rowCount = 0;
 				while (!dc.eof()) {
 					Object[] aValues = dc.getDataRow();
+					if (aValues == null) 
+						continue;
 					if (operationCount > 0) {
 						for (int i = 0; i < operationCount; i++) {
 							aValues = dataOperations.get(i).processDataRow(aValues);
@@ -168,6 +171,8 @@ public class DataEngine {
 			return new DataSetConnector(_session, _dataSource, false);
 		case "rest":
 			return new RestConnector(_session, _dataSource, false);
+		case "excel":
+			return new ExcelConnector(_session, _dataSource, false);
 		default:
 			throw new RuntimeException(String.format("Requested DataSource Type=%s not currently supported.", connectorType));
 		}

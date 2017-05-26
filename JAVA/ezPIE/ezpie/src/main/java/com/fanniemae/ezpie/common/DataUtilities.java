@@ -102,42 +102,58 @@ public final class DataUtilities {
 			return DataType.StringData;
 		}
 		switch (sTypeName) {
+		case "BigDecimal":
 		case "java.math.BigDecimal":
 		case "BigDecimalData":
 			return DataType.BigDecimalData;
+		case "Boolean":
+		case "Bool":
 		case "java.lang.Boolean":
 		case "BooleanData":
 			return DataType.BooleanData;
+		case "Byte":
 		case "java.lang.Byte":
 		case "ByteData":
 			return DataType.ByteData;
+		case "Char":
+		case "Character":
 		case "java.lang.Character":
 		case "CharData":
 			return DataType.CharData;
+		case "Date":
 		case "java.util.Date":
 		case "DateData":
 			return DataType.DateData;
+		case "Double":
 		case "java.lang.Double":
 		case "DoubleData":
 			return DataType.DoubleData;
+		case "Float":
 		case "java.lang.Float":
 		case "FloatData":
 			return DataType.FloatData;
+		case "Int":
+		case "Integer":
 		case "java.lang.Integer":
 		case "IntegerData":
 			return DataType.IntegerData;
+		case "Long":
 		case "java.lang.Long":
 		case "LongData":
 			return DataType.LongData;
+		case "Short":
 		case "java.lang.Short":
 		case "ShortData":
 			return DataType.ShortData;
+		case "String":
 		case "java.lang.String":
 		case "StringData":
 			return DataType.StringData;
+		case "Timestamp":
 		case "java.sql.Timestamp":
 		case "SqlTimestampData":
 			return DataType.SqlTimestampData;
+		case "Object":
 		case "java.lang.Object":
 		case "ObjectData":
 			return DataType.ObjectData;

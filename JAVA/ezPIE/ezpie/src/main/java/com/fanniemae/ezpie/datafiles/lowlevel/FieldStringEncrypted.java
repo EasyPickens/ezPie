@@ -46,7 +46,8 @@ public class FieldStringEncrypted extends FieldReadWrite {
             _bos.writeBoolean(true);
             return;
         }
+        
         _bos.writeBoolean(false);
-        _bos.writeUTF(CryptoUtilities.EncryptDecrypt((String) o));
+        _bos.writeUTF(CryptoUtilities.EncryptDecrypt(o.toString()));
     }
 }

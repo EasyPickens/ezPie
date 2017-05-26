@@ -82,55 +82,43 @@ public abstract class Action {
 	public abstract String executeAction(HashMap<String, String> dataTokens);
 
 	protected String optionalAttribute(String attributeName) {
-		return optionalAttribute(_action, attributeName, null);
+		return _session.optionalAttribute(_action, attributeName, null);
 	}
 	
 	protected String optionalAttribute(String attributeName, String defaultValue) {
-		return optionalAttribute(_action, attributeName, defaultValue);
+		return _session.optionalAttribute(_action, attributeName, defaultValue);
 	}
 
 	protected String optionalAttribute(Node node, String attributeName, String defaultValue) {
-		return optionalAttribute((Element) node, attributeName, defaultValue);
+		return _session.optionalAttribute(node, attributeName, defaultValue);
 	}
 
 	protected String optionalAttribute(Element element, String attributeName, String defaultValue) {
-		String value = _session.getAttribute(element, attributeName);
-		if (StringUtilities.isNullOrEmpty(value)) {
-			value = _session.resolveTokens(defaultValue);
-		} else {
-			_session.addLogMessage("", attributeName, value);
-		}
-		return value;
+		return _session.optionalAttribute(element, attributeName, defaultValue);
 	}
 
 	protected String requiredAttribute(String attributeName) {
-		return requiredAttribute(_action, attributeName);
+		return _session.requiredAttribute(_action, attributeName);
 	}
 
 	protected String requiredAttribute(String attributeName, String errorMessage) {
-		return requiredAttribute(_action, attributeName, errorMessage);
+		return _session.requiredAttribute(_action, attributeName, errorMessage);
 	}
 
 	protected String requiredAttribute(Node node, String attributeName) {
-		return requiredAttribute((Element) node, attributeName);
+		return _session.requiredAttribute(node, attributeName);
 	}
 
 	protected String requiredAttribute(Element element, String attributeName) {
-		String errorMessage = String.format("Missing a value for %s on the %s element.", attributeName, element.getNodeName());
-		return requiredAttribute(element, attributeName, errorMessage);
+		return _session.requiredAttribute(element, attributeName);
 	}
 
 	protected String requiredAttribute(Node node, String attributeName, String errorMessage) {
-		return requiredAttribute((Element) node, attributeName, errorMessage);
+		return _session.requiredAttribute((Element) node, attributeName, errorMessage);
 	}
 
 	protected String requiredAttribute(Element element, String attributeName, String errorMessage) {
-		String value = _session.getAttribute(element, attributeName);
-		if (StringUtilities.isNullOrEmpty(value)) {
-			throw new RuntimeException(errorMessage);
-		}
-		_session.addLogMessage("", attributeName, value);
-		return value;
+		return _session.requiredAttribute(element, attributeName, errorMessage);
 	}
 
 	protected boolean isNotNullOrEmpty(String value) {
