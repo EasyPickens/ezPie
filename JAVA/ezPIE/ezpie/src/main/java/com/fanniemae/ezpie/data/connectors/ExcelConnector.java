@@ -287,12 +287,7 @@ public class ExcelConnector extends DataConnector {
 		_dataCellRange = null;
 		Row dataRow = null;
 		if (StringUtilities.isNotNullOrEmpty(_dataAddress)) {
-			_dataCellRange = new ExcelRange(_dataAddress);
-			CellReference cr = _dataCellRange.getStartCell();
-			_startColumnIndex = cr.getCol();
-			_startRow = cr.getRow();
-			_endRow = (_dataCellRange.getEndRow() == -1) ? _sheet.getLastRowNum() : _dataCellRange.getEndRow();
-			_endColumnIndex = _dataCellRange.getEndColumn();
+			setupDataRange();
 			for (int currentRowNumber = _startRow; currentRowNumber < _endRow; currentRowNumber++) {
 				dataRow = _sheet.getRow(currentRowNumber);
 				if (dataRow == null)
@@ -421,7 +416,10 @@ public class ExcelConnector extends DataConnector {
 		for(int i = 0; i< _dataSchema.length;i++) {
 			_dataSchema[i][1] = "String";
 		}
-		
+		setupDataRange();
+	}
+	
+	protected void setupDataRange() {
 		_dataCellRange = null;
 		if (StringUtilities.isNotNullOrEmpty(_dataAddress)) {
 			_dataCellRange = new ExcelRange(_dataAddress);
@@ -431,6 +429,8 @@ public class ExcelConnector extends DataConnector {
 			_endRow = (_dataCellRange.getEndRow() == -1) ? _sheet.getLastRowNum() : _dataCellRange.getEndRow();
 			_endColumnIndex = _dataCellRange.getEndColumn();
 			_currentExcelRowIndex = _startRow;
-		}		
+		} else {
+			_iterator = _sheet.iterator();
+		}
 	}
 }

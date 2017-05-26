@@ -109,6 +109,15 @@ public class DataSet extends Action {
 			finalSchema[i][0] = finalColumnNames.get(i);
 			finalSchema[i][1] = finalColumnTypes.get(i);
 		}
+		
+		String newLine = System.getProperty("line.separator");
+		StringBuilder schemaReport = new StringBuilder();
+		for (int i = 0; i < finalSchema.length; i++) {
+			if (i > 0)
+				schemaReport.append(newLine);
+			schemaReport.append(String.format("%s (%s)", finalSchema[i][0], finalSchema[i][1]));
+		}
+		_session.addLogMessage("", "Unioned Data Schema", schemaReport.toString());
 
 		// Union the data streams
 		String dataFilename = FileUtilities.getDataFilename(_session.getStagingPath(), XmlUtilities.getOuterXml(_action), "***Multiple DataSources Union Together***");
