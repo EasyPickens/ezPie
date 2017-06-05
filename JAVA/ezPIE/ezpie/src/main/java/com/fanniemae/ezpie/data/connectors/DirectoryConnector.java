@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
 import org.w3c.dom.Element;
@@ -43,14 +45,13 @@ public class DirectoryConnector extends DataConnector {
 	protected String _includedFolders;
 
 	protected Boolean _doFullScan = true;
-	protected Boolean _hasSkipExtensions = false;
-	protected Boolean _hasSkipFolders = false;
-	protected Boolean _hasIncludeExtensions = false;
-	protected Boolean _hasIncludeFolders = false;
-	protected Boolean _outputFiles = true;
-	protected Boolean _outputFolders = false;
+	protected Boolean _hasIncludeFileFilter = false;
+	protected Boolean _hasExcludeFileFilter = false;
+	protected Boolean _showFiles = true;
+	protected Boolean _showFolders = false;
 
 	protected Object[] _dataRow = new Object[8];
+
 	protected static String[] COLUMN_NAMES = new String[] { "Name", "Type", "Size", "Modified", "FullPath", "BaseName", "Extension", "PathOnly" };
 	protected static String[] DATA_TYPES = new String[] { "StringData", "StringData", "LongData", "DateData", "StringData", "StringData", "StringData", "StringData" };
 
@@ -63,50 +64,32 @@ public class DirectoryConnector extends DataConnector {
 	protected Map<String, Boolean> _includeExtensions = new HashMap<String, Boolean>();
 	protected Map<String, Boolean> _includeFolders = new HashMap<String, Boolean>();
 
+	protected Pattern _includeFileFilter = null;
+	protected Pattern _excludeFileFilter = null;
+
 	public DirectoryConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
 
-		_path = _session.getAttribute(dataSource, "Path");
-		if (StringUtilities.isNullOrEmpty(_path)) {
-			throw new RuntimeException("DataSource.Directory requires a valid Path.");
-		} else if (FileUtilities.isInvalidDirectory(_path)) {
+		_path = _session.requiredAttribute(dataSource, "Path");
+		if (FileUtilities.isInvalidDirectory(_path)) {
 			throw new RuntimeException(String.format("Directory (%s) not found.", _path));
 		}
-		_session.addLogMessagePreserveLayout("", "Path", _path);
 
-		String sFullScan = _session.getAttribute(_dataSource, "FullScan");
-		if (StringUtilities.isNotNullOrEmpty(sFullScan)) {
-			_session.addLogMessage("", "Full Scan", sFullScan);
-			_doFullScan = StringUtilities.toBoolean(sFullScan, true);
-		}
-		
-		String sListFiles = _session.getAttribute(_dataSource, "ListFiles");
-		if (StringUtilities.isNotNullOrEmpty(sListFiles)) {
-			_session.addLogMessage("", "List Files", sListFiles);
-			_outputFiles = StringUtilities.toBoolean(sListFiles, true);
-		}
-		
-		String sListFolders = _session.getAttribute(_dataSource, "ListFolders");
-		if (StringUtilities.isNotNullOrEmpty(sListFolders)) {
-			_session.addLogMessage("", "List Directories", sListFolders);
-			_outputFolders = StringUtilities.toBoolean(sListFolders, false);
+		_doFullScan = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "FullScan", "False"));
+		_showFiles = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "ShowFiles", "True"));
+		_showFolders = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "ShowFolders", "False"));
+
+		String includeFiles = _session.optionalAttribute(_dataSource, "IncludeFileFilter", null);
+		if (StringUtilities.isNotNullOrEmpty(includeFiles)) {
+			_includeFileFilter = Pattern.compile(includeFiles);
+			_hasIncludeFileFilter = true;
 		}
 
-		_skippedExtensions = _session.getAttribute(_dataSource, "SkipExtensions");
-		_skipExtensions = toHashMap(_skippedExtensions, "Skip Extensions", true);
-		_hasSkipExtensions = (_skipExtensions.size() > 0) ? true : false;
-
-		_skippedFolders = _session.getAttribute(_dataSource, "SkipFolders");
-		_skipFolders = toHashMap(_skippedFolders, "Skip Directories", true);
-		_hasSkipFolders = (_skipFolders.size() > 0) ? true : false;
-
-		_includedExtensions = _session.getAttribute(_dataSource, "IncludeExtensions");
-		_includeExtensions = toHashMap(_includedExtensions, "Include Extensions", false);
-		_hasIncludeExtensions = (_includeExtensions.size() > 0) ? true : false;
-
-		_includedFolders = _session.getAttribute(_dataSource, "IncludeFolders");
-		_includeFolders = toHashMap(_includedFolders, "Include Directories", false);
-		_hasIncludeExtensions = (_includeExtensions.size() > 0) ? true : false;
+		String excludeFiles = _session.optionalAttribute(_dataSource, "ExcludeFileFilter", null);
+		if (StringUtilities.isNotNullOrEmpty(excludeFiles)) {
+			_excludeFileFilter = Pattern.compile(excludeFiles);
+			_hasExcludeFileFilter = true;
+		}
 
 		_dataSchema = new String[COLUMN_NAMES.length][2];
 		for (int i = 0; i < COLUMN_NAMES.length; i++) {
@@ -122,7 +105,6 @@ public class DirectoryConnector extends DataConnector {
 			schemaReport.append(String.format("%s (%s)", _dataSchema[i][0], _dataSchema[i][1]));
 		}
 		_session.addLogMessage("", "Data Schema", schemaReport.toString());
-		
 		saveDirectory(_path);
 	}
 
@@ -198,30 +180,26 @@ public class DirectoryConnector extends DataConnector {
 
 		for (File currentEntry : aContents) {
 
-			if (currentEntry.isDirectory()) {
-				String subFolder = currentEntry.getAbsolutePath();
-				subFolder = subFolder.substring(subFolder.lastIndexOf(File.separatorChar)+1).toLowerCase();
-				if (_hasSkipFolders && _skipFolders.containsKey(subFolder)) {
-					continue;
-				} else if (_hasIncludeFolders && !_includeFolders.containsKey(subFolder)) {
-					continue;
+			if (_showFiles && _hasIncludeFileFilter && currentEntry.isFile()) {
+				if (matchesInclude(currentEntry.getName())) {
+					saveRowValues(currentEntry);
 				}
-				if (_outputFolders) {
+				continue;
+			} else if (_showFiles && _hasExcludeFileFilter && currentEntry.isFile()) {
+				if (!matchesExclude(currentEntry.getName())) {
+					saveRowValues(currentEntry);
+				}
+				continue;
+			} else if (currentEntry.isDirectory()) {
+				String subFolder = currentEntry.getAbsolutePath();
+				subFolder = subFolder.substring(subFolder.lastIndexOf(File.separatorChar) + 1).toLowerCase();
+				if (_showFolders) {
 					saveRowValues(currentEntry);
 				}
 				if (_doFullScan) {
 					scanDirectory(currentEntry.getAbsolutePath());
 				}
 				continue;
-			}
-
-			String sExtension = FilenameUtils.getExtension(currentEntry.getName()).toLowerCase();
-			if (_hasSkipExtensions && _skipExtensions.containsKey(sExtension)) {
-				continue;
-			} else if (_hasIncludeExtensions && !_includeExtensions.containsKey(sExtension)) {
-				continue;
-			} else if (_outputFiles) {
-				saveRowValues(currentEntry);
 			}
 		}
 	}
@@ -236,6 +214,16 @@ public class DirectoryConnector extends DataConnector {
 		_dataRow[6] = FilenameUtils.getExtension(entry.getName());
 		_dataRow[7] = entry.getParent();
 		_dw.writeDataRow(_dataRow);
+	}
+
+	protected Boolean matchesInclude(String name) {
+		Matcher m = _includeFileFilter.matcher(name);
+		return m.find();
+	}
+
+	protected Boolean matchesExclude(String name) {
+		Matcher m = _excludeFileFilter.matcher(name);
+		return m.find();
 	}
 
 }

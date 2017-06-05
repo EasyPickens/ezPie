@@ -134,7 +134,7 @@ public class RunCommand extends Action {
 				if (commandTimer != null) {
 					commandTimer.cancel();
 					if (p.exitValue() != 0)
-						throw new RuntimeException(String.format("External command timed out. Update timeout limit (currently %d) or disable it.", _timeout));
+						throw new RuntimeException(String.format("External command returned an error code of %d", p.exitValue()));
 				} else {
 					if (!_ignoreErrorCode && ArrayUtilities.indexOf(_exitCodes, p.exitValue()) == -1)
 						throw new RuntimeException(String.format("External command returned an error code of %d.  View console output for error details.", p.exitValue()));

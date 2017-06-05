@@ -90,16 +90,15 @@ public class CreateJavaProjectFiles extends Action {
 		boolean isCodeDirectory = false;
 		for (int i = 0; i < contents.length; i++) {
 			String name = contents[i].getName();
-			_hasJavaCode = (StringUtilities.isNotNullOrEmpty(name) && name.toLowerCase().endsWith(".java")) ? true : _hasJavaCode;
-			if (contents[i].isDirectory() && _javaCodeDirectory.equalsIgnoreCase(name)) {
+			if (contents[i].isFile()) {
+				isCodeDirectory = (StringUtilities.isNotNullOrEmpty(name) && name.equalsIgnoreCase(".project")) ? true : isCodeDirectory;
+			} else if (contents[i].isDirectory() && _javaCodeDirectory.equalsIgnoreCase(name)) {
 				isCodeDirectory = true;
-			}
-
-			if (contents[i].isDirectory() && !_shallow) {
+			} else if (contents[i].isDirectory() && !_shallow) {
 				processDirectory(contents[i].getPath());
 			}
 		}
-		if (isCodeDirectory) { // && _hasJavaCode) {
+		if (isCodeDirectory) { //isCodeDirectory) { // && _hasJavaCode) {
 			_hasJavaCode = false;
 			String currentPath = path.endsWith(File.separator) ? path : path + File.separator;
 			String projectFilename = currentPath + ".project";
