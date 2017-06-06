@@ -117,170 +117,163 @@ namespace PullSPData
 
         private string getAvailableLists()
         {
-            ClientContext context = new ClientContext(_siteUrl);
-            if (!String.IsNullOrEmpty(_username) && !String.IsNullOrEmpty(_password))
+            using (ClientContext context = new ClientContext(_siteUrl))
             {
-                context.Credentials = new NetworkCredential(_username, _password); // "devcoeetl", "Prod(tn1");
+                if (!String.IsNullOrEmpty(_username) && !String.IsNullOrEmpty(_password))
+                {
+                    context.Credentials = new NetworkCredential(_username, _password); // "devcoeetl", "Prod(tn1");
+                }
+                ListCollection lists = context.Web.Lists;
+                context.Load(lists);
+                context.ExecuteQuery();
+
+                _columnNames = new List<string>();
+                _columnNames.Add("ListTitle");
+                _columnNames.Add("ListId");
+                _columnNames.Add("DateCreated");
+                _columnNames.Add("IsPrivate");
+                _columnNames.Add("LastItemDeletedDate");
+                _columnNames.Add("LastItemModifiedDate");
+                _columnNames.Add("Description");
+
+                _dataRows = new List<Dictionary<string, string>>();
+                foreach (List list in lists)
+                {
+                    Dictionary<string, string> row = new Dictionary<string, string>();
+                    row.Add("ListTitle", list.Title);
+                    row.Add("ListId", list.Id.ToString());
+                    row.Add("DateCreated", list.Created.ToString("s"));
+                    row.Add("IsPrivate", list.IsPrivate ? "True" : "False");
+                    row.Add("LastItemDeletedDate", list.LastItemDeletedDate.ToString("s"));
+                    row.Add("LastItemModifiedDate", list.LastItemModifiedDate.ToString("s"));
+                    row.Add("Description", list.Description);
+                    _dataRows.Add(row);
+                    _rowcount++;
+                }
+
+                WriteTextFile();
             }
-            ListCollection lists = context.Web.Lists;
-            context.Load(lists);
-            context.ExecuteQuery();
-
-            _columnNames = new List<string>();
-            _columnNames.Add("ListTitle");
-            _columnNames.Add("ListId");
-            _columnNames.Add("DateCreated");
-            _columnNames.Add("IsPrivate");
-            _columnNames.Add("LastItemDeletedDate");
-            _columnNames.Add("LastItemModifiedDate");
-            _columnNames.Add("Description");
-
-            _dataRows = new List<Dictionary<string, string>>();
-            foreach (List list in lists)
-            {
-                Dictionary<string, string> row = new Dictionary<string, string>();
-                row.Add("ListTitle", list.Title);
-                row.Add("ListId", list.Id.ToString());
-                row.Add("DateCreated", list.Created.ToString("s"));
-                row.Add("IsPrivate", list.IsPrivate ? "True" : "False");
-                row.Add("LastItemDeletedDate", list.LastItemDeletedDate.ToString("s"));
-                row.Add("LastItemModifiedDate", list.LastItemModifiedDate.ToString("s"));
-                row.Add("Description", list.Description);
-                _dataRows.Add(row);
-                _rowcount++;
-            }
-
-            WriteTextFile();
             return _saveFilename;
         }
 
         private string getAvailableViews()
         {
-            ClientContext context = new ClientContext(_siteUrl);
-            if (!String.IsNullOrEmpty(_username) && !String.IsNullOrEmpty(_password))
+            using (ClientContext context = new ClientContext(_siteUrl))
             {
-                context.Credentials = new NetworkCredential("devcoeetl", "Prod(tn1");
+                if (!String.IsNullOrEmpty(_username) && !String.IsNullOrEmpty(_password))
+                {
+                    context.Credentials = new NetworkCredential("devcoeetl", "Prod(tn1");
+                }
+                List list = context.Web.Lists.GetByTitle(_listName);
+                context.Load(list);
+                context.ExecuteQuery();
+
+                ViewCollection views = list.Views;
+                context.Load(views);
+                context.ExecuteQuery();
+
+                _columnNames = new List<string>();
+                _columnNames.Add("ViewTitle");
+                _columnNames.Add("ViewId");
+                _columnNames.Add("DefaultView");
+                _columnNames.Add("PersonalView");
+                _columnNames.Add("ReadOnlyView");
+
+                _dataRows = new List<Dictionary<string, string>>();
+                foreach (View view in views)
+                {
+                    Dictionary<string, string> row = new Dictionary<string, string>();
+                    row.Add("ViewTitle", view.Title);
+                    row.Add("ViewId", view.Id.ToString());
+                    row.Add("DefaultView", view.DefaultView ? "True" : "False");
+                    row.Add("PersonalView", view.PersonalView ? "True" : "False");
+                    row.Add("ReadOnlyView", view.ReadOnlyView ? "True" : "False");
+                    _dataRows.Add(row);
+                    _rowcount++;
+                }
+
+                WriteTextFile();
             }
-            List list = context.Web.Lists.GetByTitle(_listName);
-            context.Load(list);
-            context.ExecuteQuery();
-
-            ViewCollection views = list.Views;
-            context.Load(views);
-            context.ExecuteQuery();
-
-            _columnNames = new List<string>();
-            _columnNames.Add("ViewTitle");
-            _columnNames.Add("ViewId");
-            _columnNames.Add("DefaultView");
-            _columnNames.Add("PersonalView");
-            _columnNames.Add("ReadOnlyView");
-
-            _dataRows = new List<Dictionary<string, string>>();
-            foreach (View view in views)
-            {
-                Dictionary<string, string> row = new Dictionary<string, string>();
-                row.Add("ViewTitle", view.Title);
-                row.Add("ViewId", view.Id.ToString());
-                row.Add("DefaultView", view.DefaultView ? "True" : "False");
-                row.Add("PersonalView", view.PersonalView ? "True" : "False");
-                row.Add("ReadOnlyView", view.ReadOnlyView ? "True" : "False");
-                _dataRows.Add(row);
-                _rowcount++;
-            }
-
-            WriteTextFile();
             return _saveFilename;
         }
 
         private string getViewData()
         {
-            ClientContext context = new ClientContext(_siteUrl);
-            if (!String.IsNullOrEmpty(_username) && !String.IsNullOrEmpty(_password))
+            using (ClientContext context = new ClientContext(_siteUrl))
             {
-                context.Credentials = new NetworkCredential(_username, _password);
-            }
-            else
-            {
-                context.Credentials = CredentialCache.DefaultCredentials;
-            }
-            List list = context.Web.Lists.GetByTitle(_listName);
-            context.Load(list);
-            context.ExecuteQuery();
-
-            Folder folder = list.RootFolder;
-            context.Load(folder);
-            context.ExecuteQuery();
-
-            FolderCollection folders = folder.Folders;
-            context.Load(folders);
-            context.ExecuteQuery();
-
-
-            FileCollection files = folder.Files;
-            context.Load(files);
-            context.ExecuteQuery();
-
-            View view = list.Views.GetByTitle(_viewName);
-            context.Load(view);
-            context.ExecuteQuery();
-
-            CamlQuery query = new CamlQuery();
-            if (!String.IsNullOrEmpty(_camlQuery))
-                query.ViewXml = _camlQuery;
-            else
-                query.ViewXml = view.ViewQuery;
-
-            ListItemCollection items = list.GetItems(query);
-            context.Load(items);
-            context.ExecuteQuery();
-
-            _columnNames = new List<string>();
-            List<string> keys = new List<string>();
-            foreach (ListItem item in items)
-            {
-                if (_rowcount == 0)
+                if (!String.IsNullOrEmpty(_username) && !String.IsNullOrEmpty(_password))
                 {
-                    // Read the keys from the first row only
-                    foreach (KeyValuePair<string, object> kvp in item.FieldValues)
+                    context.Credentials = new NetworkCredential(_username, _password);
+                }
+                else
+                {
+                    context.Credentials = CredentialCache.DefaultCredentials;
+                }
+                List list = context.Web.Lists.GetByTitle(_listName);
+                context.Load(list);
+                context.ExecuteQuery();
+
+                View view = list.Views.GetByTitle(_viewName);
+                context.Load(view);
+                context.ExecuteQuery();
+
+                CamlQuery query = new CamlQuery();
+                if (!String.IsNullOrEmpty(_camlQuery))
+                    query.ViewXml = _camlQuery;
+                else
+                    query.ViewXml = view.ViewQuery;
+
+                ListItemCollection items = list.GetItems(query);
+                context.Load(items);
+                context.ExecuteQuery();
+
+                _columnNames = new List<string>();
+                List<string> keys = new List<string>();
+                foreach (ListItem item in items)
+                {
+                    if (_rowcount == 0)
                     {
-                        _columnNames.Add(cleanupColumnName(kvp.Key));
-                        keys.Add(kvp.Key);
+                        // Read the keys from the first row only
+                        foreach (KeyValuePair<string, object> kvp in item.FieldValues)
+                        {
+                            _columnNames.Add(cleanupColumnName(kvp.Key));
+                            keys.Add(kvp.Key);
+                        }
                     }
+
+                    Dictionary<string, string> row = new Dictionary<string, string>();
+                    for (int i = 0; i < keys.Count; i++)
+                    {
+                        string rawColumnName = keys[i];
+                        String value = "";
+                        Object objValue = "";
+                        if (item.FieldValues.ContainsKey(rawColumnName))
+                        {
+                            objValue = item.FieldValues[rawColumnName];
+                            if (objValue == null)
+                                value = "";
+                            else if (objValue.GetType().Name.Equals("FieldLookupValue"))
+                            {
+                                FieldLookupValue fieldLookupValue = (Microsoft.SharePoint.Client.FieldLookupValue)item.FieldValues[rawColumnName];
+                                value = fieldLookupValue.LookupValue;
+
+                            }
+                            else if (objValue.GetType().Name.Equals("FieldUserValue"))
+                            {
+                                FieldUserValue fieldUserValue = (Microsoft.SharePoint.Client.FieldUserValue)item.FieldValues[rawColumnName];
+                                value = fieldUserValue.LookupValue;
+                            }
+                            else
+                                value = objValue.ToString();
+                        }
+                        row.Add(_columnNames[i], value);
+                    }
+                    _dataRows.Add(row);
+                    _rowcount++;
                 }
 
-                Dictionary<string, string> row = new Dictionary<string, string>();
-                for (int i = 0; i < keys.Count; i++)
-                {
-                    string rawColumnName = keys[i];
-                    String value = "";
-                    Object objValue = "";
-                    if (item.FieldValues.ContainsKey(rawColumnName))
-                    {
-                        objValue = item.FieldValues[rawColumnName];
-                        if (objValue == null)
-                            value = "";
-                        else if (objValue.GetType().Name.Equals("FieldLookupValue"))
-                        {
-                            FieldLookupValue fieldLookupValue = (Microsoft.SharePoint.Client.FieldLookupValue)item.FieldValues[rawColumnName];
-                            value = fieldLookupValue.LookupValue;
-
-                        }
-                        else if (objValue.GetType().Name.Equals("FieldUserValue"))
-                        {
-                            FieldUserValue fieldUserValue = (Microsoft.SharePoint.Client.FieldUserValue)item.FieldValues[rawColumnName];
-                            value = fieldUserValue.LookupValue;
-                        }
-                        else
-                            value = objValue.ToString();
-                    }
-                    row.Add(_columnNames[i], value);
-                }
-                _dataRows.Add(row);
-                _rowcount++;
+                WriteTextFile();
             }
-
-            WriteTextFile();
             return _saveFilename;
         }
 
