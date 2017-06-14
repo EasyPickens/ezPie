@@ -42,6 +42,7 @@ import com.fanniemae.ezpie.actions.Maven;
 import com.fanniemae.ezpie.actions.Move;
 import com.fanniemae.ezpie.actions.Rename;
 import com.fanniemae.ezpie.actions.RunCommand;
+import com.fanniemae.ezpie.actions.Schedule;
 import com.fanniemae.ezpie.actions.SendEmail;
 import com.fanniemae.ezpie.actions.Sleep;
 import com.fanniemae.ezpie.actions.Svn;
@@ -191,6 +192,9 @@ public class ProcessActions {
 					break;
 				case "Loop":
 					action = new DataLoop(session, actionElement);
+					break;
+				case "Schedule":
+					action = new Schedule(session, actionElement);
 					break;
 				default:
 					session.addLogMessage("** Warning **", actionList.item(i).getNodeName(), "Operation not currently supported.");

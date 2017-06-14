@@ -147,6 +147,15 @@ public final class ArrayUtilities {
 	public static String[] removeMatches(String[] items, String match) {
 		return filter(items, match, true);
 	}
+	
+	public static int[] toIntegerArray(List<Integer> arrayValues) {
+		int length = arrayValues.size();
+		int[] result = new int[length];
+		for (int i = 0; i < length; i++) {
+			result[i] = (int) arrayValues.get(i);
+		}
+		return result;
+	}
 
 	protected static String[] filter(String[] items, String regex, boolean remove) {
 		regex = "(?i)" + regex.replace(".", "\\.").replace("*", ".*");

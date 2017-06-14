@@ -12,6 +12,8 @@
 package com.fanniemae.ezpie.common;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -215,6 +217,18 @@ public final class StringUtilities {
 	public static Date toDate(String value, Date defaultValue) {
 		try {
 			return DateUtils.parseDateStrictly(value, SUPPORTED_DATE_FORMATS);
+		} catch (Exception ex) {
+			return defaultValue;
+		}
+	}
+	
+	public static LocalDateTime toDateTime(String s, LocalDateTime defaultValue) {
+		if (StringUtilities.isNullOrEmpty(s))
+			return defaultValue;
+
+		try {
+			DateTimeFormatter fmt = DateTimeFormatter.ISO_DATE_TIME;
+			return LocalDateTime.parse(s, fmt);
 		} catch (Exception ex) {
 			return defaultValue;
 		}

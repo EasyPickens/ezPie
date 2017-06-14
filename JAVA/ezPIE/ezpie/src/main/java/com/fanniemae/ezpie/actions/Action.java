@@ -59,7 +59,7 @@ public abstract class Action {
 		_actionName = StringUtilities.isNullOrEmpty(_actionType) ? _action.getNodeName() : _action.getNodeName() + "." + _actionType;
 
 		if (_idRequired && StringUtilities.isNullOrEmpty(_name)) {
-			throw new RuntimeException(String.format("%s is missing a required Name value.", _action.getNodeName()));
+			throw new RuntimeException(String.format("The %s action requires a Name value in order to use token generated.", _action.getNodeName()));
 		}
 
 		if (!"Log".equals(_actionName)) {
