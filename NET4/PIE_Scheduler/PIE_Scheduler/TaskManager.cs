@@ -47,9 +47,13 @@ namespace ScanManager
         protected String _SqlJobsInProgress;
         protected String _SqlUpdateInProgressStatus;
         protected String _SqlNextDbBackup;
+        protected String _sqlScheduleCheck;
+        protected String _sqlQueueScheduledJob;
 
         protected ApplicationLog _AppLog = new ApplicationLog();
         protected TokenManager _tokens;
+
+        protected DateTime _nextScheduleCheck = DateTime.Now;
 
         public TaskManager()
         {
@@ -82,7 +86,7 @@ namespace ScanManager
             get
             {
                 String cleanup = _tokens.ResolveOptional("Scheduler", "CleanupLogs", "True");
-                if (!String.IsNullOrEmpty(cleanup) && cleanup.StartsWith("F",StringComparison.CurrentCultureIgnoreCase))
+                if (!String.IsNullOrEmpty(cleanup) && cleanup.StartsWith("F", StringComparison.CurrentCultureIgnoreCase))
                 {
                     LocalLog.AddLine("Log directory clean up is disabled (Set to False)");
                     return false;
@@ -121,6 +125,8 @@ namespace ScanManager
             {
                 // Validate the processing job and update those that are no long running.
                 ValidateRunningJobs();
+                // Check for any scheduled work
+                CheckScheduledJobs();
                 // Check for any queued work
                 DataRow dr = GetNextJob();
                 if (dr == null) return;
@@ -201,6 +207,8 @@ namespace ScanManager
             _SqlJobsInProgress = _tokens.Resolve("Scheduler", "JobsInProgress", Message);
             _SqlUpdateInProgressStatus = _tokens.Resolve("Scheduler", "UpdateInProgress", Message);
             _SqlNextDbBackup = _tokens.Resolve("Scheduler", "NextDbBackup", Message);
+            _sqlScheduleCheck = _tokens.Resolve("Scheduler", "ScheduledJobCheck", Message);
+            _sqlQueueScheduledJob = _tokens.Resolve("Scheduler", "QueueScheduledJob", Message);
 
             String connID = _tokens.Resolve("Scheduler", "ConnectionID", "Missing the connection ID for the database server.  Please add the ConnectionID to the settings file under SchedulerSettings/Tokens/{0} {1}");
             LocalLog.AddLine("Reading connection information..");
@@ -419,6 +427,44 @@ namespace ScanManager
                 SqlUtilities.ExcecuteNonQuery(_ConnectionString, _SqlUpdateInProgressStatus, sqlParameters);
             }
             return false;
+        }
+
+        protected void CheckScheduledJobs()
+        {
+            DateTime currentDateTime = DateTime.Now;
+            // Check = SELECT pkey, definition_name FROM fnma_measure8.scan_manager WHERE scheduled_date is not null and scheduled_date &lt; current_timestamp and definition_name is not null
+            // Queue = UPDATE fnma_measure8.scan_manager SET scan_requested=true, request_date=current_timestamp, scan_status='Queued', machine_name=null, scheduled_date=null WHERE pkey=:key and scan_requested=false and machine_name is null and in_progress=false and scan_status='Completed'
+
+            // Put here to lighten the load on the database server, system checks schedules every 2 minutes.
+            // With 4 machines running this code, the offset between them should ensure pretty quick schedule pickups.
+            if (_nextScheduleCheck > currentDateTime) 
+                return;
+
+            DataTable dt = SqlUtilities.GetData(_ConnectionString, _sqlScheduleCheck);
+            if ((dt != null) && (dt.Rows != null) && (dt.Rows.Count > 0))
+            {
+                Dictionary<String, Object> sqlParameters = new Dictionary<String, Object>();
+                sqlParameters.Add(":key", -1);
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    string job_name = "";
+                    try
+                    {
+                        if ((DateTime)dt.Rows[i]["scheduled_date"] < DateTime.Now)
+                        {
+                            job_name = MiscUtilities.ObjectToStringDefault(dt.Rows[i]["definition_name"], "Definition name is blank.");
+                            sqlParameters[":key"] = MiscUtilities.ObjectToInteger(dt.Rows[i]["pkey"], "No primary key defined.");
+                            SqlUtilities.ExcecuteNonQuery(_ConnectionString, _sqlQueueScheduledJob, sqlParameters);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LocalLog.AddLine("Error while queuing scheduled job.  Error message was: " + ex.Message);
+                        _AppLog.WriteEntry(ex.StackTrace, System.Diagnostics.EventLogEntryType.Error);
+                    }
+                }
+            }
+            _nextScheduleCheck = DateTime.Now.AddMinutes(2);
         }
     }
 }

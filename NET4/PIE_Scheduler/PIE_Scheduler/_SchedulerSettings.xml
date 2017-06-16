@@ -1,14 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <SchedulerSettings>
   <Connections>
-    <Connection Type="Postgres" ID="CASTDatabaseServer" ConnectionString="Server=dwsys-dbcast01;Port=2280;Database=postgres;User Id=automationtest;Password=XXXX" />
+    <Connection Type="Postgres" ID="CASTDatabaseServer" ConnectionString="Server=dwsys-dbcast01;Port=2280;Database=postgres;User Id=operator;Password=XXXXX" />
   </Connections>
-  <Tokens Hide="Values">
+  <Tokens Hide="Values" Note="Settings for CAST servers.">
     <ThreadPool Size="2" />
     <JavaHome Path="\\dwsys-apcast01\d$\CAST\Implementation\Tools\Git\jdk1.8.0_65\bin" />
     <PieJar Path="\\dwsys-apcast01\d$\CAST\Implementation\Tools\Git\git.jar" />
     <PieSettings Path="\\dwsys-apcast01\d$\CAST\Implementation\Tools\Git\_Settings.xml" />
-    <PieLogs Path="" />
+    <PieLogs Path="\\dwsys-wcast01\cast-logs" FileExtension=".html" />
+  </Tokens>
+  <Tokens Note="For my local development machine.">
+    <ThreadPool Size="1" />
+    <JavaHome Path="C:\Developers\JAVA_Versions\jdk1.8.0_102\jdk1.8.0_102\bin" />
+    <PieJar Path="C:\Developers\Code\ezPIE\JAVA\ezPIE\ezpie\target\ezpie.jar" />
+    <PieSettings Path="C:\Developers\Code\TestDirectory\_Settings.xml" />
+    <PieLogs Path="\\dwsys-wcast01\cast-logs" FileExtension=".html" />
+  </Tokens>
+  <Tokens>
     <Scheduler ConnectionID="CASTDatabaseServer" />
     <Scheduler ServiceMode="CodeScanning" Note="ServiceMode options include: DatabaseBackup, CodeScanning, SiteDeployment.  Only one option is supported at a time." />
     <Scheduler NextJob="UPDATE fnma_measure8.scan_manager SET machine_name=:machinename WHERE pkey=(SELECT pkey FROM fnma_measure8.scan_manager WHERE scan_requested AND in_progress = false and machine_name is null ORDER BY request_date ASC LIMIT 1); SELECT pkey, definition_name, code_version, code_url, action_requested FROM fnma_measure8.scan_manager WHERE machine_name=:machinename and scan_requested and in_progress=false LIMIT 1;" />
@@ -17,6 +26,10 @@
     <Scheduler NextDbBackup="SELECT pkey, definition_name, scan_status, dbprefix FROM fnma_measure8.scan_manager WHERE in_progress and scan_status='Backup Database'" />
     <Scheduler PublishDefinition="_Publish.xml" OnBoardDefinition="_OnBoard.xml" BackupDatabase="_BackupCedDatabase.xml" />
     <Scheduler CleanupLogs="True" />
+  </Tokens>
+  <Tokens>
+    <Scheduler ScheduledJobCheck="SELECT pkey, definition_name, scheduled_date, current_timestamp bbb FROM fnma_measure8.scan_manager WHERE (scheduled_date is not null) and (scheduled_date::timestamp &lt; current_timestamp) and (definition_name is not null)" />
+    <Scheduler QueueScheduledJob="UPDATE fnma_measure8.scan_manager SET scan_requested=true, request_date=current_timestamp, scan_status='Queued', machine_name=null, scheduled_date=null WHERE pkey=:key and scan_requested=false and machine_name is null and in_progress=false and scan_status='Completed'" />
   </Tokens>
   <Remark>
     <Scheduler xErrorOldInProgress="UPDATE fnma_measure8.scan_manager SET in_progress = false, scan_requested = false, scan_status = 'Error', status_description = 'See log for Details' WHERE in_progress and machine_name=:machinename" />

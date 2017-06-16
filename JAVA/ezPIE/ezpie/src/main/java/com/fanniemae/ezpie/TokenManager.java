@@ -123,6 +123,14 @@ public class TokenManager {
 		}
 		return "";
 	}
+	
+	public String getTokenPrefix() {
+		return _tokenPrefix;
+	}
+	
+	public String getTokenSuffix() {
+		return _tokenSuffix;
+	}
 
 	public String resolveTokens(String value) {
 		if (value == null)

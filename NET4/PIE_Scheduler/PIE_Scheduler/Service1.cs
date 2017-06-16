@@ -115,7 +115,7 @@ namespace PIE_Scheduler
                 if (_CleanupLogs && (DateTime.Now > _nextLogCleanUp))
                 {
                     LocalLog.AddLine("Starting to clean up old log files ...");
-                    ScanManager.Common.LogCleanUp lc = new ScanManager.Common.LogCleanUp("\\\\dwsys-wcast01\\cast-logs", ".html");
+                    ScanManager.Common.LogCleanUp lc = new ScanManager.Common.LogCleanUp(_taskManager.ResolveToken("PieLogs", "Path"), _taskManager.ResolveToken("PieLogs", "FileExtension"));
                     LocalLog.AddLine(lc.findOrphanFiles());
                     LocalLog.AddLine("Completed clean-up.");
                     _nextLogCleanUp = DateTime.Now.AddHours(4);

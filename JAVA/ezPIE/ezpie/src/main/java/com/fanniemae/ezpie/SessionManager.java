@@ -43,6 +43,8 @@ public class SessionManager {
 	protected String _stagingPath;
 	protected String _templatePath;
 	protected String _pathSeparator = System.getProperty("file.separator");
+	protected String _tokenPrefix = "[";
+	protected String _tokenSuffix = "]";
 
 	protected String _jobRescanFilename = null;
 
@@ -129,6 +131,8 @@ public class SessionManager {
 			_logger.addFileDetails(_jobFilename, "Definition Details");
 			_logger.addMessage("Setup Token Dictionary", "Load Tokens", "Read value from settings file.");
 			_tokenizer = new TokenManager(_settings, _logger);
+			_tokenPrefix = _tokenizer.getTokenPrefix();
+			_tokenSuffix = _tokenizer.getTokenSuffix();
 
 			Document xmlJobDefinition = XmlUtilities.loadXmlDefinition(_jobFilename);
 			if (xmlJobDefinition == null)
@@ -220,7 +224,7 @@ public class SessionManager {
 		if (StringUtilities.isNullOrEmpty(value))
 			return defaultValue;
 
-		if ((value.indexOf("[") == -1) || (value.indexOf("]") == -1))
+		if ((value.indexOf(_tokenPrefix) == -1) || (value.indexOf(_tokenSuffix) == -1))
 			return value;
 
 		int iTokenSplit = 0;
@@ -235,7 +239,7 @@ public class SessionManager {
 			if (iTokenSplit > iTokenEnd)
 				continue;
 
-			String sFullToken = "[" + aTokens[i].substring(0, iTokenEnd + 1);
+			String sFullToken = _tokenPrefix + aTokens[i].substring(0, iTokenEnd + 1);
 			String sGroup = aTokens[i].substring(0, iTokenSplit);
 			String sKey = aTokens[i].substring(iTokenSplit + 1, iTokenEnd);
 

@@ -56,8 +56,11 @@ namespace TestApplication
 
         private void btnTestNew_Click(object sender, EventArgs e)
         {
+            lblStatus.Text = "Running ...";
+            Application.DoEvents();
             ScanManager.TaskManager mgr = new ScanManager.TaskManager();
             mgr.ProcessQueue();
+            lblStatus.Text = "Done";
         }
 
         private void btnTestQuery_Click(object sender, EventArgs e)
