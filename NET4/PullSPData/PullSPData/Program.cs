@@ -86,7 +86,7 @@ namespace PullSPData
                         break;
                     default:
                         Console.WriteLine("Exit Code: 2");
-                        Console.WriteLine(String.Format("Invalid arguement: {0} is not a valid command line option.", args[i + 1]));
+                        Console.WriteLine(String.Format("Invalid arguement: {0}: {1} is not a valid command line option.", args[i], args[i + 1]));
                         return 2;
                 }
                 Console.WriteLine(String.Format("   {0} {1}", args[i], args[i + 1]));

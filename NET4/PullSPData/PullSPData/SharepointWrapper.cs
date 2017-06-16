@@ -234,6 +234,9 @@ namespace PullSPData
                     if (_rowcount == 0)
                     {
                         // Read the keys from the first row only
+                        Console.WriteLine();
+                        Console.WriteLine("Cleaning up column names: original => new");
+                        Console.WriteLine("-----------------------------------------");
                         foreach (KeyValuePair<string, object> kvp in item.FieldValues)
                         {
                             _columnNames.Add(cleanupColumnName(kvp.Key));
@@ -377,6 +380,21 @@ namespace PullSPData
             }
             newName = sb.ToString().Trim();
             newName = newName.Replace(" ", "_");
+
+            if (_columnNames.Contains(newName))
+            {
+                for (int i = 2; i < 5000; i++)
+                {
+                    string temp_name = String.Format("{0}_{1}", newName, i);
+                    if (!_columnNames.Contains(temp_name))
+                    {
+                        newName = temp_name;
+                        break;
+                    }
+                }
+            }
+
+            Console.WriteLine("{0} => {1}", name, newName);
 
             return newName;
         }

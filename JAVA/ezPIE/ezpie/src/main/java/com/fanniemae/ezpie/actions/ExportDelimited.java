@@ -139,6 +139,9 @@ public class ExportDelimited extends Action {
 
 				_outputColumnNames[i] = StringUtilities.isNotNullOrEmpty(alais) ? alais : inputName;
 				_outputColumnIndexes[i] = inputColumnNames.indexOf(inputName);
+				if (_outputColumnIndexes[i] == -1) {
+					throw new RuntimeException(String.format("Column %s not found in the data set.", inputName));
+				}
 			}
 		} else {
 			numberOfOutputColumns = inputColumnNames.size();
