@@ -26,10 +26,14 @@ public class TransformFactory {
 
 	public static DataTransform getTransform(SessionManager session, Element transform) {
 		switch (transform.getNodeName()) {
+		case "Timespan":
 		case "TimespanColumn":
 			return new TimespanColumn(session, transform);
+		case "Sequence":
 		case "SequenceColumn":
 			return new SequenceColumn(session, transform);
+		case "Calculation":
+			return new CalculationColumn(session, transform);
 		case "Sort":
 			return new Sort(session, transform);
 		case "Join":

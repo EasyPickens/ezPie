@@ -13,8 +13,10 @@ package com.fanniemae.ezpie.data;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.w3c.dom.Element;
@@ -74,7 +76,7 @@ public class DataEngine {
 	public String getStagingPath() {
 		return _stagingPath;
 	}
-	
+
 	public String[][] getSchema() {
 		return _schema;
 	}
@@ -87,22 +89,24 @@ public class DataEngine {
 	}
 
 	public DataStream getData(Element dataSource) {
-		String dataFilename = FileUtilities.getDataFilename(_stagingPath, dataSource, _connection);
 		DataStream dataStream = null;
 		_dataSource = dataSource;
 		defineProcessingGroups();
+		List<String> tempFiles = new ArrayList<String>();
 		for (int iGroup = 0; iGroup < _processingGroupsCount; iGroup++) {
+			String dataFilename = (iGroup + 1 == _processingGroupsCount) ? FileUtilities.getDataFilename(_stagingPath, dataSource, _connection) : FileUtilities.getRandomFilename(_stagingPath, "dat");
 			Map<Integer, DataTransform> dataOperations = _processingGroups.get(iGroup);
 			int operationCount = dataOperations.size();
 
-			// Some data operations require access to then entire data stream
-			// they cannot be combined with other operations.
-			if ((operationCount == 1) && dataOperations.get(0).isTableLevel()) {
-				_session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
-				dataOperations.get(0).addTransformLogMessage();
-				dataStream = dataOperations.get(0).processDataStream(dataStream, _session.getMemoryLimit());
-				continue;
-			}
+			// // Some data operations require access to then entire data stream
+			// // they cannot be combined with other operations.
+			// if ((operationCount == 1) && dataOperations.get(0).isTableLevel()) {
+			// _session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
+			// dataOperations.get(0).addTransformLogMessage();
+			// dataStream = dataOperations.get(0).processDataStream(dataStream, _session.getMemoryLimit());
+			// _schema = dataStream.getSchema();
+			// continue;
+			// }
 
 			// These operations can be combined - multiple operations during one
 			// pass through the data stream.
@@ -110,9 +114,8 @@ public class DataEngine {
 				dc.open();
 				String[][] schema = dc.getDataSourceSchema();
 				if (operationCount > 0) {
-					_session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
-					// Update the schema based on the operations within this
-					// group.
+					_session.addLogMessage("", String.format("Data Transform Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
+					// Update the schema based on the operations within this group.
 					for (int i = 0; i < operationCount; i++) {
 						dataOperations.get(i).addTransformLogMessage();
 						schema = dataOperations.get(i).UpdateSchema(schema);
@@ -123,7 +126,7 @@ public class DataEngine {
 				long rowCount = 0;
 				while (!dc.eof()) {
 					Object[] aValues = dc.getDataRow();
-					if (aValues == null) 
+					if (aValues == null)
 						continue;
 					if (operationCount > 0) {
 						for (int i = 0; i < operationCount; i++) {
@@ -147,6 +150,19 @@ public class DataEngine {
 				_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, dataStream.getSize(), dataStream.IsMemory() ? "memorystream" : "filestream"));
 			} catch (IOException e) {
 				_session.addErrorMessage(e);
+			}
+			if (iGroup + 1 < _processingGroupsCount) {
+				tempFiles.add(dataFilename);
+			}
+		}
+		if (tempFiles.size() > 0) {
+			int length = tempFiles.size();
+			for (int i = 0; i < length; i++) {
+				try {
+					FileUtilities.deleteFile(tempFiles.get(i));
+				} catch (Exception ex) {
+					_session.addLogMessage("", "*** WARNING ***", String.format("Could not delete temporary file. Reason: %s", ex.getMessage()));
+				}
 			}
 		}
 		return dataStream;

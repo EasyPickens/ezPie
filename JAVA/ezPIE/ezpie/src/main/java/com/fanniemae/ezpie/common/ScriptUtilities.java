@@ -50,4 +50,24 @@ public final class ScriptUtilities {
 		}
 		return (boolean) result;
 	}
+	
+	public static Object evaluate(String expression) {
+		try {
+			ScriptEngineManager manager = new ScriptEngineManager();
+			// Check for the newer nashorn engine first, then if not found default to JavaScript.
+			ScriptEngine engine = manager.getEngineByName("nashorn");
+			if (engine == null) {
+				engine = manager.getEngineByName("JavaScript");
+				if (engine == null) {
+					throw new RuntimeException("Could not find a valid Javascript engine to evaluate expressions.");
+				}
+			}
+
+			// evaluate the JavaScript expression
+			Object result = engine.eval(expression);
+			return result;
+		} catch (ScriptException e) {
+			throw new RuntimeException(String.format("Could not evaluate JavaScript expression \"%s\". Reason: %s", expression, e.getMessage()));
+		}
+	}
 }

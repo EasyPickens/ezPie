@@ -40,8 +40,10 @@ public class ReportBuilder {
 	}
 	
 	public void appendFormatLine(String value, Object... arguments) {
+		if (_sb.length() > 0)
+			_sb.append(System.lineSeparator());
+		
 		appendFormat(value, arguments);
-		_sb.append(System.lineSeparator());
 	}
 	
 	public void appendArray(String[] lines) {

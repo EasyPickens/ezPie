@@ -12,6 +12,8 @@
 package com.fanniemae.ezpie.common;
 
 import java.sql.Types;
+import java.util.Date;
+import java.util.HashMap;
 
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
@@ -23,8 +25,23 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
  */
 
 public final class DataUtilities {
-	
+
 	private DataUtilities() {
+	}
+
+	public static HashMap<String, String> dataRowToTokenHash(String[][] schema, Object[] dataRow) {
+		HashMap<String, String> dataTokens = new HashMap<String, String>();
+		
+		for (int i = 0; i < schema.length; i++) {
+			if (dataRow[i] == null) {
+				dataTokens.put(schema[i][0], "");
+			} else if (schema[i][1].contains("Date") || schema[i][1].contains("Time")) {
+				dataTokens.put(schema[i][0], DateUtilities.toIsoString((Date) dataRow[i]));
+			} else {
+				dataTokens.put(schema[i][0], dataRow[i].toString());
+			}
+		}
+		return dataTokens;
 	}
 
 	public static int dbStringTypeToJavaSqlType(String dataType) {
@@ -203,7 +220,7 @@ public final class DataUtilities {
 				return Class.forName("java.lang.Integer");
 			case "java.lang.long":
 			case "longdata":
-			case "long":				
+			case "long":
 				return Class.forName("java.lang.Long");
 			case "java.lang.short":
 			case "shortdata":

@@ -47,7 +47,7 @@ public class SequenceColumn extends DataTransform {
 		} else if (StringUtilities.isNotNullOrEmpty(sIncrement)) {
 			_increment = iIncrement;
 		}
-		_transformInfo.appendFormat("Increment = %d", _increment);
+		_transformInfo.appendFormatLine("Increment = %d", _increment);
 		//addTransformLogMessage();
 	}
 

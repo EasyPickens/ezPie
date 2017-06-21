@@ -32,7 +32,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-06
  * 
-*/
+ */
 
 public abstract class DataTransform {
 	protected SessionManager _session;
@@ -45,6 +45,8 @@ public abstract class DataTransform {
 	protected String _dataColumn;
 	protected String _columnType = "java.lang.String";
 
+	protected String[][] _inputSchema;
+
 	protected int _outColumnIndex;
 	protected int _sourceColumnIndex;
 	protected int _rowsProcessed;
@@ -55,14 +57,14 @@ public abstract class DataTransform {
 	protected Boolean _nameRequired = true;
 	protected Boolean _newColumn;
 	protected Boolean _addedNewColumn;
-	
+
 	protected ReportBuilder _transformInfo = new ReportBuilder();
 
 	public DataTransform(SessionManager session, String transformName) {
 		_session = session;
 		_transformElementName = transformName;
 	}
-	
+
 	public DataTransform(SessionManager session, Element transform) {
 		this(session, transform, true);
 	}
@@ -81,7 +83,7 @@ public abstract class DataTransform {
 
 		if (_nameRequired && StringUtilities.isNullOrEmpty(_name)) {
 			throw new RuntimeException(String.format("{0} must have an Name value defined.", _transformElementName));
-		} 
+		}
 		if (StringUtilities.isNotNullOrEmpty(_name)) {
 			_transformInfo.appendFormatLine("Name = %s", _name);
 		}
@@ -89,18 +91,21 @@ public abstract class DataTransform {
 		_exceptionDataSetName = _transform.getAttribute("ExceptionDataSetName");
 		if (StringUtilities.isNotNullOrEmpty(_exceptionDataSetName)) {
 			_exceptionFilename = FileUtilities.getDataFilename(_session.getStagingPath(), XmlUtilities.getOuterXml(_transform), _exceptionDataSetName);
-			_transformInfo.appendFormatLine("ExceptionID = %s",_exceptionDataSetName);
+			_transformInfo.appendFormatLine("ExceptionID = %s", _exceptionDataSetName);
 			_transformInfo.appendFormatLine("Exception Filename = %s", _exceptionFilename);
 		}
 	}
-	
+
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
 		String sTempFilename = FileUtilities.getRandomFilename(_session.getStagingPath());
 		try (DataReader br = new DataReader(inputStream); DataWriter bw = new DataWriter(sTempFilename, memoryLimit)) {
 			String[] aColumnNames = br.getColumnNames();
 			DataType[] aDataTypes = br.getDataTypes();
-
+			
+			String[][] schema = br.getSchema();
+			schema = UpdateSchema(schema);
+			
 			bw.setDataColumns(aColumnNames, aDataTypes);
 			while (!br.eof()) {
 				Object[] aDataRow = processDataRow(br.getDataRow());
@@ -123,6 +128,7 @@ public abstract class DataTransform {
 	public abstract Object[] processDataRow(Object[] dataRow);
 
 	public String[][] UpdateSchema(String[][] aSchema) {
+		_inputSchema = aSchema;
 		_outColumnIndex = ArrayUtilities.indexOf(aSchema, _name, true);
 
 		if (StringUtilities.isNotNullOrEmpty(_dataColumn)) {
@@ -175,7 +181,7 @@ public abstract class DataTransform {
 		System.arraycopy(aDataTypes, 0, aNewDataTypeArray, 0, aDataTypes.length);
 		return aNewDataTypeArray;
 	}
-	
+
 	public void addTransformLogMessage() {
 		_session.addLogMessage("", _transformElementName, _transformInfo.toString());
 	}
@@ -218,6 +224,28 @@ public abstract class DataTransform {
 
 	public List<String[]> getColumnProfile() {
 		return new ArrayList<>();
+	}
+
+	protected String getOptionalAttribute(String attributeName) {
+		return getOptionalAttribute(attributeName, "");
+	}
+
+	protected String getOptionalAttribute(String attributeName, String defaultValue) {
+		String value = _session.getAttribute(_transform, attributeName);
+		if (StringUtilities.isNullOrEmpty(value))
+			value = defaultValue;
+		else
+			_transformInfo.appendFormatLine("%s = %s", attributeName, value);
+		return value;
+	}
+
+	protected String getRequiredAttribute(String attributeName) {
+		String value = _session.getAttribute(_transform, attributeName);
+		if (StringUtilities.isNullOrEmpty(value))
+			throw new RuntimeException(String.format("No value defined for the %s attrbute of the %s transform elment.", attributeName, _name));
+		
+		_transformInfo.appendFormatLine("%s = %s", attributeName, value);
+		return value;
 	}
 
 }
