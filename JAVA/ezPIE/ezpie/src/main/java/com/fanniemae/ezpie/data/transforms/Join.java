@@ -119,7 +119,7 @@ public class Join extends DataTransform {
 	}
 
 	@Override
-	public boolean isTableLevel() {
+	public boolean isolated() {
 		return true;
 	}
 

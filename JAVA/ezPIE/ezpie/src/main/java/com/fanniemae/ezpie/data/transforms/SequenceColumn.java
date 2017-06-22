@@ -64,7 +64,7 @@ public class SequenceColumn extends DataTransform {
 	}
 
 	@Override
-	public boolean isTableLevel() {
+	public boolean isolated() {
 		return false;
 	}
 

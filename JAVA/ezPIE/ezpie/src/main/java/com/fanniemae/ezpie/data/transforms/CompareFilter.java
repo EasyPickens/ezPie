@@ -47,7 +47,7 @@ public class CompareFilter extends DataTransform {
 	}
 
 	@Override
-	public boolean isTableLevel() {
+	public boolean isolated() {
 		return false;
 	}
 

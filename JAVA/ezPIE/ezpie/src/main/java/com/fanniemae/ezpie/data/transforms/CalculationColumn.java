@@ -59,7 +59,7 @@ public class CalculationColumn extends DataTransform {
 	}
 
 	@Override
-	public boolean isTableLevel() {
+	public boolean isolated() {
 		return _isolate;
 	}
 

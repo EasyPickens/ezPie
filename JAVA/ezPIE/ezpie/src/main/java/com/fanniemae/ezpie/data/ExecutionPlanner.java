@@ -51,7 +51,7 @@ public class ExecutionPlanner {
 			DataTransform currentTransform = TransformFactory.getTransform(_session, eleTransform);
 			if (currentTransform == null) {
 				continue;
-			} else if (currentTransform.isTableLevel()) {
+			} else if (currentTransform.isolated()) {
 				if (currentTransformGroup.size() > 0) {
 					// put the previous transforms into a processing group
 					processingGroups.put(processingGroups.size(), currentTransformGroup);

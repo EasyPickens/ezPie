@@ -98,16 +98,16 @@ public abstract class DataTransform {
 
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
-		String sTempFilename = FileUtilities.getRandomFilename(_session.getStagingPath());
-		try (DataReader br = new DataReader(inputStream); DataWriter bw = new DataWriter(sTempFilename, memoryLimit)) {
+		String tempFilename = FileUtilities.getRandomFilename(_session.getStagingPath());
+		try (DataReader br = new DataReader(inputStream); DataWriter bw = new DataWriter(tempFilename, memoryLimit)) {
 			String[][] schema = br.getSchema();
 			schema = UpdateSchema(schema);
 			
 			bw.setDataColumns(schema);
 			while (!br.eof()) {
-				Object[] aDataRow = processDataRow(br.getDataRow());
-				if (aDataRow != null) {
-					bw.writeDataRow(aDataRow);
+				Object[] dataRow = processDataRow(br.getDataRow());
+				if (dataRow != null) {
+					bw.writeDataRow(dataRow);
 				}
 			}
 
@@ -120,27 +120,27 @@ public abstract class DataTransform {
 		return outputStream;
 	}
 
-	public abstract boolean isTableLevel();
+	public abstract boolean isolated();
 
 	public abstract Object[] processDataRow(Object[] dataRow);
 
-	public String[][] UpdateSchema(String[][] aSchema) {
-		_inputSchema = aSchema;
-		_outColumnIndex = ArrayUtilities.indexOf(aSchema, _name, true);
+	public String[][] UpdateSchema(String[][] schema) {
+		_inputSchema = schema;
+		_outColumnIndex = ArrayUtilities.indexOf(schema, _name, true);
 
 		if (StringUtilities.isNotNullOrEmpty(_dataColumn)) {
-			_sourceColumnIndex = ArrayUtilities.indexOf(aSchema, _dataColumn, true);
+			_sourceColumnIndex = ArrayUtilities.indexOf(schema, _dataColumn, true);
 		}
 
 		if (_outColumnIndex != -1) {
-			aSchema[_outColumnIndex][1] = _columnType;
-			return aSchema;
+			schema[_outColumnIndex][1] = _columnType;
+			return schema;
 		} else {
-			int nLength = aSchema.length;
+			int nLength = schema.length;
 			String[][] aNewSchema = new String[nLength + 1][2];
 			for (int i = 0; i < nLength; i++) {
-				aNewSchema[i][0] = aSchema[i][0];
-				aNewSchema[i][1] = aSchema[i][1];
+				aNewSchema[i][0] = schema[i][0];
+				aNewSchema[i][1] = schema[i][1];
 			}
 			_newColumn = true;
 			_outColumnIndex = nLength;
@@ -151,32 +151,32 @@ public abstract class DataTransform {
 	}
 
 	protected Object[] addDataColumn(Object[] dataRow) {
-		Object[] aNewDataRow = new Object[dataRow.length + 1];
-		System.arraycopy(dataRow, 0, aNewDataRow, 0, dataRow.length);
-		return aNewDataRow;
+		Object[] newDataRow = new Object[dataRow.length + 1];
+		System.arraycopy(dataRow, 0, newDataRow, 0, dataRow.length);
+		return newDataRow;
 	}
 
-	protected String[] resizeColumnArray(String[] aColumnNames) {
-		return resizeColumnArray(aColumnNames, 1);
+	protected String[] resizeColumnArray(String[] columnNames) {
+		return resizeColumnArray(columnNames, 1);
 	}
 
-	protected String[] resizeColumnArray(String[] aColumnNames, int nNewColumnCount) {
+	protected String[] resizeColumnArray(String[] columnNames, int newColumnCount) {
 		_addedNewColumn = true;
-		String[] aNewColumnArray = new String[aColumnNames.length + nNewColumnCount];
+		String[] newColumnNames = new String[columnNames.length + newColumnCount];
 
-		System.arraycopy(aColumnNames, 0, aNewColumnArray, 0, aColumnNames.length);
-		return aNewColumnArray;
+		System.arraycopy(columnNames, 0, newColumnNames, 0, columnNames.length);
+		return newColumnNames;
 	}
 
-	protected DataType[] resizeDataTypeArray(DataType[] aDataTypes) {
-		return resizeDataTypeArray(aDataTypes, 1);
+	protected DataType[] resizeDataTypeArray(DataType[] dataTypes) {
+		return resizeDataTypeArray(dataTypes, 1);
 	}
 
-	protected DataType[] resizeDataTypeArray(DataType[] aDataTypes, int nNewColumnCount) {
-		DataType[] aNewDataTypeArray = new DataType[aDataTypes.length + nNewColumnCount];
+	protected DataType[] resizeDataTypeArray(DataType[] dataTypes, int newColumnCount) {
+		DataType[] newDataTypes = new DataType[dataTypes.length + newColumnCount];
 
-		System.arraycopy(aDataTypes, 0, aNewDataTypeArray, 0, aDataTypes.length);
-		return aNewDataTypeArray;
+		System.arraycopy(dataTypes, 0, newDataTypes, 0, dataTypes.length);
+		return newDataTypes;
 	}
 
 	public void addTransformLogMessage() {

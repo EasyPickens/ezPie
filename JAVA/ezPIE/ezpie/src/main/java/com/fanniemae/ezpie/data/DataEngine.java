@@ -100,7 +100,7 @@ public class DataEngine {
 
 			// Some data operations require access to then entire data stream
 			// they cannot be combined with other operations.
-			if ((operationCount == 1) && dataOperations.get(0).isTableLevel()) {
+			if ((operationCount == 1) && dataOperations.get(0).isolated()) {
 				_session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
 				dataOperations.get(0).addTransformLogMessage();
 				dataStream = dataOperations.get(0).processDataStream(dataStream, _session.getMemoryLimit());
@@ -125,16 +125,16 @@ public class DataEngine {
 				dw.setDataColumns(schema);
 				long rowCount = 0;
 				while (!dc.eof()) {
-					Object[] aValues = dc.getDataRow();
-					if (aValues == null)
+					Object[] dataRow = dc.getDataRow();
+					if (dataRow == null)
 						continue;
 					if (operationCount > 0) {
 						for (int i = 0; i < operationCount; i++) {
-							aValues = dataOperations.get(i).processDataRow(aValues);
+							dataRow = dataOperations.get(i).processDataRow(dataRow);
 						}
 					}
 
-					dw.writeDataRow(aValues);
+					dw.writeDataRow(dataRow);
 					rowCount++;
 				}
 				Calendar calendarExpires = Calendar.getInstance();
