@@ -100,13 +100,10 @@ public abstract class DataTransform {
 		DataStream outputStream = null;
 		String sTempFilename = FileUtilities.getRandomFilename(_session.getStagingPath());
 		try (DataReader br = new DataReader(inputStream); DataWriter bw = new DataWriter(sTempFilename, memoryLimit)) {
-			String[] aColumnNames = br.getColumnNames();
-			DataType[] aDataTypes = br.getDataTypes();
-			
 			String[][] schema = br.getSchema();
 			schema = UpdateSchema(schema);
 			
-			bw.setDataColumns(aColumnNames, aDataTypes);
+			bw.setDataColumns(schema);
 			while (!br.eof()) {
 				Object[] aDataRow = processDataRow(br.getDataRow());
 				if (aDataRow != null) {

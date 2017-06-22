@@ -98,15 +98,15 @@ public class DataEngine {
 			Map<Integer, DataTransform> dataOperations = _processingGroups.get(iGroup);
 			int operationCount = dataOperations.size();
 
-			// // Some data operations require access to then entire data stream
-			// // they cannot be combined with other operations.
-			// if ((operationCount == 1) && dataOperations.get(0).isTableLevel()) {
-			// _session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
-			// dataOperations.get(0).addTransformLogMessage();
-			// dataStream = dataOperations.get(0).processDataStream(dataStream, _session.getMemoryLimit());
-			// _schema = dataStream.getSchema();
-			// continue;
-			// }
+			// Some data operations require access to then entire data stream
+			// they cannot be combined with other operations.
+			if ((operationCount == 1) && dataOperations.get(0).isTableLevel()) {
+				_session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
+				dataOperations.get(0).addTransformLogMessage();
+				dataStream = dataOperations.get(0).processDataStream(dataStream, _session.getMemoryLimit());
+				_schema = dataStream.getSchema();
+				continue;
+			}
 
 			// These operations can be combined - multiple operations during one
 			// pass through the data stream.

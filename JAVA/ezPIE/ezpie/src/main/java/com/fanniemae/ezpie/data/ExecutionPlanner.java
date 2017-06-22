@@ -37,7 +37,7 @@ public class ExecutionPlanner {
 
 	public Map<Integer, Map<Integer, DataTransform>> getExecutionPlan(NodeList transforms) {
 		Map<Integer, Map<Integer, DataTransform>> processingGroups = new HashMap<Integer, Map<Integer, DataTransform>>();
-		Map<Integer, DataTransform> aCurrentGroup = new HashMap<Integer, DataTransform>();
+		Map<Integer, DataTransform> currentTransformGroup = new HashMap<Integer, DataTransform>();
 		int iLen = transforms.getLength();
 
 		if (iLen == 0) {
@@ -51,14 +51,23 @@ public class ExecutionPlanner {
 			DataTransform currentTransform = TransformFactory.getTransform(_session, eleTransform);
 			if (currentTransform == null) {
 				continue;
-			}else if (currentTransform.isTableLevel()) {
-				processingGroups.put(processingGroups.size(), aCurrentGroup);
-				aCurrentGroup = new HashMap<Integer, DataTransform>();
+			} else if (currentTransform.isTableLevel()) {
+				if (currentTransformGroup.size() > 0) {
+					// put the previous transforms into a processing group
+					processingGroups.put(processingGroups.size(), currentTransformGroup);
+					// create the next processing group and add the isolated transform
+					currentTransformGroup = new HashMap<Integer, DataTransform>();
+				}
+				currentTransformGroup.put(currentTransformGroup.size(), currentTransform);
+				processingGroups.put(processingGroups.size(), currentTransformGroup);
+				// finally create the container for the next processing group
+				currentTransformGroup = new HashMap<Integer, DataTransform>();
+				continue;
 			}
-			aCurrentGroup.put(aCurrentGroup.size(), currentTransform);
+			currentTransformGroup.put(currentTransformGroup.size(), currentTransform);
 		}
-		if (aCurrentGroup.size() > 0) {
-			processingGroups.put(processingGroups.size(), aCurrentGroup);
+		if (currentTransformGroup.size() > 0) {
+			processingGroups.put(processingGroups.size(), currentTransformGroup);
 		} else if (processingGroups.size() == 0) {
 			processingGroups.put(0, new HashMap<Integer, DataTransform>());
 		}
