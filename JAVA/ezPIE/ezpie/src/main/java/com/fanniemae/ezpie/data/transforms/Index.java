@@ -64,6 +64,7 @@ public class Index extends DataTransform {
 	
 	public Index(SessionManager session, Element transform) {
 		super(session, transform, false);
+		_isolate = true;
 
 		String dataColumnList = _session.getAttribute(transform, "DataColumns");
 		String indexDirectionList = _session.getAttribute(transform, "SortDirections");
@@ -76,11 +77,6 @@ public class Index extends DataTransform {
 		String[] indexDirections = (StringUtilities.isNullOrEmpty(indexDirectionList)) ? null : indexDirectionList.split(",");
 		
 		initialize(columnNames, indexDirections);
-	}
-
-	@Override
-	public boolean isolated() {
-		return true;
 	}
 
 	@Override

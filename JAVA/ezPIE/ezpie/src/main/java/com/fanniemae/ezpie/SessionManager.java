@@ -49,6 +49,7 @@ public class SessionManager {
 	protected String _jobRescanFilename = null;
 
 	protected int _memoryLimit = 20;
+	protected int _cacheMinutes = 30;
 	protected int _jobKey = -1;
 
 	protected Document _settingsDoc;
@@ -61,6 +62,7 @@ public class SessionManager {
 
 	// protected HashMap<String, String> _dataTokens = null;
 
+	protected Boolean _dataCachingEnabled = false;
 	protected Boolean _updateScanManager = false;
 
 	protected Map<String, DataStream> _dataSets = new HashMap<String, DataStream>();
@@ -98,6 +100,7 @@ public class SessionManager {
 		}
 
 		Boolean randomLogFilename = StringUtilities.toBoolean(eleConfig.getAttribute("RandomLogFileName"), true);
+		_dataCachingEnabled = StringUtilities.toBoolean(eleConfig.getAttribute("DataCacheEnabled"), true);
 		_appPath = FileUtilities.formatPath(eleConfig.getAttribute("ApplicationPath"), System.getProperty("user.dir"), "ApplicationPath");
 		_stagingPath = FileUtilities.formatPath(eleConfig.getAttribute("StagingPath"), String.format("%1$s_Staging", _appPath), "StagingPath");
 		_logPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _appPath), "LogPath");
@@ -111,9 +114,12 @@ public class SessionManager {
 		} else {
 			_logFilename = FileUtilities.getRandomFilename(_logPath, "html");
 		}
+		
+		_cacheMinutes = StringUtilities.toInteger(eleConfig.getAttribute("CacheMinutes"),30);
 
 		// Create Debug page.
 		_logger = new LogManager(_templatePath, _logFilename);
+		_logger.addMessage("", "Data Caching", _dataCachingEnabled ? "Enabled" : "Disabled");
 
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _definitionPath + jobFilename;
@@ -407,5 +413,13 @@ public class SessionManager {
 		}
 		addLogMessage("", attributeName, value);
 		return value;
+	}
+	
+	public Boolean cachingEnabled() {
+		return _dataCachingEnabled;
+	}
+	
+	public int getCacheMinutes() {
+		return _cacheMinutes;
 	}
 }

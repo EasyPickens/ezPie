@@ -14,6 +14,7 @@ package com.fanniemae.ezpie.common;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -214,6 +215,19 @@ public final class FileUtilities {
 			throw new RuntimeException(String.format("Error while trying to write file to %s", filename), e);
 		}
 		return filename;
+	}
+	
+	public static DataStream writeDataStream(String filename, DataStream data) {
+		if ((data == null) || (!data.IsMemory()) ) {
+			return data;
+		}
+		try (FileOutputStream fos = new FileOutputStream(filename)) {
+			fos.write(data.getMemorystream());
+			fos.close();
+			return new DataStream(filename, data.getHeader(), data.getSchema());
+		} catch (IOException e) {
+			throw new RuntimeException(String.format("Error while trying to write file to %s", filename), e);
+		}
 	}
 
 	public static String combine(String path, String filename) {

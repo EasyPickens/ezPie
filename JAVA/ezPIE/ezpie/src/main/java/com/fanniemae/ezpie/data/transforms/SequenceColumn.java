@@ -31,24 +31,33 @@ public class SequenceColumn extends DataTransform {
 		super(session, transform);
 		_columnType = "java.lang.Integer";
 		
-		String sStartNumber = _transform.getAttribute("StartNumber");
-		int iStartNumber = StringUtilities.toInteger(sStartNumber);
-		if (StringUtilities.isNotNullOrEmpty(sStartNumber) && (iStartNumber == Integer.MIN_VALUE)) {
-			throw new RuntimeException("The StartNumber attribute of a SequenceColumn must be a valid integer.");
-		} else if (StringUtilities.isNotNullOrEmpty(sStartNumber)) {
-			_sequenceNumber = iStartNumber;
+		String startNumber = getOptionalAttribute("StartNumber");
+		if (StringUtilities.isNotNullOrEmpty(startNumber)) {
+			_sequenceNumber = StringUtilities.toInteger(startNumber,"The StartNumber attribute of a Sequence transform element must be a valid integer.");
 		}
-		_transformInfo.appendFormatLine("StartNumber = %d", _sequenceNumber);
-
-		String sIncrement = _transform.getAttribute("Increment");
-		int iIncrement = StringUtilities.toInteger(sIncrement);
-		if (StringUtilities.isNotNullOrEmpty(sIncrement) && (iIncrement == Integer.MIN_VALUE)) {
-			throw new RuntimeException("The Increment attribute of a SequenceColumn must be a valid integer.");
-		} else if (StringUtilities.isNotNullOrEmpty(sIncrement)) {
-			_increment = iIncrement;
+		
+		String increment = _transform.getAttribute("Increment");
+		if (StringUtilities.isNotNullOrEmpty(increment)) {
+			_increment = StringUtilities.toInteger(startNumber,"The Increment attribute of a SequenceColumn must be a valid integer.");
 		}
-		_transformInfo.appendFormatLine("Increment = %d", _increment);
-		//addTransformLogMessage();
+		
+//		//String sStartNumber = _transform.getAttribute("StartNumber");
+//		int iStartNumber = StringUtilities.toInteger(sStartNumber);
+//		if (StringUtilities.isNotNullOrEmpty(sStartNumber) && (iStartNumber == Integer.MIN_VALUE)) {
+//			throw new RuntimeException("The StartNumber attribute of a SequenceColumn must be a valid integer.");
+//		} else if (StringUtilities.isNotNullOrEmpty(sStartNumber)) {
+//			_sequenceNumber = iStartNumber;
+//		}
+//		_transformInfo.appendFormatLine("StartNumber = %d", _sequenceNumber);
+//
+//		String sIncrement = _transform.getAttribute("Increment");
+//		int iIncrement = StringUtilities.toInteger(sIncrement);
+//		if (StringUtilities.isNotNullOrEmpty(sIncrement) && (iIncrement == Integer.MIN_VALUE)) {
+//			throw new RuntimeException("The Increment attribute of a SequenceColumn must be a valid integer.");
+//		} else if (StringUtilities.isNotNullOrEmpty(sIncrement)) {
+//			_increment = iIncrement;
+//		}
+//		_transformInfo.appendFormatLine("Increment = %d", _increment);
 	}
 
 	@Override

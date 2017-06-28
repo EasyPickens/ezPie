@@ -47,11 +47,6 @@ public class CompareFilter extends DataTransform {
 	}
 
 	@Override
-	public boolean isolated() {
-		return false;
-	}
-
-	@Override
 	public Object[] processDataRow(Object[] dataRow) {
 		return null;
 	}

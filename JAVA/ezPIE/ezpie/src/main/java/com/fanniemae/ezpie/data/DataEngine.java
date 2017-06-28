@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
+import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.connectors.DataConnector;
@@ -34,7 +36,9 @@ import com.fanniemae.ezpie.data.connectors.ExcelConnector;
 import com.fanniemae.ezpie.data.connectors.RestConnector;
 import com.fanniemae.ezpie.data.connectors.SqlConnector;
 import com.fanniemae.ezpie.data.transforms.DataTransform;
+import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.DataWriter;
+import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.BinaryFileInfo;
 
 /**
  * 
@@ -51,8 +55,6 @@ public class DataEngine {
 
 	protected int _memoryLimit; // in Megabytes
 	protected int _processingGroupsCount = 0;
-
-	protected boolean _cacheData = true;
 
 	protected Element _dataSource;
 	protected Element _connection;
@@ -89,79 +91,95 @@ public class DataEngine {
 	}
 
 	public DataStream getData(Element dataSource) {
-		DataStream dataStream = null;
+		String finalDataFilename = FileUtilities.getDataFilename(_stagingPath, dataSource, _connection);
+		DataStream dataStream = _session.cachingEnabled() ? checkCache(finalDataFilename) : null;
+		if (dataStream != null) {
+			Object expires = dataStream.getHeader().get(BinaryFileInfo.DateExpires);
+			_session.addLogMessage("", "Cached Data", String.format("Using valid data cache file. The cache is set to expire %s",DateUtilities.toPrettyString((Date)expires)));
+			return dataStream;
+		}
+		
 		_dataSource = dataSource;
 		defineProcessingGroups();
 		List<String> tempFiles = new ArrayList<String>();
-		for (int iGroup = 0; iGroup < _processingGroupsCount; iGroup++) {
-			String dataFilename = (iGroup + 1 == _processingGroupsCount) ? FileUtilities.getDataFilename(_stagingPath, dataSource, _connection) : FileUtilities.getRandomFilename(_stagingPath, "dat");
-			Map<Integer, DataTransform> dataOperations = _processingGroups.get(iGroup);
-			int operationCount = dataOperations.size();
+		try {
+			String dataFilename = "";
+			for (int iGroup = 0; iGroup < _processingGroupsCount; iGroup++) {
+				dataFilename = (iGroup + 1 == _processingGroupsCount) ? finalDataFilename : FileUtilities.getRandomFilename(_stagingPath, "dat");
+				Map<Integer, DataTransform> dataOperations = _processingGroups.get(iGroup);
+				int operationCount = dataOperations.size();
 
-			// Some data operations require access to then entire data stream
-			// they cannot be combined with other operations.
-			if ((operationCount == 1) && dataOperations.get(0).isolated()) {
-				_session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
-				dataOperations.get(0).addTransformLogMessage();
-				dataStream = dataOperations.get(0).processDataStream(dataStream, _session.getMemoryLimit());
-				_schema = dataStream.getSchema();
-				continue;
-			}
-
-			// These operations can be combined - multiple operations during one
-			// pass through the data stream.
-			try (DataConnector dc = getConnector(dataStream); DataWriter dw = new DataWriter(dataFilename, 0, false)) {
-				dc.open();
-				String[][] schema = dc.getDataSourceSchema();
-				if (operationCount > 0) {
-					_session.addLogMessage("", String.format("Data Transform Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
-					// Update the schema based on the operations within this group.
-					for (int i = 0; i < operationCount; i++) {
-						dataOperations.get(i).addTransformLogMessage();
-						schema = dataOperations.get(i).UpdateSchema(schema);
-					}
-				}
-				_schema = schema;
-				dw.setDataColumns(schema);
-				long rowCount = 0;
-				while (!dc.eof()) {
-					Object[] dataRow = dc.getDataRow();
-					if (dataRow == null)
-						continue;
-					if (operationCount > 0) {
-						for (int i = 0; i < operationCount; i++) {
-							dataRow = dataOperations.get(i).processDataRow(dataRow);
+				// Some data operations require access to then entire data stream
+				// they cannot be combined with other operations. E.g. Sort, Join
+				if ((operationCount == 1) && dataOperations.get(0).isolated()) {
+					_session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
+					dataOperations.get(0).addTransformLogMessage();
+					dataStream = dataOperations.get(0).processDataStream(dataStream, _session.getMemoryLimit());
+					_schema = dataStream.getSchema();
+				} else {
+					// These operations can be combined - multiple operations during one
+					// pass through the data stream.
+					try (DataConnector dc = getConnector(dataStream); DataWriter dw = new DataWriter(dataFilename, _memoryLimit, false)) {
+						dc.open();
+						String[][] schema = dc.getDataSourceSchema();
+						if (operationCount > 0) {
+							_session.addLogMessage("", String.format("Data Transform Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
+							// Update the schema based on the operations within this group.
+							for (int i = 0; i < operationCount; i++) {
+								dataOperations.get(i).addTransformLogMessage();
+								schema = dataOperations.get(i).UpdateSchema(schema);
+							}
 						}
-					}
+						_schema = schema;
+						dw.setDataColumns(schema);
+						long rowCount = 0;
+						while (!dc.eof()) {
+							Object[] dataRow = dc.getDataRow();
+							if (dataRow == null)
+								continue;
+							if (operationCount > 0) {
+								for (int i = 0; i < operationCount; i++) {
+									dataRow = dataOperations.get(i).processDataRow(dataRow);
+								}
+							}
 
-					dw.writeDataRow(dataRow);
-					rowCount++;
+							dw.writeDataRow(dataRow);
+							rowCount++;
+						}
+						Calendar calendarExpires = Calendar.getInstance();
+						if (_session.cachingEnabled())
+							calendarExpires.add(Calendar.MINUTE, _session.getCacheMinutes());
+						dw.setFullRowCount(rowCount); // dc.getFullRowCount(_lFullRowCount));
+						dw.setBufferFirstRow(1); // dc.getBufferFirstRow());
+						dw.setBufferLastRow(rowCount); // dc.getBufferLastRow());
+						dw.setBufferExpires(calendarExpires.getTime());
+						dw.setFullRowCountKnown(true); // dc.getFullRowCountKnown());
+						dw.close();
+						dc.close();
+						dataStream = dw.getDataStream();
+						_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, dataStream.getSize(), dataStream.IsMemory() ? "memorystream" : "filestream"));
+					} catch (IOException e) {
+						_session.addErrorMessage(e);
+					}
 				}
-				Calendar calendarExpires = Calendar.getInstance();
-				calendarExpires.add(Calendar.MINUTE, 30);
-				dw.setFullRowCount(rowCount); // dc.getFullRowCount(_lFullRowCount));
-				dw.setBufferFirstRow(1); // dc.getBufferFirstRow());
-				dw.setBufferLastRow(rowCount); // dc.getBufferLastRow());
-				dw.setBufferExpires(calendarExpires.getTime());
-				dw.setFullRowCountKnown(true); // dc.getFullRowCountKnown());
-				dw.close();
-				dc.close();
-				dataStream = dw.getDataStream();
-				_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, dataStream.getSize(), dataStream.IsMemory() ? "memorystream" : "filestream"));
-			} catch (IOException e) {
-				_session.addErrorMessage(e);
+				if (iGroup + 1 < _processingGroupsCount) {
+					tempFiles.add(dataFilename);
+				}
 			}
-			if (iGroup + 1 < _processingGroupsCount) {
-				tempFiles.add(dataFilename);
+			if (_session.cachingEnabled()) {
+				dataStream = FileUtilities.writeDataStream(dataFilename, dataStream);
 			}
-		}
-		if (tempFiles.size() > 0) {
-			int length = tempFiles.size();
-			for (int i = 0; i < length; i++) {
-				try {
-					FileUtilities.deleteFile(tempFiles.get(i));
-				} catch (Exception ex) {
-					_session.addLogMessage("", "*** WARNING ***", String.format("Could not delete temporary file. Reason: %s", ex.getMessage()));
+		} catch (Exception ex) {
+			throw ex;
+		} finally {
+			if (tempFiles.size() > 0) {
+				int length = tempFiles.size();
+				for (int i = 0; i < length; i++) {
+					try {
+						FileUtilities.deleteFile(tempFiles.get(i));
+					} catch (Exception ex) {
+						_session.addLogMessage("", "*** WARNING ***", String.format("Could not delete temporary file. Reason: %s", ex.getMessage()));
+					}
 				}
 			}
 		}
@@ -199,6 +217,30 @@ public class DataEngine {
 		ExecutionPlanner planner = new ExecutionPlanner(_session);
 		_processingGroups = planner.getExecutionPlan(nlTransforms);
 		_processingGroupsCount = _processingGroups.size();
+	}
+	
+	protected DataStream checkCache(String filename) {
+		Boolean expired = false;
+		String[][] schema = null;
+		Map<BinaryFileInfo,Object> header = null;
+		if (FileUtilities.isInvalidFile(filename))
+			return null;
+		
+		try (DataReader dr = new DataReader(filename)) {
+			schema = dr.getSchema();
+			header = dr.getHeader();
+			Date expires = dr.getBufferExpires();
+			Date current = new Date();
+			
+			expired =expires.before(current); 
+			dr.close();
+		} catch (Exception ex) {
+			
+		}
+		if (expired) 
+			return null;
+		
+		return new DataStream(filename, header, schema);
 	}
 
 }

@@ -31,9 +31,6 @@ import com.fanniemae.ezpie.common.StringUtilities;
 public class CalculationColumn extends DataTransform {
 
 	protected String _formula;
-	
-	protected Boolean _isolate;
-	
 	protected ScriptEngine _engine;
 	
 	protected int _errorLimit = 1;
@@ -43,7 +40,7 @@ public class CalculationColumn extends DataTransform {
 		super(session, transform);
 
 		_formula = getRequiredAttribute("Formula");
-		_isolate = StringUtilities.toBoolean(getOptionalAttribute("Isolate", "False"), false);
+		
 		_columnType = getOptionalAttribute("ResultType","String");
 		_errorLimit = StringUtilities.toInteger(getOptionalAttribute("ErrorLimit"),1);
 		
@@ -56,11 +53,6 @@ public class CalculationColumn extends DataTransform {
 				throw new RuntimeException("Could not find a valid Javascript engine to evaluate expressions.");
 			}
 		}
-	}
-
-	@Override
-	public boolean isolated() {
-		return _isolate;
 	}
 
 	@Override

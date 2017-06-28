@@ -12,6 +12,7 @@
 package com.fanniemae.ezpie.data.transforms;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.w3c.dom.Element;
@@ -54,6 +55,7 @@ public abstract class DataTransform {
 	protected int _rowsReturned;
 	protected int _rowsRemoved;
 
+	protected Boolean _isolate = false;
 	protected Boolean _nameRequired = true;
 	protected Boolean _newColumn;
 	protected Boolean _addedNewColumn;
@@ -74,19 +76,14 @@ public abstract class DataTransform {
 		_transform = transform;
 		_nameRequired = nameRequired;
 
-		_name = _session.getAttribute(transform, "Name");
 		_transformElementName = transform.getNodeName();
-		String sType = transform.getAttribute("Type");
-		if (StringUtilities.isNotNullOrEmpty(sType)) {
-			_transformElementName += "." + sType;
+		String type = transform.getAttribute("Type");
+		if (StringUtilities.isNotNullOrEmpty(type)) {
+			_transformElementName += "." + type;
 		}
 
-		if (_nameRequired && StringUtilities.isNullOrEmpty(_name)) {
-			throw new RuntimeException(String.format("{0} must have an Name value defined.", _transformElementName));
-		}
-		if (StringUtilities.isNotNullOrEmpty(_name)) {
-			_transformInfo.appendFormatLine("Name = %s", _name);
-		}
+		_name = (_nameRequired) ? getRequiredAttribute("Name") : getOptionalAttribute("Name");
+		_isolate = StringUtilities.toBoolean(getOptionalAttribute("Isolate", "False"), false);
 
 		_exceptionDataSetName = _transform.getAttribute("ExceptionDataSetName");
 		if (StringUtilities.isNotNullOrEmpty(_exceptionDataSetName)) {
@@ -102,16 +99,27 @@ public abstract class DataTransform {
 		try (DataReader br = new DataReader(inputStream); DataWriter bw = new DataWriter(tempFilename, memoryLimit)) {
 			String[][] schema = br.getSchema();
 			schema = UpdateSchema(schema);
-			
+
 			bw.setDataColumns(schema);
+			int rowCount = 0;
 			while (!br.eof()) {
 				Object[] dataRow = processDataRow(br.getDataRow());
 				if (dataRow != null) {
 					bw.writeDataRow(dataRow);
+					rowCount++;
 				}
 			}
 
+			Calendar calendarExpires = Calendar.getInstance();
+			if (_session.cachingEnabled())
+				calendarExpires.add(Calendar.MINUTE, _session.getCacheMinutes());
+			bw.setFullRowCount(rowCount); // dc.getFullRowCount(_lFullRowCount));
+			bw.setBufferFirstRow(1); // dc.getBufferFirstRow());
+			bw.setBufferLastRow(rowCount); // dc.getBufferLastRow());
+			bw.setBufferExpires(calendarExpires.getTime());
+			bw.setFullRowCountKnown(true); // dc.getFullRowCountKnown());
 			bw.close();
+			br.close();
 			outputStream = bw.getDataStream();
 		} catch (Exception ex) {
 			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _transformElementName), ex);
@@ -120,7 +128,9 @@ public abstract class DataTransform {
 		return outputStream;
 	}
 
-	public abstract boolean isolated();
+	public boolean isolated() {
+		return _isolate;
+	}
 
 	public abstract Object[] processDataRow(Object[] dataRow);
 
@@ -239,8 +249,8 @@ public abstract class DataTransform {
 	protected String getRequiredAttribute(String attributeName) {
 		String value = _session.getAttribute(_transform, attributeName);
 		if (StringUtilities.isNullOrEmpty(value))
-			throw new RuntimeException(String.format("No value defined for the %s attrbute of the %s transform elment.", attributeName, _name));
-		
+			throw new RuntimeException(String.format("No value defined for the %s attrbute of the %s transform elment.", attributeName, _transformElementName));
+
 		_transformInfo.appendFormatLine("%s = %s", attributeName, value);
 		return value;
 	}

@@ -39,7 +39,15 @@ public final class DateUtilities {
 	public static String getCurrentDateTimePretty() {
 		return _sdfPretty.format(Calendar.getInstance().getTime());
 	}
+	
+	public static String toPrettyString(Calendar value) {
+		return (value == null) ? "" : toPrettyString(value.getTime());
+	}
 
+	public static String toPrettyString(Date value) {
+		return (value == null) ? "" : _sdfPretty.format(value);
+	}
+	
 	public static String toIsoString(Date value) {
 		return (value == null) ? "" : _sdfISO.format(value);
 	}

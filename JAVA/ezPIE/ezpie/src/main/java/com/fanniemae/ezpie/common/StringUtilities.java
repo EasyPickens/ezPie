@@ -67,7 +67,7 @@ public final class StringUtilities {
                                                             "d MMM yyyy HH:mm:ss", "d MMM yyyy", "MMM d, yyyy", "MMM dd, yyyy", "yyyy/MM", "yyyy/M",
                                                             "yyyy-MM", "yyyy-M"};
 	// @formatter:on
-	
+
 	private StringUtilities() {
 	}
 
@@ -100,41 +100,47 @@ public final class StringUtilities {
 	}
 
 	public static boolean isLong(String value) {
-		if (isNullOrEmpty(value)) return false;
+		if (isNullOrEmpty(value))
+			return false;
 		value = value.trim();
 		return (Pattern.matches("^[+-]?\\d+$", value) && (value.length() <= 17));
 	}
 
 	public static boolean isInteger(String value) {
-		if (isNullOrEmpty(value)) return false;
+		if (isNullOrEmpty(value))
+			return false;
 		value = value.trim();
 		return (Pattern.matches("^[+-]?\\d+$", value) && (value.length() <= 8));
 	}
 
 	public static boolean isDouble(String value) {
-		if (isNullOrEmpty(value)) return false;
+		if (isNullOrEmpty(value))
+			return false;
 		value = value.trim();
-		if (value.indexOf('.') == -1) return false;
+		if (value.indexOf('.') == -1)
+			return false;
 		return Pattern.matches(DOUBLE_REGEX, value);
 	}
 
 	public static boolean isBigDecimal(String value) {
-		if (isNullOrEmpty(value)) return false;
+		if (isNullOrEmpty(value))
+			return false;
 		value = value.trim();
-		if (value.indexOf('.') == -1) return false;
+		if (value.indexOf('.') == -1)
+			return false;
 		return Pattern.matches(DOUBLE_REGEX, value);
 	}
 
-//	public static boolean isFormula(String value) {
-//		if (isNullOrEmpty(value)) return false;
-//		char[] aSymbols = ".*/+-()=<>!^#&@$%\\|{}'?".toCharArray();
-//		for (int i = 0; i < aSymbols.length; i++) {
-//			if (value.indexOf(aSymbols[i]) != -1) {
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
+	// public static boolean isFormula(String value) {
+	// if (isNullOrEmpty(value)) return false;
+	// char[] aSymbols = ".*/+-()=<>!^#&@$%\\|{}'?".toCharArray();
+	// for (int i = 0; i < aSymbols.length; i++) {
+	// if (value.indexOf(aSymbols[i]) != -1) {
+	// return true;
+	// }
+	// }
+	// return false;
+	// }
 
 	public static boolean isBoolean(String value) {
 		return (isNullOrEmpty(value) || (BOOLEAN_VALUES.indexOf("|" + value.trim().toLowerCase() + "|") == -1)) ? false : true;
@@ -155,15 +161,26 @@ public final class StringUtilities {
 	}
 
 	public static int toInteger(String value) {
-		return toInteger(value, 0);
+		return toInteger(value, 0, null);
 	}
 
+	public static int toInteger(String value, String errorMessage) {
+		return toInteger(value, 0, errorMessage);
+	}
+	
 	public static int toInteger(String value, int defaultValue) {
+		return toInteger(value, defaultValue, null);
+	}
+
+	public static int toInteger(String value, int defaultValue, String errorMessage) {
 		if (isNullOrEmpty(value))
 			return defaultValue;
 		try {
 			return Integer.parseInt(value.trim());
 		} catch (NumberFormatException ex) {
+			if (isNotNullOrEmpty(errorMessage)) {
+				throw new RuntimeException(errorMessage);
+			}
 			return defaultValue;
 		}
 	}
@@ -221,7 +238,7 @@ public final class StringUtilities {
 			return defaultValue;
 		}
 	}
-	
+
 	public static LocalDateTime toDateTime(String s, LocalDateTime defaultValue) {
 		if (StringUtilities.isNullOrEmpty(s))
 			return defaultValue;
@@ -292,10 +309,10 @@ public final class StringUtilities {
 	public static String wrapValue(String value) {
 		if ((value == null) || (value.indexOf(' ') == -1))
 			return value;
-		
-		if ((value.startsWith("\"") && value.endsWith("\""))) 
+
+		if ((value.startsWith("\"") && value.endsWith("\"")))
 			return value;
-		
+
 		return String.format("\"%s\"", value);
 	}
 
@@ -355,7 +372,7 @@ public final class StringUtilities {
 		}
 		return values;
 	}
-	
+
 	public static int periodToSeconds(String value) {
 		if (StringUtilities.isNullOrEmpty(value))
 			return -1;
@@ -376,7 +393,7 @@ public final class StringUtilities {
 			iPosition = value.indexOf(aNumbers[i], iStart) + aNumbers[i].length();
 			iStart = iPosition + 1;
 			cUnits = (iPosition < value.length()) ? value.charAt(iPosition) : 's';
-			iCurrentValue = StringUtilities.toInteger(aNumbers[i], 0);
+			iCurrentValue = StringUtilities.toInteger(aNumbers[i], 0, null);
 
 			switch (cUnits) {
 			case 'd':

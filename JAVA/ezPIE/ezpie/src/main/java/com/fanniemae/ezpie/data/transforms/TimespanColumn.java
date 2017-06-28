@@ -70,6 +70,8 @@ public class TimespanColumn extends DataTransform {
 
 	public TimespanColumn(SessionManager session, Element transform, Calendar fiscalYearStart) {
 		super(session, transform, false);
+		_isolate = true;
+		
 		if (fiscalYearStart == null) {
 			_fiscalStart.set(Calendar.MONTH, 0);
 			_fiscalStart.set(Calendar.DATE, 1);
@@ -100,11 +102,6 @@ public class TimespanColumn extends DataTransform {
 		populateNameArrays(sCulture);
 
 		_formatDateValue = inializeFormatClass(sTimePeriod);
-	}
-
-	@Override
-	public boolean isolated() {
-		return false;
 	}
 
 	@Override

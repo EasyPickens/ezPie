@@ -79,6 +79,7 @@ public class Join extends DataTransform {
 
 	public Join(SessionManager session, Element operation) {
 		super(session, operation, false);
+		_isolate = true;
 
 		String leftColumnList = _session.getAttribute(operation, "LeftColumns");
 		String rightColumnList = _session.getAttribute(operation, "RightColumns");
@@ -116,11 +117,6 @@ public class Join extends DataTransform {
 		if (_rightDataSource == null) {
 			throw new RuntimeException("Missing right side data source.  Joins require a nested DataSource for the right side.");
 		}
-	}
-
-	@Override
-	public boolean isolated() {
-		return true;
 	}
 
 	@Override
