@@ -65,7 +65,7 @@ public final class StringUtilities {
                                                             "d-MM-yyyy HH", "d/MM/yyyy HH", "MM-yyyy HH", "MM/yyyy HH", "yyyy-MM-d", "yyyy/MM/d", "MM-d-yyyy",
                                                             "MM/d/yyyy", "d-MM-yyyy", "d/MM/yyyy", "MM-yyyy", "MM/yyyy", "EEE, d MMM yyyy HH:mm:ss",
                                                             "d MMM yyyy HH:mm:ss", "d MMM yyyy", "MMM d, yyyy", "MMM dd, yyyy", "yyyy/MM", "yyyy/M",
-                                                            "yyyy-MM", "yyyy-M"};
+                                                            "yyyy-MM", "yyyy-M", "MM/dd/yyyy hh:mm:ss a"};
 	// @formatter:on
 
 	private StringUtilities() {

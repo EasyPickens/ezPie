@@ -27,6 +27,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.connectors.DataConnector;
 import com.fanniemae.ezpie.data.connectors.DataSetConnector;
@@ -92,7 +93,9 @@ public class DataEngine {
 
 	public DataStream getData(Element dataSource) {
 		String finalDataFilename = FileUtilities.getDataFilename(_stagingPath, dataSource, _connection);
-		DataStream dataStream = _session.cachingEnabled() ? checkCache(finalDataFilename) : null;
+		
+		boolean dataSourceCacheable = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "DataCacheEnabled"),_session.cachingEnabled()); 
+		DataStream dataStream = dataSourceCacheable ? checkCache(finalDataFilename) : null;
 		if (dataStream != null) {
 			Object expires = dataStream.getHeader().get(BinaryFileInfo.DateExpires);
 			_session.addLogMessage("", "Cached Data", String.format("Using valid data cache file. The cache is set to expire %s",DateUtilities.toPrettyString((Date)expires)));

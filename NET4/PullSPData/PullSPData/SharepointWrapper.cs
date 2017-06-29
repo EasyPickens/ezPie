@@ -15,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Net;
+using System.Xml;
 
 using Microsoft.SharePoint;
 using Microsoft.SharePoint.Client;
@@ -213,15 +214,42 @@ namespace PullSPData
                 context.Load(list);
                 context.ExecuteQuery();
 
+                //_viewName = "All Items";
                 View view = list.Views.GetByTitle(_viewName);
                 context.Load(view);
                 context.ExecuteQuery();
 
+                context.Load(view.ViewFields);
+                context.ExecuteQuery();
+                ViewFieldCollection vfc = view.ViewFields;
+
+                //StringBuilder sbQuery = new StringBuilder("<View><RowLimit>10</RowLimit><ViewFields>");
+                StringBuilder sbQuery = new StringBuilder("<View><ViewFields>");
+
+                Console.WriteLine("");
+                Console.WriteLine("View requested contains the following columns");
+                Console.WriteLine("---------------------------------------------");
+                foreach (string field in vfc)
+                {
+                    sbQuery.AppendFormat("<FieldRef Name=\"{0}\" />", field);
+                    Console.WriteLine(field);
+                }
+                Console.WriteLine();
+                sbQuery.Append("</ViewFields></View>");
+
+                //Console.WriteLine("");
+                //Console.WriteLine("Query to Run");
+                //Console.WriteLine("------------");
+                //Console.WriteLine(sbQuery.ToString());
+                //Console.WriteLine("");
+
                 CamlQuery query = new CamlQuery();
-                if (!String.IsNullOrEmpty(_camlQuery))
-                    query.ViewXml = _camlQuery;
-                else
-                    query.ViewXml = view.ViewQuery;
+                //if (!String.IsNullOrEmpty(_camlQuery))
+                //    query.ViewXml = _camlQuery;
+                //else
+                //    query.ViewXml = view.ViewQuery;
+
+                query.ViewXml = sbQuery.ToString();
 
                 ListItemCollection items = list.GetItems(query);
                 context.Load(items);
@@ -233,13 +261,10 @@ namespace PullSPData
                 {
                     if (_rowcount == 0)
                     {
-                        // Read the keys from the first row only
-                        Console.WriteLine();
-                        Console.WriteLine("Cleaning up column names: original => new");
-                        Console.WriteLine("-----------------------------------------");
                         foreach (KeyValuePair<string, object> kvp in item.FieldValues)
                         {
-                            _columnNames.Add(cleanupColumnName(kvp.Key));
+                            Console.WriteLine(kvp.Key);
+                            _columnNames.Add(kvp.Key); //cleanupColumnName(kvp.Key));
                             keys.Add(kvp.Key);
                         }
                     }
@@ -266,8 +291,14 @@ namespace PullSPData
                                 FieldUserValue fieldUserValue = (Microsoft.SharePoint.Client.FieldUserValue)item.FieldValues[rawColumnName];
                                 value = fieldUserValue.LookupValue;
                             }
+                            else if (objValue.GetType().Name.Equals("DateTime"))
+                            {
+                                value = ((DateTime)objValue).ToString("yyyy-MM-ddTHH:mm:ss");
+                            }
                             else
+                            {
                                 value = objValue.ToString();
+                            }
                         }
                         row.Add(_columnNames[i], value);
                     }
@@ -336,13 +367,20 @@ namespace PullSPData
                 addQuotes = true;
             }
 
+            if (value.IndexOf("\r\n") >= 0)
+            {
+                value = value.Replace("\r\n", " ");
+                addQuotes = true;
+            }
+
             // new line is usually \r\n, but some systems just return \n
             if (value.IndexOf(System.Environment.NewLine) >= 0)
             {
                 value = value.Replace(System.Environment.NewLine, " ");
                 addQuotes = true;
             }
-            else if (value.IndexOf("\n") >= 0)
+
+            if (value.IndexOf("\n") >= 0)
             {
                 value = value.Replace("\n", " ");
                 addQuotes = true;

@@ -47,7 +47,7 @@ public class ExportDelimited extends Action {
 	protected String[] _outputColumnNames;
 	protected int[] _outputColumnIndexes;
 	protected DataType[] _outputColumnDataTypes;
-	
+
 	protected boolean _trimSpaces = false;
 	protected boolean _roundDoubles = false;
 	protected boolean _appendData = false;
@@ -58,7 +58,7 @@ public class ExportDelimited extends Action {
 
 		_outputFilename = requiredAttribute("Filename");
 		_dataSetName = requiredAttribute("DataSetName");
-		
+
 		_delimiter = optionalAttribute("Delimiter", _delimiter);
 		_trimSpaces = StringUtilities.toBoolean(optionalAttribute("TrimSpaces"), _trimSpaces);
 		_appendData = StringUtilities.toBoolean(optionalAttribute("Append"), _appendData);
@@ -94,7 +94,9 @@ public class ExportDelimited extends Action {
 					if (i > 0)
 						fw.append(',');
 
-					if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.DateData) {
+					if (_outputColumnIndexes[i] == -1) {
+						fw.append("");
+					} else if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.DateData) {
 						fw.append(DateUtilities.toIsoString((Date) dataRow[_outputColumnIndexes[i]]));
 					} else if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.StringData) {
 						fw.append(wrapString(dataRow[_outputColumnIndexes[i]]));
@@ -140,7 +142,7 @@ public class ExportDelimited extends Action {
 				_outputColumnNames[i] = StringUtilities.isNotNullOrEmpty(alais) ? alais : inputName;
 				_outputColumnIndexes[i] = inputColumnNames.indexOf(inputName);
 				if (_outputColumnIndexes[i] == -1) {
-					throw new RuntimeException(String.format("Column %s not found in the data set.", inputName));
+					_session.addLogMessage("", "*** Warning ***", String.format("Column %s not found in the data set. Defaulting to empty string.", StringUtilities.isNullOrEmpty(inputName) ? alais : inputName));
 				}
 			}
 		} else {
