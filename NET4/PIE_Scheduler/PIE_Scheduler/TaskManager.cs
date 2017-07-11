@@ -445,6 +445,7 @@ namespace ScanManager
             {
                 Dictionary<String, Object> sqlParameters = new Dictionary<String, Object>();
                 sqlParameters.Add(":key", -1);
+                sqlParameters.Add(":requestdate",DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
                     string job_name = "";
