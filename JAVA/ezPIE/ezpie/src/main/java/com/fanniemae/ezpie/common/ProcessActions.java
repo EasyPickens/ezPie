@@ -33,6 +33,7 @@ import com.fanniemae.ezpie.actions.ExecuteSql;
 import com.fanniemae.ezpie.actions.ExportDelimited;
 import com.fanniemae.ezpie.actions.GetSourceCode;
 import com.fanniemae.ezpie.actions.Git;
+import com.fanniemae.ezpie.actions.GitClone;
 import com.fanniemae.ezpie.actions.HighlightScan;
 import com.fanniemae.ezpie.actions.IfElement;
 import com.fanniemae.ezpie.actions.LocalTokens;
@@ -195,6 +196,9 @@ public class ProcessActions {
 					break;
 				case "Schedule":
 					action = new Schedule(session, actionElement);
+					break;
+				case "GitClone":
+					action = new GitClone(session, actionElement);
 					break;
 				default:
 					session.addLogMessage("** Warning **", actionList.item(i).getNodeName(), "Operation not currently supported.");

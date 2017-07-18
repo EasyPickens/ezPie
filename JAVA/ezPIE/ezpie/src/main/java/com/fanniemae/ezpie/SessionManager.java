@@ -114,8 +114,8 @@ public class SessionManager {
 		} else {
 			_logFilename = FileUtilities.getRandomFilename(_logPath, "html");
 		}
-		
-		_cacheMinutes = StringUtilities.toInteger(eleConfig.getAttribute("CacheMinutes"),30);
+
+		_cacheMinutes = StringUtilities.toInteger(eleConfig.getAttribute("CacheMinutes"), 30);
 
 		// Create Debug page.
 		_logger = new LogManager(_templatePath, _logFilename);
@@ -345,7 +345,7 @@ public class SessionManager {
 	public DataStream getDataStream(String name) {
 		if (StringUtilities.isNullOrEmpty(name))
 			throw new RuntimeException("Missing required DataSetName value.");
-		//addLogMessage("", "DataSetName", name);
+		// addLogMessage("", "DataSetName", name);
 
 		if (!_dataSets.containsKey(name))
 			throw new RuntimeException(String.format("DataSetName %s was not found in the list of available data sets.", name));
@@ -374,11 +374,11 @@ public class SessionManager {
 	public void clearDataTokens() {
 		_tokenizer.clearDataTokens();
 	}
-	
+
 	public String optionalAttribute(Node node, String attributeName, String defaultValue) {
 		return optionalAttribute((Element) node, attributeName, defaultValue);
 	}
-	
+
 	public String optionalAttribute(Element element, String attributeName) {
 		return optionalAttribute(element, attributeName, null);
 	}
@@ -387,6 +387,8 @@ public class SessionManager {
 		String value = getAttribute(element, attributeName);
 		if (StringUtilities.isNullOrEmpty(value)) {
 			value = resolveTokens(defaultValue);
+		} else if ("UserID".equals(attributeName) || "Password".equals(attributeName)) {
+			addLogMessage("", attributeName, "{value hidden}");
 		} else {
 			addLogMessage("", attributeName, value);
 		}
@@ -414,11 +416,11 @@ public class SessionManager {
 		addLogMessage("", attributeName, value);
 		return value;
 	}
-	
+
 	public Boolean cachingEnabled() {
 		return _dataCachingEnabled;
 	}
-	
+
 	public int getCacheMinutes() {
 		return _cacheMinutes;
 	}
