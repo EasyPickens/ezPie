@@ -70,7 +70,6 @@ public class TimespanColumn extends DataTransform {
 
 	public TimespanColumn(SessionManager session, Element transform, Calendar fiscalYearStart) {
 		super(session, transform, false);
-		_isolate = true;
 		
 		if (fiscalYearStart == null) {
 			_fiscalStart.set(Calendar.MONTH, 0);
@@ -96,7 +95,7 @@ public class TimespanColumn extends DataTransform {
 		if (fiscalYearStart != null) {
 			_transformInfo.appendFormatLine("Fiscal Year Start = %s", DateUtilities.toIsoString(fiscalYearStart));
 		}
-		_transformInfo.appendFormat("TimePeriod = %s", sTimePeriod);
+		_transformInfo.appendFormatLine("TimePeriod = %s", sTimePeriod);
 		
 		// Populate the arrays with the server culture day and month names.
 		populateNameArrays(sCulture);
