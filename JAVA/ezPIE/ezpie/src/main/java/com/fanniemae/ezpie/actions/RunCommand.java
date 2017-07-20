@@ -52,6 +52,8 @@ public class RunCommand extends Action {
 	protected String _acceptableErrorOutput;
 	protected boolean _ignoreErrorCode = false;
 
+	protected String _batchFilename;
+
 	public RunCommand(SessionManager session, Element action) {
 		this(session, action, false);
 	}
@@ -63,89 +65,98 @@ public class RunCommand extends Action {
 
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
-		_session.setDataTokens(dataTokens);
-
-		if (_action.getNodeName().equals("RunCommand")) {
-
-			_hideConsoleOutput = StringUtilities.toBoolean(optionalAttribute("HideConsoleOutput", null), false);
-			_workDirectory = requiredAttribute("WorkDirectory");
-
-			_commandLine = _session.getAttribute(_action, "CommandLine");
-			if (StringUtilities.isNullOrEmpty(_commandLine)) {
-				throw new RuntimeException("Missing a value for CommandLine on the RunCommand element.");
-			}
-			_session.addLogMessage("", "CommandLine", (_hideConsoleOutput) ? "-- Hidden --" : _commandLine);
-
-			String waitForExit = optionalAttribute("WaitForExit", null);
-			String timeout = optionalAttribute("Timeout", "2h");
-			Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
-
-			_waitForExit = StringUtilities.toBoolean(waitForExit, true);
-			_timeout = parseTimeout(timeout);
-
-			_arguments = parseCommandLine(_commandLine);
-
-			if (makeBatchFile) {
-				makeBatchFile();
-			}
-		}
-
-		String sConsoleFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
-		Timer commandTimer = null;
-		ProcessBuilder pb = new ProcessBuilder(_arguments);
-		pb.directory(new File(_workDirectory));
-		pb.redirectErrorStream(true);
 		try {
+			_session.setDataTokens(dataTokens);
+
+			if (_action.getNodeName().equals("RunCommand")) {
+
+				_hideConsoleOutput = StringUtilities.toBoolean(optionalAttribute("HideConsoleOutput", null), false);
+				_workDirectory = requiredAttribute("WorkDirectory");
+
+				_commandLine = _session.getAttribute(_action, "CommandLine");
+				if (StringUtilities.isNullOrEmpty(_commandLine)) {
+					throw new RuntimeException("Missing a value for CommandLine on the RunCommand element.");
+				}
+				_session.addLogMessage("", "CommandLine", (_hideConsoleOutput) ? "-- Hidden --" : _commandLine);
+
+				String waitForExit = optionalAttribute("WaitForExit", null);
+				String timeout = optionalAttribute("Timeout", "2h");
+				Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
+
+				_waitForExit = StringUtilities.toBoolean(waitForExit, true);
+				_timeout = parseTimeout(timeout);
+
+				_arguments = parseCommandLine(_commandLine);
+
+				if (makeBatchFile) {
+					makeBatchFile();
+				}
+			}
+
+			String sConsoleFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
+			Timer commandTimer = null;
+			ProcessBuilder pb = new ProcessBuilder(_arguments);
+			pb.directory(new File(_workDirectory));
 			pb.redirectErrorStream(true);
-			Process p = pb.start();
-			TimerTask killer = new TimeoutRunCommandManager(p);
-			if (_timeout > 0) {
-				commandTimer = new Timer();
-				commandTimer.schedule(killer, _timeout * 1000);
-			}
-
-			try (InputStream is = p.getInputStream(); InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr); FileWriter fw = new FileWriter(sConsoleFilename); BufferedWriter bw = new BufferedWriter(fw);) {
-				String line = "";
-				boolean bAddLineBreak = false;
-				int iLines = 0;
-				while ((line = br.readLine()) != null) {
-					if (bAddLineBreak)
-						bw.append(System.lineSeparator());
-					if (_acceptableErrorOutput != null && _acceptableErrorOutput.equals(line.trim()))
-						_ignoreErrorCode = true;
-					bw.append(line);
-					bAddLineBreak = true;
-					iLines++;
+			try {
+				pb.redirectErrorStream(true);
+				Process p = pb.start();
+				TimerTask killer = new TimeoutRunCommandManager(p);
+				if (_timeout > 0) {
+					commandTimer = new Timer();
+					commandTimer.schedule(killer, _timeout * 1000);
 				}
-				if (_waitForExit)
-					p.waitFor();
 
-				bw.flush();
-				bw.close();
-				if (_hideConsoleOutput) {
-					_session.addLogMessage("", "Console Output", "-- Hidden --");
-				} else {
-					_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
+				try (InputStream is = p.getInputStream(); InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr); FileWriter fw = new FileWriter(sConsoleFilename); BufferedWriter bw = new BufferedWriter(fw);) {
+					String line = "";
+					boolean bAddLineBreak = false;
+					int iLines = 0;
+					while ((line = br.readLine()) != null) {
+						if (bAddLineBreak)
+							bw.append(System.lineSeparator());
+						if (_acceptableErrorOutput != null && _acceptableErrorOutput.equals(line.trim()))
+							_ignoreErrorCode = true;
+						bw.append(line);
+						bAddLineBreak = true;
+						iLines++;
+					}
+					if (_waitForExit)
+						p.waitFor();
+
+					bw.flush();
+					bw.close();
+					if (_hideConsoleOutput) {
+						_session.addLogMessage("", "Console Output", "-- Hidden --");
+					} else {
+						_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
+					}
+				} catch (InterruptedException ex) {
+					_session.addErrorMessage(ex);
+					throw new RuntimeException("Error while running external command.", ex);
+				} finally {
+					if (commandTimer != null) {
+						commandTimer.cancel();
+						if (p.exitValue() != 0)
+							throw new RuntimeException(String.format("External command returned an error code of %d", p.exitValue()));
+					} else {
+						if (!_ignoreErrorCode && ArrayUtilities.indexOf(_exitCodes, p.exitValue()) == -1)
+							throw new RuntimeException(String.format("External command returned an error code of %d.  View console output for error details.", p.exitValue()));
+					}
+					_session.addLogMessage("", "Exit Code", p.exitValue() + "");
 				}
-			} catch (InterruptedException ex) {
-				_session.addErrorMessage(ex);
+			} catch (IOException ex) {
 				throw new RuntimeException("Error while running external command.", ex);
-			} finally {
-				if (commandTimer != null) {
-					commandTimer.cancel();
-					if (p.exitValue() != 0)
-						throw new RuntimeException(String.format("External command returned an error code of %d", p.exitValue()));
-				} else {
-					if (!_ignoreErrorCode && ArrayUtilities.indexOf(_exitCodes, p.exitValue()) == -1)
-						throw new RuntimeException(String.format("External command returned an error code of %d.  View console output for error details.", p.exitValue()));
-				}
-				_session.addLogMessage("", "Exit Code", p.exitValue() + "");
 			}
-		} catch (IOException ex) {
-			throw new RuntimeException("Error while running external command.", ex);
+		} finally {
+			_session.clearDataTokens();
+			if (FileUtilities.isValidFile(_batchFilename)) {
+				try {
+					FileUtilities.deleteFile(_batchFilename);
+				} catch (Exception e) {
+					_session.addLogMessage("*** Warning ***", "Delete Batch", "Could not delete batch file. " + e.getMessage());
+				}
+			}
 		}
-		_session.clearDataTokens();
-		// _session.addLogMessage("", "Command", "Completed");
 		return null;
 	}
 
@@ -232,9 +243,9 @@ public class RunCommand extends Action {
 	}
 
 	protected void makeBatchFile() {
-		String batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", ArrayUtilities.toCommandLine(_arguments));
-		_session.addLogMessage("", "Created Batch File", batchFilename);
-		_arguments = new String[] { batchFilename };
+		_batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", ArrayUtilities.toCommandLine(_arguments));
+		_session.addLogMessage("", "Created Batch File", _batchFilename);
+		_arguments = new String[] { _batchFilename };
 	}
 }
 
