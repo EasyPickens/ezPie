@@ -12,6 +12,7 @@
 package com.fanniemae.ezpie.actions;
 
 import java.io.File;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -19,7 +20,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
-import com.fanniemae.ezpie.common.GitUtilities;
+import com.fanniemae.ezpie.common.GitOperations;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -46,6 +47,10 @@ public class GitClone extends Action {
 		String repo_userID = optionalAttribute("UserID");
 		String repo_password = optionalAttribute("Password");
 		String privateKey = optionalAttribute("PrivateKey");
+		String proxyHost = optionalAttribute("ProxyHost");
+		String proxyPort = optionalAttribute("ProxyPort");
+		String proxyUserID = optionalAttribute("ProxyUserID");
+		String proxyPassword = optionalAttribute("ProxyPassword");
 		String connectionName = optionalAttribute("ConnectionName");
 		if (StringUtilities.isNotNullOrEmpty(connectionName)) {
 			Element repo_connection = _session.getConnection(connectionName);
@@ -53,6 +58,10 @@ public class GitClone extends Action {
 			repo_userID = StringUtilities.isNullOrEmpty(repo_userID) ? optionalAttribute(repo_connection, "UserID", repo_userID) : repo_userID;
 			repo_password = StringUtilities.isNullOrEmpty(repo_password) ? optionalAttribute(repo_connection, "Password", repo_password) : repo_password;
 			privateKey = StringUtilities.isNullOrEmpty(privateKey) ? optionalAttribute(repo_connection, "PrivateKey", privateKey) : privateKey;
+			proxyHost = StringUtilities.isNullOrEmpty(proxyHost) ? optionalAttribute(repo_connection, "ProxyHost", proxyHost) : proxyHost;
+			proxyPort = StringUtilities.isNullOrEmpty(proxyPort) ? optionalAttribute(repo_connection, "ProxyPort", proxyPort) : proxyPort;
+			proxyUserID = StringUtilities.isNullOrEmpty(proxyUserID) ? optionalAttribute(repo_connection, "ProxyUserID", proxyUserID) : proxyUserID;
+			proxyPassword = StringUtilities.isNullOrEmpty(proxyPassword) ? optionalAttribute(repo_connection, "ProxyPassword", proxyPassword) : proxyPassword;
 		}
 
 		if (StringUtilities.isNotNullOrEmpty(privateKey) && FileUtilities.isInvalidFile(privateKey)) {
@@ -66,15 +75,18 @@ public class GitClone extends Action {
 
 		try {
 			String log = "No Information Available.";
+			GitOperations git = new GitOperations(proxyHost, proxyPort, proxyUserID, proxyPassword);
 			if (StringUtilities.isNullOrEmpty(privateKey)) {
-				log = GitUtilities.cloneHTTP(repo_uri, localPath, repo_userID, repo_password, branch);
+				log = git.cloneHTTP(repo_uri, localPath, repo_userID, repo_password, branch);
 			} else {
-				log = GitUtilities.cloneSSH(repo_uri, localPath, privateKey, repo_password, branch);
+				log = git.cloneSSH(repo_uri, localPath, privateKey, repo_password, branch);
 			}
 			String filename = FileUtilities.writeRandomTextFile(_session.getLogPath(), log);
 			_session.addLogMessage("", "Clone Output", "View Clone Log", "file://" + filename);
 		} catch (GitAPIException e) {
-			throw new RuntimeException(String.format("Error while trying to clone %s over HTTP connection. %s",repo_uri, e),e);
+			throw new RuntimeException(String.format("Error while trying to clone %s repository . %s",repo_uri, e.getMessage()),e);
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(String.format("Error while trying to clone %s repository. %s",repo_uri, e.getMessage()),e);
 		}
 		
 		return null;

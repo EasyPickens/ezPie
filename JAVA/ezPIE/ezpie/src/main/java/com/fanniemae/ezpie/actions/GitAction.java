@@ -29,12 +29,12 @@ import com.fanniemae.ezpie.common.XmlUtilities;
  * 
  */
 
-public class Git extends RunCommand {
+public class GitAction extends RunCommand {
 
 	protected String _plinkPath;
 	protected String _batchFilename;
 
-	public Git(SessionManager session, Element action) {
+	public GitAction(SessionManager session, Element action) {
 		super(session, action, false);
 
 		_workDirectory = requiredAttribute("LocalPath").trim();

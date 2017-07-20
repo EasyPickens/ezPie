@@ -32,7 +32,7 @@ import com.fanniemae.ezpie.actions.Directory;
 import com.fanniemae.ezpie.actions.ExecuteSql;
 import com.fanniemae.ezpie.actions.ExportDelimited;
 import com.fanniemae.ezpie.actions.GetSourceCode;
-import com.fanniemae.ezpie.actions.Git;
+import com.fanniemae.ezpie.actions.GitAction;
 import com.fanniemae.ezpie.actions.GitClone;
 import com.fanniemae.ezpie.actions.HighlightScan;
 import com.fanniemae.ezpie.actions.IfElement;
@@ -118,7 +118,7 @@ public class ProcessActions {
 					action = new ComponentScan(session, actionElement);
 					break;
 				case "Git":
-					action = new Git(session, actionElement);
+					action = new GitAction(session, actionElement);
 					break;
 				case "Maven":
 					action = new Maven(session, actionElement);
