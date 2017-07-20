@@ -29,7 +29,7 @@
   </Tokens>
   <Tokens>
     <Scheduler ScheduledJobCheck="SELECT pkey, definition_name, scheduled_date, current_timestamp bbb FROM fnma_measure8.scan_manager WHERE (scheduled_date is not null) and (scheduled_date::timestamp &lt; current_timestamp) and (definition_name is not null)" />
-    <Scheduler QueueScheduledJob="UPDATE fnma_measure8.scan_manager SET scan_requested=true, request_date=current_timestamp, scan_status='Queued', machine_name=null, scheduled_date=null WHERE pkey=:key and scan_requested=false and machine_name is null and in_progress=false and scan_status='Completed'" />
+    <Scheduler QueueScheduledJob="UPDATE fnma_measure8.scan_manager SET scan_requested=true, request_date=:requestdate, scan_status='Queued', machine_name=null, scheduled_date=null WHERE pkey=:key and scan_requested=false and machine_name is null and in_progress=false and scan_status='Completed'" />
   </Tokens>
   <Remark>
     <Scheduler xErrorOldInProgress="UPDATE fnma_measure8.scan_manager SET in_progress = false, scan_requested = false, scan_status = 'Error', status_description = 'See log for Details' WHERE in_progress and machine_name=:machinename" />
