@@ -255,7 +255,7 @@ public class DataReader extends DataFormat {
         populateHeaderInformation();
 
         try {
-            Document doc = XmlUtilities.CreateXMLDocument(_schemaXML);
+            Document doc = XmlUtilities.createXMLDocument(_schemaXML);
             XPathFactory xFactory = XPathFactory.newInstance();
             XPath xp = xFactory.newXPath();
             XPathExpression expr = xp.compile("FileInfo/DataInfo/DataColumn");

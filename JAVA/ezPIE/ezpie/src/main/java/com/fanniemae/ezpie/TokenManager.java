@@ -21,6 +21,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.fanniemae.ezpie.common.Encryption;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
@@ -42,13 +43,17 @@ public class TokenManager {
 
 	protected String _tokenPrefix = "[";
 	protected String _tokenSuffix = "]";
+	protected String _hiddenValueMessage = "-- Value Hidden --";
+	
+	protected byte[][] _encryptionKey = null;
 
 	protected enum LogVisibility {
 		NONE, TOKEN_NAME, FULL
 	};
 
-	public TokenManager(Element eleSettings, LogManager logger) {
+	public TokenManager(Element eleSettings, LogManager logger, byte[][] encryptionKey) {
 		_logger = logger;
+		_encryptionKey = encryptionKey;
 		NodeList nl = eleSettings.getChildNodes();
 		int iLength = nl.getLength();
 		for (int i = 0; i < iLength; i++) {
@@ -95,7 +100,7 @@ public class TokenManager {
 		aTokenValues.put(key, value);
 		_tokens.put(tokenType, aTokenValues);
 		if (hideIt(key)) {
-			_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = {value hidden}", _tokenPrefix, tokenType, key, _tokenSuffix));
+			_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, _hiddenValueMessage));
 			return;
 		}
 		_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, value));
@@ -123,11 +128,11 @@ public class TokenManager {
 		}
 		return "";
 	}
-	
+
 	public String getTokenPrefix() {
 		return _tokenPrefix;
 	}
-	
+
 	public String getTokenSuffix() {
 		return _tokenSuffix;
 	}
@@ -271,9 +276,21 @@ public class TokenManager {
 
 			HashMap<String, String> tokenKeyValues = _tokens.containsKey(tokenType) ? _tokens.get(tokenType) : new HashMap<String, String>();
 			for (int x = 0; x < attrCount; x++) {
+				boolean hideValue = false;
 				Node xA = attributes.item(x);
 				String name = xA.getNodeName();
 				String value = xA.getNodeValue();
+
+				if (!"Secure".equals(name) && name.endsWith("Secure")) {
+					name = name.substring(0, name.length() - 6);
+					if ((value != null) && value.startsWith("") && (_encryptionKey != null)) {
+						value = Encryption.decryptToString(value.substring(10), _encryptionKey);
+					}
+					hideValue = true;
+				} else if (!"Hide".equals(name) && name.endsWith("Hide")) {
+					name = name.substring(0, name.length() - 4);
+					hideValue = true;
+				}
 
 				if ("Hide".equals(name))
 					continue;
@@ -286,8 +303,8 @@ public class TokenManager {
 				if (addNewLine)
 					sb.append("\n");
 
-				if (hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
-					sb.append(String.format("%1$s%2$s.%3$s%4$s = {value hidden}", _tokenPrefix, tokenType, name, _tokenSuffix));
+				if (hideValue || hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
+					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, _hiddenValueMessage));
 				} else {
 					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, value));
 				}
@@ -336,7 +353,7 @@ public class TokenManager {
 			if (addNewLine)
 				sb.append("\n");
 			if (hideIt(name) && (visibility == LogVisibility.TOKEN_NAME)) {
-				sb.append(String.format("%1$s%2$s.%3$s%4$s = {value hidden}", _tokenPrefix, tokenType, name, _tokenSuffix));
+				sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, _hiddenValueMessage));
 			} else {
 				sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, value));
 			}

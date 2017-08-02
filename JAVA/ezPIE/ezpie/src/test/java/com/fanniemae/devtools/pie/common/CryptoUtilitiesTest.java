@@ -40,7 +40,7 @@ public class CryptoUtilitiesTest extends TestCase {
 	@Test
 	public void testHashValueNewOld() {
 		String hashedValueOld = CryptoUtilities.hashValue(";lkajsdfl;kjas;ldfjouq204597-0129750219u502193j");
-		String hashedValueNew = Encryption.getSHA1Hash(";lkajsdfl;kjas;ldfjouq204597-0129750219u502193j");
+		String hashedValueNew = Encryption.getSHA1(";lkajsdfl;kjas;ldfjouq204597-0129750219u502193j");
 		// assertEquals("HashValue of string","b4fe52b2e454463b07e49c3ece45a5fda1cb4575",hashedValue);
 		assertEquals("HashValue of string", hashedValueNew.toLowerCase(), hashedValueOld);
 	}
@@ -48,14 +48,14 @@ public class CryptoUtilitiesTest extends TestCase {
 	@Test
 	public void testHashValueEmptyStringNewOld() {
 		String hashedValueOld = CryptoUtilities.hashValue("");
-		String hashedValueNew = Encryption.getSHA1Hash("");
+		String hashedValueNew = Encryption.getSHA1("");
 		assertEquals("Hash empty string", hashedValueNew.toLowerCase(), hashedValueOld);
 	}
 
 	@Test
 	public void testHashValueNullNewOld() {
 		String hashedValueOld = CryptoUtilities.hashValue(null);
-		String hashedValueNew = Encryption.getSHA1Hash(null);
+		String hashedValueNew = Encryption.getSHA1(null);
 		assertEquals("Hash null string", hashedValueNew, hashedValueOld);
 	}
 

@@ -22,6 +22,7 @@ import org.w3c.dom.Node;
 import com.fanniemae.ezpie.common.CryptoUtilities;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DataTable;
+import com.fanniemae.ezpie.common.Encryption;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.Miscellaneous;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -33,7 +34,12 @@ import com.fanniemae.ezpie.common.XmlUtilities;
  * @since 2015-12-15
  * 
  */
+
 public class SessionManager {
+	private static final String ENCRYPTED_PREFIX = "{ENCRYPT1}";
+	private static final String SECURE_SUFFIX = "Secure";
+	private static final String HIDE_SUFFIX = "Hide";
+
 	protected String _logFilename;
 	protected String _jobFilename;
 
@@ -45,6 +51,7 @@ public class SessionManager {
 	protected String _pathSeparator = System.getProperty("file.separator");
 	protected String _tokenPrefix = "[";
 	protected String _tokenSuffix = "]";
+	protected String _hiddenValueMessage = "-- Value Hidden --";
 
 	protected String _jobRescanFilename = null;
 
@@ -64,10 +71,13 @@ public class SessionManager {
 
 	protected Boolean _dataCachingEnabled = false;
 	protected Boolean _updateScanManager = false;
+	protected Boolean _lastAttributeSecure = false;
 
 	protected Map<String, DataStream> _dataSets = new HashMap<String, DataStream>();
 
 	protected DataTable _codeLocations = null;
+
+	protected byte[][] _encryptionKey = null;
 
 	public SessionManager(String settingsFilename, String jobFilename, List<String> args) {
 		if (!FileUtilities.isValidFile(settingsFilename)) {
@@ -77,7 +87,8 @@ public class SessionManager {
 				throw new RuntimeException(String.format("Settings file not found in %s", settingsFilename));
 			}
 		}
-		Document xSettings = XmlUtilities.loadXmlDefinition(settingsFilename);
+		DefinitionManager dm = new DefinitionManager();
+		Document xSettings = dm.loadFile(settingsFilename);
 		if (xSettings == null)
 			throw new RuntimeException("No settings information found.");
 
@@ -116,6 +127,10 @@ public class SessionManager {
 		}
 
 		_cacheMinutes = StringUtilities.toInteger(eleConfig.getAttribute("CacheMinutes"), 30);
+		String encryptionKey = eleConfig.getAttribute("EncryptionKey");
+		if (StringUtilities.isNotNullOrEmpty(encryptionKey)) {
+			_encryptionKey = Encryption.setupKey(encryptionKey);
+		}
 
 		// Create Debug page.
 		_logger = new LogManager(_templatePath, _logFilename);
@@ -136,16 +151,17 @@ public class SessionManager {
 		try {
 			_logger.addFileDetails(_jobFilename, "Definition Details");
 			_logger.addMessage("Setup Token Dictionary", "Load Tokens", "Read value from settings file.");
-			_tokenizer = new TokenManager(_settings, _logger);
+			_tokenizer = new TokenManager(_settings, _logger, _encryptionKey);
 			_tokenPrefix = _tokenizer.getTokenPrefix();
 			_tokenSuffix = _tokenizer.getTokenSuffix();
 
-			Document xmlJobDefinition = XmlUtilities.loadXmlDefinition(_jobFilename);
+			dm = new DefinitionManager(this, _encryptionKey);
+			Document xmlJobDefinition = dm.loadFile(_jobFilename);
 			if (xmlJobDefinition == null)
 				throw new RuntimeException("No settings information found.");
 
 			_job = xmlJobDefinition.getDocumentElement();
-			String finalJobDefinition = FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.XMLDocumentToString(xmlJobDefinition));
+			String finalJobDefinition = FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.xmlDocumentToString(xmlJobDefinition));
 			// _session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + finalJobDefinition);
 			_logger.addMessage("", "Prepared Definition", "View Definition", "file://" + finalJobDefinition);
 			_logger.addMessage("", "Adjusted Size", String.format("%,d bytes", XmlUtilities.getOuterXml(_job).length()));
@@ -162,15 +178,6 @@ public class SessionManager {
 			_updateScanManager = StringUtilities.toBoolean(getTokenValue("Configuration", "UpdateScanManager"), false);
 		} catch (Exception ex) {
 		}
-
-		// String jobKey = getTokenValue("Local","JobKey");
-		// if ((_connScanManager != null) && StringUtilities.isNotNullOrEmpty(jobKey)) {
-		// _updateScanManager = true;
-		//// String key = resolveTokens("[Local.JobKey]");
-		//// if (StringUtilities.isNullOrEmpty(key))
-		//// throw new RuntimeException("Missing job primary key required to update ScanManager status.");
-		//// _jobKey = StringUtilities.toInteger(key, -1);
-		// }
 	}
 
 	public TokenManager getTokenizer() {
@@ -179,6 +186,10 @@ public class SessionManager {
 
 	public Element getJobDefinition() {
 		return _job;
+	}
+
+	public String getApplicationPath() {
+		return _appPath;
 	}
 
 	public String getStagingPath() {
@@ -201,12 +212,20 @@ public class SessionManager {
 		return System.lineSeparator();
 	}
 
+	public String getHiddenMessage() {
+		return _hiddenValueMessage;
+	}
+
 	public Element getConnectionScanManager() {
 		return _connScanManager;
 	}
 
 	public Boolean updateScanManager() {
 		return _updateScanManager;
+	}
+
+	public Boolean lastAttributeSecure() {
+		return _lastAttributeSecure;
 	}
 
 	public String getAttribute(Node ele, String name) {
@@ -225,7 +244,28 @@ public class SessionManager {
 		if (ele == null)
 			return "";
 
+		_lastAttributeSecure = false;
+		if (!ele.hasAttribute(name)) {
+			// Check for a secure version of the attribute name
+			String secureName = String.format("%s%s", name, SECURE_SUFFIX);
+			String hideName = String.format("%s%s", name, HIDE_SUFFIX);
+			if (ele.hasAttribute(secureName)) {
+				name = secureName;
+				_lastAttributeSecure = true;
+			} else if (ele.hasAttribute(hideName)) {
+				name = hideName;
+				_lastAttributeSecure = true;
+			}
+		}
+
 		String value = ele.getAttribute(name);
+		if (_lastAttributeSecure && (value != null) && value.startsWith(ENCRYPTED_PREFIX)) {
+			// Need to decrypt this value if it is encrypted.
+			if (_encryptionKey == null) {
+				throw new RuntimeException("No encryption key defined in settings file.");
+			}
+			value = Encryption.decryptToString(value.substring(10), _encryptionKey);
+		}
 
 		if (StringUtilities.isNullOrEmpty(value))
 			return defaultValue;
@@ -235,11 +275,11 @@ public class SessionManager {
 
 		int iTokenSplit = 0;
 		int iTokenEnd = 0;
-		String[] aTokens = value.split("\\[");
+		String[] aTokens = value.split("\\" + _tokenPrefix);
 
 		for (int i = 0; i < aTokens.length; i++) {
 			iTokenSplit = aTokens[i].indexOf('.');
-			iTokenEnd = aTokens[i].indexOf(']');
+			iTokenEnd = aTokens[i].indexOf(_tokenSuffix);
 			if ((iTokenSplit == -1) || (iTokenEnd == -1))
 				continue;
 			if (iTokenSplit > iTokenEnd)
@@ -387,8 +427,8 @@ public class SessionManager {
 		String value = getAttribute(element, attributeName);
 		if (StringUtilities.isNullOrEmpty(value)) {
 			value = resolveTokens(defaultValue);
-		} else if ("UserID".equals(attributeName) || "Password".equals(attributeName)) {
-			addLogMessage("", attributeName, "{value hidden}");
+		} else if (_lastAttributeSecure || "UserID".equals(attributeName) || "Password".equals(attributeName)) {
+			addLogMessage("", attributeName, getHiddenMessage());
 		} else {
 			addLogMessage("", attributeName, value);
 		}
@@ -412,8 +452,11 @@ public class SessionManager {
 		String value = getAttribute(element, attributeName);
 		if (StringUtilities.isNullOrEmpty(value)) {
 			throw new RuntimeException(errorMessage);
+		} else if (_lastAttributeSecure || "UserID".equals(attributeName) || "Password".equals(attributeName)) {
+			addLogMessage("", attributeName, getHiddenMessage());
+		} else {
+			addLogMessage("", attributeName, value);
 		}
-		addLogMessage("", attributeName, value);
 		return value;
 	}
 
