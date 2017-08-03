@@ -70,7 +70,8 @@ public class LogManager {
 		try (RandomAccessFile raf = new RandomAccessFile(_logFilename, "rw")) {
 			raf.seek(raf.length() - _footerLength);
 			raf.write(String.format(_basicLine, logGroup, "File Name", fi.getName(), elapsedTime()).getBytes());
-			raf.write(String.format(_basicLine, "", "Full Path", filename, elapsedTime()).getBytes());
+			// Turning off the full path on log, could be security concern.
+			// raf.write(String.format(_basicLine, "", "Full Path", filename, elapsedTime()).getBytes());
 			raf.write(String.format(_basicLine, "", "Last Modified Date", dtModified.toString(), elapsedTime()).getBytes());
 			raf.write(String.format(_basicLine, "", "Size", String.format("%,d bytes", fi.length()), elapsedTime()).getBytes());
 			raf.write(_htmlFooterByteArray);

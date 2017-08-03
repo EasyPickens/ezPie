@@ -149,12 +149,12 @@ public class SessionManager {
 		_jobFilename = jobFilename;
 
 		try {
-			_logger.addFileDetails(_jobFilename, "Definition Details");
-			_logger.addMessage("Setup Token Dictionary", "Load Tokens", "Read value from settings file.");
+			_logger.addMessage("Setup Token Dictionary", "Load Tokens", "Read values from settings file.");
 			_tokenizer = new TokenManager(_settings, _logger, _encryptionKey);
 			_tokenPrefix = _tokenizer.getTokenPrefix();
 			_tokenSuffix = _tokenizer.getTokenSuffix();
 
+			_logger.addFileDetails(_jobFilename, "Definition Details");
 			dm = new DefinitionManager(this, _encryptionKey);
 			Document xmlJobDefinition = dm.loadFile(_jobFilename);
 			if (xmlJobDefinition == null)
@@ -364,10 +364,6 @@ public class SessionManager {
 
 	public void addTokens(String tokenType, String[][] kvps) {
 		_tokenizer.addTokens(tokenType, kvps);
-	}
-
-	public void addTokens(String tokenType, Node node) {
-		_tokenizer.addTokens(tokenType, node);
 	}
 
 	public void addToken(String tokenType, String key, String value) {

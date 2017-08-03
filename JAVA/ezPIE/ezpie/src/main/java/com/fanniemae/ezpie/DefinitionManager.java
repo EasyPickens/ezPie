@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.Encryption;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -32,9 +33,6 @@ import com.fanniemae.ezpie.common.XmlUtilities;
  */
 
 public class DefinitionManager {
-	private static final String ENCRYPTED_PREFIX = "{ENCRYPT1}";
-	private static final String SECURE_SUFFIX = "Secure";
-
 	protected SessionManager _session = null;
 
 	protected byte[][] _encryptionKey = null;
@@ -63,7 +61,7 @@ public class DefinitionManager {
 
 	private Document encryptSecureElements(Document doc) {
 		boolean needToSave = false;
-		NodeList nlSecuredAttributes = XmlUtilities.selectNodes(doc.getDocumentElement(), String.format("//@*[contains(name(),'%s')]", SECURE_SUFFIX));
+		NodeList nlSecuredAttributes = XmlUtilities.selectNodes(doc.getDocumentElement(), String.format("//@*[contains(name(),'%s')]", Constants.SECURE_SUFFIX));
 
 		if (nlSecuredAttributes != null) {
 			int length = nlSecuredAttributes.getLength();
@@ -73,13 +71,11 @@ public class DefinitionManager {
 			for (int i = 0; i < length; i++) {
 				String name = nlSecuredAttributes.item(i).getNodeName();
 				String value = nlSecuredAttributes.item(i).getNodeValue();
-				if (!name.endsWith(SECURE_SUFFIX) || value.startsWith(ENCRYPTED_PREFIX)) {
+				if (!name.endsWith(Constants.SECURE_SUFFIX) || value.startsWith(Constants.ENCRYPTED_PREFIX)) {
 					continue;
 				}
 				needToSave = true;
-				System.out.println(String.format("%s = %s", name, value));
-				nlSecuredAttributes.item(i).setNodeValue(String.format("%s%s", ENCRYPTED_PREFIX, Encryption.encryptToString(value, _encryptionKey)));
-				System.out.println(String.format("%s = %s", name, nlSecuredAttributes.item(i).getNodeValue()));
+				nlSecuredAttributes.item(i).setNodeValue(String.format("%s%s", Constants.ENCRYPTED_PREFIX, Encryption.encryptToString(value, _encryptionKey)));
 			}
 			if (needToSave) {
 				saveXmlFile(doc);
@@ -97,7 +93,7 @@ public class DefinitionManager {
 		if (_isSettingsFile) {
 			Node config = XmlUtilities.selectSingleNode(doc, "//Configuration");
 			if (config != null) {
-				String key = ((Element)config).getAttribute("EncryptionKey");
+				String key = ((Element) config).getAttribute("EncryptionKey");
 				if (!key.isEmpty()) {
 					_encryptionKey = Encryption.setupKey(key);
 				}

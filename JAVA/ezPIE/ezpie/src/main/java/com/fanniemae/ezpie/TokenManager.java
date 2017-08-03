@@ -21,11 +21,10 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.Encryption;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
-
-import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
  * 
@@ -43,7 +42,6 @@ public class TokenManager {
 
 	protected String _tokenPrefix = "[";
 	protected String _tokenSuffix = "]";
-	protected String _hiddenValueMessage = "-- Value Hidden --";
 	
 	protected byte[][] _encryptionKey = null;
 
@@ -54,33 +52,13 @@ public class TokenManager {
 	public TokenManager(Element eleSettings, LogManager logger, byte[][] encryptionKey) {
 		_logger = logger;
 		_encryptionKey = encryptionKey;
-		NodeList nl = eleSettings.getChildNodes();
-		int iLength = nl.getLength();
-		for (int i = 0; i < iLength; i++) {
-			if (nl.item(i).getNodeType() != ELEMENT_NODE)
-				continue;
-
-			switch (nl.item(i).getNodeName()) {
-			case "Configuration":
-				// check for user defined token prefix and suffix.
-				Element config = (Element) nl.item(i);
-				String tokenPrefix = config.getAttribute("TokenPrefix");
-				String tokenSuffix = config.getAttribute("TokenSuffix");
-				if (StringUtilities.isNotNullOrEmpty(tokenPrefix))
-					_tokenPrefix = tokenPrefix;
-				if (StringUtilities.isNotNullOrEmpty(tokenSuffix))
-					_tokenSuffix = tokenSuffix;
-
-				if (_tokenPrefix.equals(_tokenSuffix))
-					throw new RuntimeException("Token prefix and suffix must be different characters.");
-
-				// Load the rest of the configuration tokens
-				loadTokenValues("Configuration", nl.item(i));
-				break;
-			case "Tokens":
-				loadTokenValues(nl.item(i));
-				break;
-			}
+		
+		loadTokenValues(eleSettings, "Configuration");
+		
+		NodeList nl = eleSettings.getElementsByTagName("Tokens");
+		int length = nl.getLength();
+		for (int i=0;i<length;i++) {
+			loadTokenValues(nl.item(i));
 		}
 	}
 
@@ -100,7 +78,7 @@ public class TokenManager {
 		aTokenValues.put(key, value);
 		_tokens.put(tokenType, aTokenValues);
 		if (hideIt(key)) {
-			_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, _hiddenValueMessage));
+			_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, Constants.VALUE_HIDDEN_MESSAGE));
 			return;
 		}
 		_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, value));
@@ -108,10 +86,6 @@ public class TokenManager {
 
 	public void addTokens(Node tokenNode) {
 		loadTokenValues(tokenNode);
-	}
-
-	public void addTokens(String tokenType, Node nodeTokenValues) {
-		loadTokenValues(tokenType, nodeTokenValues);
 	}
 
 	public void addTokens(String tokenType, String[][] kvps) {
@@ -249,10 +223,16 @@ public class TokenManager {
 	}
 
 	protected void loadTokenValues(Node tokenNode) {
+		loadTokenValues(tokenNode,"*");
+	}
+	
+	protected void loadTokenValues(Node tokenNode, String xpath) {
 		if (tokenNode == null)
 			return;
 
-		NodeList nl = XmlUtilities.selectNodes(tokenNode, "*");
+		boolean isTokenNode = "Token".equals(tokenNode.getLocalName());
+		
+		NodeList nl = XmlUtilities.selectNodes(tokenNode, xpath);
 		int nodeCount = nl.getLength();
 		if (nodeCount == 0)
 			return;
@@ -265,7 +245,7 @@ public class TokenManager {
 
 		for (int i = 0; i < nodeCount; i++) {
 			String tokenType = nl.item(i).getNodeName();
-			if ("|configuration|system|environment|application|data".indexOf(tokenType.toLowerCase()) != -1) {
+			if (isTokenNode && (Constants.TOKEN_TYPES_RESERVED.indexOf(tokenType.toLowerCase()) != -1)) {
 				throw new RuntimeException(String.format("%s is one of the reserved token types.  Please rename your token type.", tokenType));
 			}
 			LogVisibility showLevel = HideStatus(((Element) nl.item(i)).getAttribute("Hide"), defaultVisibility);
@@ -281,14 +261,14 @@ public class TokenManager {
 				String name = xA.getNodeName();
 				String value = xA.getNodeValue();
 
-				if (!"Secure".equals(name) && name.endsWith("Secure")) {
-					name = name.substring(0, name.length() - 6);
-					if ((value != null) && value.startsWith("") && (_encryptionKey != null)) {
-						value = Encryption.decryptToString(value.substring(10), _encryptionKey);
+				if (!Constants.SECURE_SUFFIX.equals(name) && name.endsWith(Constants.SECURE_SUFFIX)) {
+					name = name.substring(0, name.length() - Constants.SECURE_SUFFIX_LENGTH);
+					if ((value != null) && value.startsWith(Constants.ENCRYPTED_PREFIX) && (_encryptionKey != null)) {
+						value = Encryption.decryptToString(value.substring(Constants.ENCRYPTED_PREFIX_LENGTH), _encryptionKey);
 					}
 					hideValue = true;
-				} else if (!"Hide".equals(name) && name.endsWith("Hide")) {
-					name = name.substring(0, name.length() - 4);
+				} else if (!Constants.HIDE_SUFFIX.equals(name) && name.endsWith(Constants.HIDE_SUFFIX)) {
+					name = name.substring(0, name.length() - Constants.HIDE_SUFFIX_LENGTH);
 					hideValue = true;
 				}
 
@@ -304,7 +284,7 @@ public class TokenManager {
 					sb.append("\n");
 
 				if (hideValue || hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
-					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, _hiddenValueMessage));
+					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, Constants.VALUE_HIDDEN_MESSAGE));
 				} else {
 					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, value));
 				}
@@ -320,54 +300,6 @@ public class TokenManager {
 		}
 	}
 
-	protected void loadTokenValues(String tokenType, Node node) {
-		HashMap<String, String> tokenKeyValues;
-		if (_tokens.containsKey(tokenType)) {
-			tokenKeyValues = _tokens.get(tokenType);
-		} else {
-			tokenKeyValues = new HashMap<String, String>();
-		}
-
-		LogVisibility visibility = HideStatus(((Element) node).getAttribute("Hide"), LogVisibility.FULL);
-		NamedNodeMap attributes = node.getAttributes();
-
-		int linesAdded = 0;
-		int tokensAdded = 0;
-		int length = attributes.getLength();
-		Boolean addNewLine = false;
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < length; i++) {
-			Node xA = attributes.item(i);
-			String name = xA.getNodeName();
-			String value = xA.getNodeValue();
-
-			if ("Hide".equalsIgnoreCase(name) || "TokenPrefix".equalsIgnoreCase(name) || "TokenSuffix".equalsIgnoreCase(name))
-				continue;
-
-			tokenKeyValues.put(name, value);
-			tokensAdded++;
-			if (visibility == LogVisibility.NONE)
-				continue;
-
-			if (addNewLine)
-				sb.append("\n");
-			if (hideIt(name) && (visibility == LogVisibility.TOKEN_NAME)) {
-				sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, _hiddenValueMessage));
-			} else {
-				sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, value));
-			}
-			linesAdded++;
-			addNewLine = true;
-		}
-		_tokens.put(tokenType, tokenKeyValues);
-		if (linesAdded == 0) {
-			_logger.addMessage("", linesAdded == 1 ? "Token Added" : "Tokens Added", String.format("%,d tokens added", tokensAdded));
-		} else {
-			_logger.addMessage("", linesAdded == 1 ? "Token Added" : "Tokens Added", sb.toString());
-		}
-	}
-
 	protected boolean hideIt(String value) {
 		if (value == null)
 			return false;
@@ -377,6 +309,8 @@ public class TokenManager {
 			return true;
 		else if (value.startsWith("user") || value.endsWith("user") || value.contains("user"))
 			return true;
+		else if (value.startsWith("encryptionkey") || value.endsWith("encryptionkey") || value.contains("encryptionkey"))
+			return true;		
 		return false;
 	}
 
