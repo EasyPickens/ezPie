@@ -68,9 +68,9 @@ public class XmlEdit extends Action {
 		_continueOnError = StringUtilities.toBoolean(optionalAttribute("OnErrorContinue", "False"), false);
 
 		if (isNotNullOrEmpty(_xmlString)) {
-			_xmlDoc = XmlUtilities.CreateXMLDocument(_xmlString);
+			_xmlDoc = XmlUtilities.createXMLDocument(_xmlString);
 		} else if (isNotNullOrEmpty(_inputFilename)) {
-			_xmlDoc = XmlUtilities.loadXmlDocument(_inputFilename);
+			_xmlDoc = XmlUtilities.loadXmlFile(_inputFilename);
 		} else if (isNotNullOrEmpty(_sourceFolder) && FileUtilities.isValidDirectory(_sourceFolder)) {
 			// Working on all the XML Files within a folder - built for Informatica and CAST version issue.
 			_isFolder = true;
@@ -130,7 +130,7 @@ public class XmlEdit extends Action {
 				String filename = files[i].getAbsolutePath();
 				if (files[i].isFile() && files[i].getName().toLowerCase().endsWith(".xml")) {
 					rb.appendFormatLine("%,d Modifying: %s", _filesFound, filename);
-					xmlDoc = XmlUtilities.loadXmlDocument(filename);
+					xmlDoc = XmlUtilities.loadXmlFile(filename);
 					for (int x = 0; x < lengthTransforms; x++) {
 						xmlDoc = xmlTransforms.get(x).execute(xmlDoc, files[i]);
 					}
@@ -142,9 +142,9 @@ public class XmlEdit extends Action {
 			_session.addLogMessage("", "Files Transformed", "View Report", "file://"+FileUtilities.writeRandomTextFile(_session.getLogPath(), rb.toString()));
 		} else {
 			if (isNotNullOrEmpty(_xmlString)) {
-				xmlDoc = XmlUtilities.CreateXMLDocument(_xmlString);
+				xmlDoc = XmlUtilities.createXMLDocument(_xmlString);
 			} else if (isNotNullOrEmpty(_inputFilename)) {
-				xmlDoc = XmlUtilities.loadXmlDocument(_inputFilename);
+				xmlDoc = XmlUtilities.loadXmlFile(_inputFilename);
 			} else {
 				throw new RuntimeException("XmlEdit requires either a value in XmlString, Filename, or path to an XML file.");
 			}
@@ -215,7 +215,7 @@ public class XmlEdit extends Action {
 		String xmlString = requiredAttribute(xmlEdit, "XmlString");
 		Boolean required = StringUtilities.toBoolean(optionalAttribute(xmlEdit, "Required", ""), true);
 
-		Document tempDoc = XmlUtilities.CreateXMLDocument(String.format("<temp>%s</temp>", xmlString));
+		Document tempDoc = XmlUtilities.createXMLDocument(String.format("<temp>%s</temp>", xmlString));
 		NodeList nlNew = XmlUtilities.selectNodes(tempDoc.getDocumentElement(), "*");
 		int length = nlNew.getLength();
 		if (required && (length == 0)) {
@@ -252,7 +252,7 @@ public class XmlEdit extends Action {
 		String xmlString = requiredAttribute(xmlEdit, "XmlString");
 		Boolean required = StringUtilities.toBoolean(optionalAttribute(xmlEdit, "Required", ""), true);
 
-		Document tempDoc = XmlUtilities.CreateXMLDocument(String.format("<temp>%s</temp>", xmlString));
+		Document tempDoc = XmlUtilities.createXMLDocument(String.format("<temp>%s</temp>", xmlString));
 		NodeList nlNew = XmlUtilities.selectNodes(tempDoc.getDocumentElement(), "*");
 		int length = nlNew.getLength();
 		if (required && (length == 0)) {
@@ -276,7 +276,7 @@ public class XmlEdit extends Action {
 		String xmlString = requiredAttribute(xmlEdit, "XmlString");
 		Boolean required = StringUtilities.toBoolean(optionalAttribute(xmlEdit, "Required", ""), true);
 
-		Document tempDoc = XmlUtilities.CreateXMLDocument(String.format("<temp>%s</temp>", xmlString));
+		Document tempDoc = XmlUtilities.createXMLDocument(String.format("<temp>%s</temp>", xmlString));
 		NodeList nlNew = XmlUtilities.selectNodes(tempDoc.getDocumentElement(), "*");
 		int length = nlNew.getLength();
 		if (required && (length == 0)) {
@@ -300,8 +300,8 @@ public class XmlEdit extends Action {
 		String randomFilename = FileUtilities.getRandomFilename(_session.getStagingPath(), "xml");
 		String filename = optionalAttribute(xmlEdit, "Filename", randomFilename);
 		String tokenName = optionalAttribute(xmlEdit, "Name", "");
-		XmlUtilities.SaveXmlDocument(filename, _xmlDoc);
-		String xmlLogCopy = FileUtilities.writeRandomFile(_session.getLogPath(), "txt", XmlUtilities.XMLDocumentToString(_xmlDoc));
+		XmlUtilities.saveXmlFile(filename, _xmlDoc);
+		String xmlLogCopy = FileUtilities.writeRandomFile(_session.getLogPath(), "txt", XmlUtilities.xmlDocumentToString(_xmlDoc));
 		if (StringUtilities.isNotNullOrEmpty(tokenName)) {
 			_session.addToken("LocalData", tokenName, filename);
 		}

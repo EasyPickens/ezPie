@@ -54,7 +54,6 @@ public class GitClone extends Action {
 		String connectionName = optionalAttribute("ConnectionName");
 		if (StringUtilities.isNotNullOrEmpty(connectionName)) {
 			Element repo_connection = _session.getConnection(connectionName);
-			repo_uri = StringUtilities.isNullOrEmpty(repo_uri) ? optionalAttribute(repo_connection, "URL", repo_uri) : repo_uri;
 			repo_userID = StringUtilities.isNullOrEmpty(repo_userID) ? optionalAttribute(repo_connection, "UserID", repo_userID) : repo_userID;
 			repo_password = StringUtilities.isNullOrEmpty(repo_password) ? optionalAttribute(repo_connection, "Password", repo_password) : repo_password;
 			privateKey = StringUtilities.isNullOrEmpty(privateKey) ? optionalAttribute(repo_connection, "PrivateKey", privateKey) : privateKey;

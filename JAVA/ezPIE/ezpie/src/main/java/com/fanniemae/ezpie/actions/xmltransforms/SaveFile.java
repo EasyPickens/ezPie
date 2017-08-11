@@ -54,13 +54,13 @@ public class SaveFile extends XmlTransform {
 			//@formatter:on
 		}
 
-		XmlUtilities.SaveXmlDocument(filename, xmlDocument);
+		XmlUtilities.saveXmlFile(filename, xmlDocument);
 		if (StringUtilities.isNotNullOrEmpty(tokenName)) {
 			_session.addToken("LocalData", tokenName, filename);
 		}
 
 		if (!_isFolder) {
-			String xmlLogCopy = FileUtilities.writeRandomFile(_session.getLogPath(), "txt", XmlUtilities.XMLDocumentToString(xmlDocument));
+			String xmlLogCopy = FileUtilities.writeRandomFile(_session.getLogPath(), "txt", XmlUtilities.xmlDocumentToString(xmlDocument));
 			_session.addLogMessage("", "File Saved", "View Modified Xml", "file://" + xmlLogCopy);
 		}
 		return xmlDocument;

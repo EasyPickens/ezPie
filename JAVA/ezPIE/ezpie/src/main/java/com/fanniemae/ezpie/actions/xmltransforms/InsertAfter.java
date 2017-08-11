@@ -40,7 +40,7 @@ public class InsertAfter extends XmlTransform {
 
 	@Override
 	public Document execute(Document xmlDocument, File file) {
-		Document tempDoc = XmlUtilities.CreateXMLDocument(String.format("<temp>%s</temp>", _xmlString));
+		Document tempDoc = XmlUtilities.createXMLDocument(String.format("<temp>%s</temp>", _xmlString));
 		NodeList nlNew = XmlUtilities.selectNodes(tempDoc.getDocumentElement(), "*");
 		int length = nlNew.getLength();
 		if (_required && (length == 0)) {

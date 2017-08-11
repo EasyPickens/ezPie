@@ -101,11 +101,11 @@ public class RunPie {
 		// String job = "_FindData.xml";
 		// String job = "UnionTest.xml";
 		// String job = "ExcelTest.xml";
-		 //String job = "SharepointTest.xml";
+		// String job = "SharepointTest.xml";
 		// String job = "ScheduleTest2.xml";
-		//String job = "_DataTransforms.xml";
+		String job = "_DataTransforms.xml";
 		// String job = "CAST_Daily.xml";
-		String job = "Git.xml";
+		// String job = "Git.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

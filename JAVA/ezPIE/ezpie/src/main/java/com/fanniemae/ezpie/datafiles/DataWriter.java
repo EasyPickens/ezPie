@@ -262,7 +262,7 @@ public class DataWriter extends DataFormat {
 
 		// Write the InfoBlock
 		_schemaStart = _bos.getPosition();
-		Document xmlSchemaDoc = XmlUtilities.CreateXMLDocument("<FileInfo><DataInfo /></FileInfo>");
+		Document xmlSchemaDoc = XmlUtilities.createXMLDocument("<FileInfo><DataInfo /></FileInfo>");
 		if ((_dataRow != null) && (_dataRow.getColumnNames() != null)) {
 			int columnCount = _dataRow.getColumnCount();
 			for (int i = 0; i < columnCount; i++) {
@@ -307,7 +307,7 @@ public class DataWriter extends DataFormat {
 				xmlSchemaDoc.getDocumentElement().getFirstChild().appendChild(eleCol); // .DocumentElement.FirstChild.AppendChild(eleCol);
 			}
 		}
-		_schemaXML = XmlUtilities.XMLDocumentToString(xmlSchemaDoc);
+		_schemaXML = XmlUtilities.xmlDocumentToString(xmlSchemaDoc);
 
 		if (_isEncrypted) {
 			_bos.writeUTF(CryptoUtilities.EncryptDecrypt(_schemaXML));

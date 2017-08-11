@@ -77,7 +77,7 @@ public class RunCommand extends Action {
 				if (StringUtilities.isNullOrEmpty(_commandLine)) {
 					throw new RuntimeException("Missing a value for CommandLine on the RunCommand element.");
 				}
-				_session.addLogMessage("", "CommandLine", (_hideConsoleOutput) ? "-- Hidden --" : _commandLine);
+				_session.addLogMessage("", "CommandLine", (_hideConsoleOutput || _session.lastAttributeSecure()) ? _session.getHiddenMessage() : _commandLine);
 
 				String waitForExit = optionalAttribute("WaitForExit", null);
 				String timeout = optionalAttribute("Timeout", "2h");
@@ -126,7 +126,8 @@ public class RunCommand extends Action {
 					bw.flush();
 					bw.close();
 					if (_hideConsoleOutput) {
-						_session.addLogMessage("", "Console Output", "-- Hidden --");
+						_session.addLogMessage("", "Console Output", _session.getHiddenMessage());
+						FileUtilities.deleteFile(sConsoleFilename);
 					} else {
 						_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
 					}
@@ -244,7 +245,7 @@ public class RunCommand extends Action {
 
 	protected void makeBatchFile() {
 		_batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", ArrayUtilities.toCommandLine(_arguments));
-		_session.addLogMessage("", "Created Batch File", _batchFilename);
+		_session.addLogMessage("", "Created Batch File", _batchFilename.replace(_session.getApplicationPath(), ""));
 		_arguments = new String[] { _batchFilename };
 	}
 }

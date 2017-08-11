@@ -35,7 +35,6 @@ import com.fanniemae.ezpie.actions.GetSourceCode;
 import com.fanniemae.ezpie.actions.GitClone;
 import com.fanniemae.ezpie.actions.HighlightScan;
 import com.fanniemae.ezpie.actions.IfElement;
-import com.fanniemae.ezpie.actions.LocalTokens;
 import com.fanniemae.ezpie.actions.LogComment;
 import com.fanniemae.ezpie.actions.MakeDirectory;
 import com.fanniemae.ezpie.actions.Maven;
@@ -84,9 +83,6 @@ public class ProcessActions {
 				case "RunCommand":
 					// Run an external command or batch file
 					action = new RunCommand(session, actionElement);
-					break;
-				case "LocalTokens":
-					action = new LocalTokens(session, actionElement);
 					break;
 				case "DataSet":
 					// Pull data and process
