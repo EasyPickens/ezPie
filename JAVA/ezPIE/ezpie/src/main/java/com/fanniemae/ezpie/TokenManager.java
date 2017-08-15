@@ -207,7 +207,7 @@ public class TokenManager {
 		int length = kvps.length;
 		for (int i = 0; i < length; i++) {
 			if (i > 0)
-				sb.append("\n");
+				sb.append(_logger.getNewLineTab());
 			String name = kvps[i][0];
 			String value = kvps[i][1];
 			tokenKeyValues.put(name, value);
@@ -281,7 +281,7 @@ public class TokenManager {
 					continue;
 
 				if (addNewLine)
-					sb.append("\n");
+					sb.append(_logger.getNewLineTab());
 
 				if (hideValue || hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
 					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, Constants.VALUE_HIDDEN_MESSAGE));

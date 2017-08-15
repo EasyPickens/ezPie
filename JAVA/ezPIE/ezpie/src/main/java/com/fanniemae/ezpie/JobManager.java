@@ -49,6 +49,20 @@ public class JobManager {
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
 		return result;
 	}
+	
+	public String getData() {
+		runJob();
+		List<String> dataSets = _session.getDataStreamList();
+		
+		StringBuilder sb = new StringBuilder();
+		int length = dataSets.size();
+		for(int i=0;i<length;i++) {
+			// read each dataset.
+			sb.append(dataSets.get(i));
+			sb.append("<br />");
+		}
+		return sb.toString();
+	}
 
 	public String processActions(NodeList nlActions) {
 		return ProcessActions.run(_session, nlActions, null);
