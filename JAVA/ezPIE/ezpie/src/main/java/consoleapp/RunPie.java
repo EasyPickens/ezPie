@@ -31,7 +31,7 @@ public class RunPie {
 
 	protected static void runJobManager() {
 		// String sSettings = "C:\\Developers\\Test\\_Settings.xml";
-		String sSettings = "F:\\Developers\\Code\\TestDirectory\\_Settings.xml";
+		String sSettings = "C:\\Developers\\Code\\TestDirectory\\_Settings.xml";
 		// String job = "test.xml";
 		// String job = "CMFT_Monthly_Scores.xml";
 		// String job = "CMFT_Monthly_v2.xml";
@@ -103,10 +103,10 @@ public class RunPie {
 		// String job = "ExcelTest.xml";
 		// String job = "SharepointTest.xml";
 		// String job = "ScheduleTest2.xml";
-		// String job = "_DataTransforms.xml";
+		String job = "_DataTransforms";
 		// String job = "CAST_Daily.xml";
 		// String job = "Git.xml";
-		String job = "_Empty.xml";
+		// String job = "_Empty.xml";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
@@ -114,7 +114,9 @@ public class RunPie {
 			logFilename = jobManager.getLogFilename();
 			viewlog(logFilename);
 			System.out.println("Running job definition " + job);
-			jobManager.runJob();
+			//jobManager.runJob();
+			String dataSets = jobManager.getDataJson();
+			System.out.println(dataSets);
 			System.out.println("Job defintion processing completed.");
 		} catch (Exception ex) {
 			ex.printStackTrace();

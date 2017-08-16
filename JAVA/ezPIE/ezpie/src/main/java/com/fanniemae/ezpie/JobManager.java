@@ -12,10 +12,13 @@
 package com.fanniemae.ezpie;
 
 import java.util.List;
+import java.util.Map;
 
+import org.json.JSONArray;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.common.DateUtilities;
+import com.fanniemae.ezpie.common.JsonUtilities;
 import com.fanniemae.ezpie.common.ProcessActions;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
@@ -35,6 +38,14 @@ public class JobManager {
 		_session = new SessionManager(settingsFilename, jobFilename, args);
 	}
 
+	public void addTokens(Map<String,String> newTokens) {
+		_session.addTokens(newTokens);
+	}
+	
+	public void addTokens(String tokenType, Map<String,String> newTokens) {
+		_session.addTokens(tokenType, newTokens);
+	}
+	
 	public String getLogFilename() {
 		return _session.getLogFilename();
 	}
@@ -50,18 +61,19 @@ public class JobManager {
 		return result;
 	}
 	
-	public String getData() {
+	public String getDataJson() {
 		runJob();
 		List<String> dataSets = _session.getDataStreamList();
 		
-		StringBuilder sb = new StringBuilder();
 		int length = dataSets.size();
+		JSONArray jsonDataSets = new JSONArray(); 
 		for(int i=0;i<length;i++) {
-			// read each dataset.
-			sb.append(dataSets.get(i));
-			sb.append("<br />");
+			String name = dataSets.get(i);
+			// convert each dataset.
+			jsonDataSets.put(JsonUtilities.convert(name, _session.getDataStream(name)));
 		}
-		return sb.toString();
+			
+		return jsonDataSets.toString();
 	}
 
 	public String processActions(NodeList nlActions) {

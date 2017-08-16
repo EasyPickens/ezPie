@@ -138,6 +138,10 @@ public class SessionManager {
 		_logger = new LogManager(_templatePath, _logFilename, logFormat);
 		_logger.addMessage("", "Data Caching", _dataCachingEnabled ? "Enabled" : "Disabled");
 
+		if ((jobFilename != null) && !jobFilename.toLowerCase().endsWith(".xml")) {
+			jobFilename += ".xml";
+		}
+		
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _definitionPath + jobFilename;
 			if (FileUtilities.isValidFile(sAdjustedDefinitionFilename))
@@ -365,6 +369,14 @@ public class SessionManager {
 
 	public void addTokens(Node node) {
 		_tokenizer.addTokens(node);
+	}
+	
+	public void addTokens(Map<String,String> newTokens) {
+		_tokenizer.addTokens(newTokens);
+	}
+	
+	public void addTokens(String tokenType, Map<String,String> newTokens) {
+		_tokenizer.addTokens(tokenType, newTokens);
 	}
 
 	public void addTokens(String tokenType, String[][] kvps) {

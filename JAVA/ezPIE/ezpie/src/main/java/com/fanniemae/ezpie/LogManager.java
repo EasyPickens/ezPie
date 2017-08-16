@@ -40,15 +40,15 @@ public class LogManager {
 	};
 
 	protected LogFormat _logFormat = LogFormat.HTML;
+	
+	protected String _logFilename;
+	protected String _templatePath;
 	protected String _newLine = _htmlNewLine;
 	protected String _newLineTab = _htmlNewLineTab;
 	protected String _footer = _htmlFooter;
 	protected String _basicLine = _htmlBasicLine;
 	protected String _longTextLine = _htmlLongTextLine;
 	protected String _exceptionRow = _htmlExceptionRow;
-
-	protected String _logFilename;
-	protected String _templatePath;
 
 	protected static final String _htmlNewLine = "<br />";
 	protected static final String _htmlNewLineTab = "<br />";
@@ -74,7 +74,6 @@ public class LogManager {
 		_logFilename = logFilename;
 		_templatePath = templatePath;
 		if ((logFormat == null) || ("Text".equalsIgnoreCase(logFormat))) {
-			// _logFilename = _logFilename.replace(".html", ".txt");
 			_logFormat = LogFormat.TEXT;
 			_footerLength = 0;
 			_newLine = _textNewLine;
