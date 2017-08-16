@@ -23,6 +23,7 @@ import java.util.Date;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -122,6 +123,10 @@ public class LogManager {
 
 	public void addMessage(String logGroup, String event, String description, String cargo) {
 		updateLog(false, logGroup, event, description, cargo, false, false);
+	}
+	
+	public void addWarnMessage(String event, String description) {
+		addMessage(Constants.LOG_WARNING_MESSAGE, event, description, "");
 	}
 
 	public void addHtmlMessage(String logGroup, String event, String description, String cargo) {
