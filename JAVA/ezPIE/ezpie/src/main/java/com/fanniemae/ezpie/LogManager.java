@@ -38,7 +38,7 @@ public class LogManager {
 	protected enum LogFormat {
 		HTML, TEXT
 	};
-
+	
 	protected LogFormat _logFormat = LogFormat.HTML;
 	
 	protected String _logFilename;
@@ -49,7 +49,8 @@ public class LogManager {
 	protected String _basicLine = _htmlBasicLine;
 	protected String _longTextLine = _htmlLongTextLine;
 	protected String _exceptionRow = _htmlExceptionRow;
-
+	protected static final String _systemNewLine = System.getProperty("line.separator");
+		
 	protected static final String _htmlNewLine = "<br />";
 	protected static final String _htmlNewLineTab = "<br />";
 	protected static final String _htmlFooter = "</table><script>$(\".togglelink\").click(function () { $header = $(this); $content = $header.next(); $content.slideToggle(200, function () {$header.text(function () { return $content.is(\":visible\") ? \"Hide Text\" : \"View Text\";});});});</script></body></html>";
@@ -69,7 +70,7 @@ public class LogManager {
 	protected int _footerLength;
 
 	protected long _startTime = System.currentTimeMillis();
-
+	
 	public LogManager(String templatePath, String logFilename, String logFormat) {
 		_logFilename = logFilename;
 		_templatePath = templatePath;
@@ -162,7 +163,10 @@ public class LogManager {
 	}
 	
 	public String getNewLineTab() {
-		return _newLineTab;
+		if (_logFormat == LogFormat.TEXT)
+			return  _newLineTab;
+		
+		return _systemNewLine;
 	}
 
 	protected void initializeLog() {
