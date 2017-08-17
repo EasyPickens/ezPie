@@ -35,12 +35,17 @@ import com.fanniemae.ezpie.common.StringUtilities;
  * 
  */
 public class LogManager {
+	protected enum LogLevel {
+		FULL_LOG, FULL_NO_EXTERNAL_FILES, ERROR_ONLY
+	}
+
 	protected enum LogFormat {
 		HTML, TEXT
 	};
-	
+
+	protected LogLevel _logLevel = LogLevel.FULL_LOG;
 	protected LogFormat _logFormat = LogFormat.HTML;
-	
+
 	protected String _logFilename;
 	protected String _templatePath;
 	protected String _newLine = _htmlNewLine;
@@ -50,7 +55,7 @@ public class LogManager {
 	protected String _longTextLine = _htmlLongTextLine;
 	protected String _exceptionRow = _htmlExceptionRow;
 	protected static final String _systemNewLine = System.getProperty("line.separator");
-		
+
 	protected static final String _htmlNewLine = "<br />";
 	protected static final String _htmlNewLineTab = "<br />";
 	protected static final String _htmlFooter = "</table><script>$(\".togglelink\").click(function () { $header = $(this); $content = $header.next(); $content.slideToggle(200, function () {$header.text(function () { return $content.is(\":visible\") ? \"Hide Text\" : \"View Text\";});});});</script></body></html>";
@@ -70,11 +75,29 @@ public class LogManager {
 	protected int _footerLength;
 
 	protected long _startTime = System.currentTimeMillis();
-	
-	public LogManager(String templatePath, String logFilename, String logFormat) {
+
+	public LogManager(String templatePath, String logFilename, String logFormat, String logLevel) {
 		_logFilename = logFilename;
 		_templatePath = templatePath;
-		if ((logFormat == null) || ("Text".equalsIgnoreCase(logFormat))) {
+
+		if (logLevel != null) {
+			switch (logLevel.toLowerCase()) {
+			case "":
+			case "full":
+				_logLevel = LogLevel.FULL_LOG;
+				break;
+			case "full_log_only":
+				_logLevel = LogLevel.FULL_NO_EXTERNAL_FILES;
+				break;
+			case "error_only":
+				_logLevel = LogLevel.ERROR_ONLY;
+				break;
+			default:
+				throw new RuntimeException(String.format("%s is not a recognized log level. Only Full, Full_Log_Only, and Error_Only are currently supported.", logLevel));
+			}
+		}
+
+		if ((logFormat != null) && ("Text".equalsIgnoreCase(logFormat))) {
 			_logFormat = LogFormat.TEXT;
 			_footerLength = 0;
 			_newLine = _textNewLine;
@@ -88,10 +111,16 @@ public class LogManager {
 			_footerLength = _htmlFooter.length();
 			_footerByteArray = _htmlFooter.getBytes();
 		}
-		initializeLog();
+		if (_logLevel != LogLevel.ERROR_ONLY) {
+			initializeLog();
+		}
 	}
 
 	public void addFileDetails(String filename, String logGroup) {
+		if (_logLevel == LogLevel.ERROR_ONLY) {
+			return;
+		}
+		
 		if (!FileUtilities.isValidFile(_logFilename))
 			return;
 
@@ -124,7 +153,7 @@ public class LogManager {
 	public void addMessage(String logGroup, String event, String description, String cargo) {
 		updateLog(false, logGroup, event, description, cargo, false, false);
 	}
-	
+
 	public void addWarnMessage(String event, String description) {
 		addMessage(Constants.LOG_WARNING_MESSAGE, event, description, "");
 	}
@@ -152,7 +181,7 @@ public class LogManager {
 		boolean bAddLinebreak = false;
 		for (StackTraceElement ele : ex.getStackTrace()) {
 			if (bAddLinebreak)
-				sbStack.append(_newLineTab);
+				sbStack.append(getNewLineTab());
 			sbStack.append(ele.toString());
 			bAddLinebreak = true;
 		}
@@ -161,14 +190,18 @@ public class LogManager {
 		if (inner != null)
 			addErrorMessage(inner, true);
 	}
-	
+
 	public String getNewLineTab() {
 		if (_logFormat == LogFormat.TEXT)
-			return  _newLineTab;
-		
+			return _newLineTab;
+
 		return _systemNewLine;
 	}
 
+	public boolean logExternalFiles() {
+		return _logLevel == LogLevel.FULL_LOG;
+	}
+	
 	protected void initializeLog() {
 		// Read JVM runtime settings
 		Runtime oRuntime = Runtime.getRuntime();
@@ -235,11 +268,15 @@ public class LogManager {
 	}
 
 	protected void updateLog(Boolean isError, String logGroup, String event, String description, String cargo, Boolean preserveLayout, Boolean isHTML) {
+		if (!isError && (_logLevel == LogLevel.ERROR_ONLY)) {
+			return;
+		}
+		
 		// Skip blank description messages
 		if (description == null)
 			return;
 		if (!FileUtilities.isValidFile(_logFilename))
-			return;
+			initializeLog();
 
 		// Encode the description line and preserve any CRLFs.
 		if (isHTML) {
@@ -279,7 +316,7 @@ public class LogManager {
 		if ((_logFormat == LogFormat.TEXT) && (group == "")) {
 			return "\t";
 		}
-		
+
 		return group;
 	}
 

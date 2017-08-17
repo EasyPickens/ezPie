@@ -81,6 +81,10 @@ public class SessionManager {
 	protected byte[][] _encryptionKey = null;
 
 	public SessionManager(String settingsFilename, String jobFilename, List<String> args) {
+		if (StringUtilities.isNullOrEmpty(settingsFilename)) {
+			throw new RuntimeException("Settings file is not defined.  Please provide the full path to the _settings.xml file.");
+		}
+		
 		if (!FileUtilities.isValidFile(settingsFilename)) {
 			if (FileUtilities.isValidFile(Miscellaneous.getApplicationRoot() + settingsFilename)) {
 				settingsFilename = Miscellaneous.getApplicationRoot() + settingsFilename;
@@ -117,6 +121,7 @@ public class SessionManager {
 		_stagingPath = FileUtilities.formatPath(eleConfig.getAttribute("StagingPath"), String.format("%1$s_Staging", _appPath), "StagingPath");
 		_logPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _appPath), "LogPath");
 		String logFormat = eleConfig.getAttribute("LogFormat");
+		String logLevel = eleConfig.getAttribute("LogLevel");
 		String logFileExtension = ("Text".equalsIgnoreCase(logFormat)) ? "txt" : "html";
 		_definitionPath = FileUtilities.formatPath(eleConfig.getAttribute("DefinitionPath"), String.format("%1$s_Definitions", _appPath), "DefinitionPath");
 		_templatePath = FileUtilities.formatPath(eleConfig.getAttribute("TemplatePath"), String.format("%1$s_Templates", _appPath), "TemplatePath");
@@ -135,7 +140,7 @@ public class SessionManager {
 		}
 
 		// Create Log page.
-		_logger = new LogManager(_templatePath, _logFilename, logFormat);
+		_logger = new LogManager(_templatePath, _logFilename, logFormat, logLevel);
 		_logger.addMessage("", "Data Caching", _dataCachingEnabled ? "Enabled" : "Disabled");
 
 		if ((jobFilename != null) && !jobFilename.toLowerCase().endsWith(".xml")) {
@@ -167,7 +172,7 @@ public class SessionManager {
 				throw new RuntimeException("No settings information found.");
 
 			_job = xmlJobDefinition.getDocumentElement();
-			String finalJobDefinition = FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.xmlDocumentToString(xmlJobDefinition));
+			String finalJobDefinition = _logger.logExternalFiles() ? FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.xmlDocumentToString(xmlJobDefinition)) : "";
 			_logger.addMessage("", "Prepared Definition", "View Definition", "file://" + finalJobDefinition);
 			_logger.addMessage("", "Adjusted Size", String.format("%,d bytes", XmlUtilities.getOuterXml(_job).length()));
 			_tokenizer.addToken("Application", "LogFilename", FileUtilities.getFilenameOnly(_logFilename));
