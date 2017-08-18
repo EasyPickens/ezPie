@@ -1,3 +1,14 @@
+/**
+ *  
+ * Copyright (c) 2015 Fannie Mae, All rights reserved.
+ * This program and the accompany materials are made available under
+ * the terms of the Fannie Mae Open Source Licensing Project available 
+ * at https://github.com/FannieMaeOpenSource/ezPie/wiki/License
+ * 
+ * ezPIE is a trademark of Fannie Mae
+ * 
+ */
+
 package com.fanniemae.slicedpie;
 
 import java.util.HashMap;
@@ -18,6 +29,13 @@ import org.json.JSONObject;
 
 import com.fanniemae.ezpie.JobManager;
 
+/**
+ * 
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @since 2017-08-17
+ * 
+ */
+
 @Path("/v1")
 public class V1_ezPie {
 
@@ -33,6 +51,9 @@ public class V1_ezPie {
 		try {
 			JSONObject jobject = new JSONObject(jsonMessage);
 			String job = jobject.optString("job");
+			if ((job == null) || job.isEmpty()) {
+				throw new IllegalArgumentException("Message body is missing a value for job.");
+			}
 			
 			String settingsFile = getSettingsFile(); // "C:\\Developers\\Code\\TestDirectory\\_Settings.xml";
 			JobManager jm = new JobManager( settingsFile, job, null);

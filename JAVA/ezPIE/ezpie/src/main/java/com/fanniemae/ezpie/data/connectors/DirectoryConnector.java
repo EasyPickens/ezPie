@@ -180,16 +180,18 @@ public class DirectoryConnector extends DataConnector {
 
 		for (File currentEntry : aContents) {
 
-			if (_showFiles && _hasIncludeFileFilter && currentEntry.isFile()) {
-				if (matchesInclude(currentEntry.getName())) {
+			if (_showFiles && currentEntry.isFile()) {
+				if (_hasIncludeFileFilter && matchesInclude(currentEntry.getName())) {
+					saveRowValues(currentEntry);
+				} else if (!_hasIncludeFileFilter) {
 					saveRowValues(currentEntry);
 				}
-				continue;
-			} else if (_showFiles && _hasExcludeFileFilter && currentEntry.isFile()) {
-				if (!matchesExclude(currentEntry.getName())) {
+			} else if (_showFiles && currentEntry.isFile()) {
+				if (_hasExcludeFileFilter && !matchesExclude(currentEntry.getName())) {
+					saveRowValues(currentEntry);
+				} else if (!_hasExcludeFileFilter) {
 					saveRowValues(currentEntry);
 				}
-				continue;
 			} else if (currentEntry.isDirectory()) {
 				String subFolder = currentEntry.getAbsolutePath();
 				subFolder = subFolder.substring(subFolder.lastIndexOf(File.separatorChar) + 1).toLowerCase();
@@ -199,7 +201,6 @@ public class DirectoryConnector extends DataConnector {
 				if (_doFullScan) {
 					scanDirectory(currentEntry.getAbsolutePath());
 				}
-				continue;
 			}
 		}
 	}

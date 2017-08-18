@@ -38,14 +38,14 @@ public class JobManager {
 		_session = new SessionManager(settingsFilename, jobFilename, args);
 	}
 
-	public void addTokens(Map<String,String> newTokens) {
+	public void addTokens(Map<String, String> newTokens) {
 		_session.addTokens(newTokens);
 	}
-	
-	public void addTokens(String tokenType, Map<String,String> newTokens) {
+
+	public void addTokens(String tokenType, Map<String, String> newTokens) {
 		_session.addTokens(tokenType, newTokens);
 	}
-	
+
 	public String getLogFilename() {
 		return _session.getLogFilename();
 	}
@@ -60,19 +60,22 @@ public class JobManager {
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
 		return result;
 	}
-	
+
 	public String getDataJson() {
-		runJob();
+		NodeList nlActions = XmlUtilities.selectNodes(_session.getJobDefinition(), "*");
+		processActions(nlActions);
+
+		_session.addLogMessage("Format Data", "Convert", "Converting datasets to JSON." );
 		List<String> dataSets = _session.getDataStreamList();
-		
 		int length = dataSets.size();
-		JSONArray jsonDataSets = new JSONArray(); 
-		for(int i=0;i<length;i++) {
+		JSONArray jsonDataSets = new JSONArray();
+		for (int i = 0; i < length; i++) {
 			String name = dataSets.get(i);
-			// convert each dataset.
+			_session.addLogMessage("", "DataSet Name", name );
+			// convert each dataset to JSON.
 			jsonDataSets.put(JsonUtilities.convert(name, _session.getDataStream(name)));
 		}
-			
+		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
 		return jsonDataSets.toString();
 	}
 
