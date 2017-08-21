@@ -11,6 +11,8 @@
 
 package com.fanniemae.slicedpie;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,12 +41,12 @@ import com.fanniemae.ezpie.JobManager;
 
 @Path("/v1")
 public class V1_ezPie {
-	
+
 	@Path("/status")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response data() {
-		String json="[{\"Message\": \"SlicedPie responding.\"}]";
+		String json = "[{\"Message\": \"SlicedPie REST service is available.\"}]";
 		return Response.ok(json).build();
 	}
 
@@ -53,45 +55,51 @@ public class V1_ezPie {
 	@Consumes({ MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_JSON })
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response datapost(String jsonMessage) {
-		if (jsonMessage == null) {
-			return Response.status(400).entity("JSON message body is null.").build();			
+		if ((jsonMessage == null) || jsonMessage.isEmpty()) {
+			return Response.status(400).entity("JSON message body is null.").build();
 		}
-		//System.out.println(jsonMessage);
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		System.out.println(String.format("%s: JSONRequest => %s",sdf.format(Calendar.getInstance().getTime()),jsonMessage));
 		try {
 			JSONObject jobject = new JSONObject(jsonMessage);
 			String job = jobject.optString("job");
 			if ((job == null) || job.isEmpty()) {
 				throw new IllegalArgumentException("Message body is missing a value for job.");
 			}
-			
-			String settingsFile = getSettingsFile(); // "C:\\Developers\\Code\\TestDirectory\\_Settings.xml";
-			JobManager jm = new JobManager( settingsFile, job, null);
 
-			Map<String, String> tokens = new HashMap<String,String>();
+			String settingsFile = getSettingsFile();
+			JobManager jm = new JobManager(settingsFile, job, null);
+
+			Map<String, String> tokens = new HashMap<String, String>();
 			Iterator<String> keys = jobject.keys();
-			while(keys.hasNext()) {
+			while (keys.hasNext()) {
 				String key = (String) keys.next();
 				tokens.put(key, jobject.optString(key));
 			}
 			jm.addTokens(tokens);
 
 			String data = jm.getDataJson();
-			//System.out.println(data);
-			return Response.ok(data).build();			
+			// System.out.println(data);
+			return Response.ok(data).build();
 		} catch (JSONException ex) {
 			JSONObject error = new JSONObject();
+			error.put("MessageRecieved", jsonMessage);
 			error.put("Error", String.format("Message body is not valid JSON. %s", ex.getMessage()));
-			return Response.status(400).entity(error.toString()).build();			
+			return Response.status(400).entity(error.toString()).build();
 		} catch (Exception ex) {
 			JSONObject error = new JSONObject();
+			error.put("MessageRecieved", jsonMessage);
 			error.put("Error", ex.getMessage());
-			return Response.status(500).entity(error.toString()).build();			
+			return Response.status(500).entity(error.toString()).build();
 		}
-	}	
-	
-	@Context ServletContext context;
+	}
+
+	@Context
+	ServletContext context;
+
 	public String getSettingsFile() {
 		return context.getInitParameter("SettingsFile");
 	}
-	
+
 }
