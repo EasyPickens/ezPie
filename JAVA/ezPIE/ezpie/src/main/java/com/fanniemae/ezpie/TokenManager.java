@@ -14,6 +14,7 @@ package com.fanniemae.ezpie;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.w3c.dom.Element;
@@ -88,6 +89,31 @@ public class TokenManager {
 		loadTokenValues(tokenNode);
 	}
 
+	public void addTokens(Map<String,String> newTokens) {
+		addTokens("Local", newTokens);
+	}
+	
+	public void addTokens(String tokenType, Map<String,String> newTokens) {
+		HashMap<String, String> domainTokens = new HashMap<String, String>();
+		if (_tokens.containsKey(tokenType))
+			domainTokens = _tokens.get(tokenType);
+		
+		int added = 0;
+		StringBuilder sb = new StringBuilder();
+		for (Map.Entry<String, String> entry : newTokens.entrySet()) {
+			if (added > 0) {
+				sb.append(_logger._newLineTab);
+			}
+		    String key = entry.getKey();
+		    String value = entry.getValue();
+		    domainTokens.put(key, value);
+		    sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, value));
+		    added++;
+		}
+		_tokens.put(tokenType, domainTokens);
+		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
+	}
+	
 	public void addTokens(String tokenType, String[][] kvps) {
 		loadTokenValues(tokenType, kvps);
 	}
@@ -207,7 +233,7 @@ public class TokenManager {
 		int length = kvps.length;
 		for (int i = 0; i < length; i++) {
 			if (i > 0)
-				sb.append("\n");
+				sb.append(_logger.getNewLineTab());
 			String name = kvps[i][0];
 			String value = kvps[i][1];
 			tokenKeyValues.put(name, value);
@@ -281,7 +307,7 @@ public class TokenManager {
 					continue;
 
 				if (addNewLine)
-					sb.append("\n");
+					sb.append(_logger.getNewLineTab());
 
 				if (hideValue || hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
 					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, Constants.VALUE_HIDDEN_MESSAGE));

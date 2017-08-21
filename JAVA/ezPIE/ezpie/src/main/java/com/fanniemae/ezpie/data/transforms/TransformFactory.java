@@ -38,10 +38,10 @@ public class TransformFactory {
 			return new Sort(session, transform);
 		case "Join":
 			return new Join(session, transform);
-		case "Column":
-			return null;
+		case "ColumnFilter":
+			return new ColumnFilter(session, transform);
 		default:
-			throw new RuntimeException(String.format("%s data transformation not currently supported.", transform.getNodeName()));
+			throw new RuntimeException(String.format("%s data transformation is not currently supported.", transform.getNodeName()));
 		}
 	}
 

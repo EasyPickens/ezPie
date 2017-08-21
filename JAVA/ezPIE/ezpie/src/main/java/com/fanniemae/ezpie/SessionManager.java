@@ -11,6 +11,7 @@
 
 package com.fanniemae.ezpie;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,10 @@ public class SessionManager {
 	protected byte[][] _encryptionKey = null;
 
 	public SessionManager(String settingsFilename, String jobFilename, List<String> args) {
+		if (StringUtilities.isNullOrEmpty(settingsFilename)) {
+			throw new RuntimeException("Settings file is not defined.  Please provide the full path to the _settings.xml file.");
+		}
+		
 		if (!FileUtilities.isValidFile(settingsFilename)) {
 			if (FileUtilities.isValidFile(Miscellaneous.getApplicationRoot() + settingsFilename)) {
 				settingsFilename = Miscellaneous.getApplicationRoot() + settingsFilename;
@@ -115,15 +120,17 @@ public class SessionManager {
 		_appPath = FileUtilities.formatPath(eleConfig.getAttribute("ApplicationPath"), System.getProperty("user.dir"), "ApplicationPath");
 		_stagingPath = FileUtilities.formatPath(eleConfig.getAttribute("StagingPath"), String.format("%1$s_Staging", _appPath), "StagingPath");
 		_logPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _appPath), "LogPath");
+		String logFormat = eleConfig.getAttribute("LogFormat");
+		String logLevel = eleConfig.getAttribute("LogLevel");
+		String logFileExtension = ("Text".equalsIgnoreCase(logFormat)) ? "txt" : "html";
 		_definitionPath = FileUtilities.formatPath(eleConfig.getAttribute("DefinitionPath"), String.format("%1$s_Definitions", _appPath), "DefinitionPath");
 		_templatePath = FileUtilities.formatPath(eleConfig.getAttribute("TemplatePath"), String.format("%1$s_Templates", _appPath), "TemplatePath");
 		if (!randomLogFilename && StringUtilities.isNotNullOrEmpty(_jobRescanFilename)) {
-			_logFilename = String.format("%1$s%2$s.html", _logPath, FileUtilities.getFilenameWithoutExtension(_jobRescanFilename));
+			_logFilename = String.format("%1$s%2$s.%3$s", _logPath, FileUtilities.getFilenameWithoutExtension(_jobRescanFilename), logFileExtension);
 		} else if (!randomLogFilename) {
-			_logFilename = String.format("%1$s%2$s.html", _logPath, FileUtilities.getFilenameWithoutExtension(jobFilename));
-
+			_logFilename = String.format("%1$s%2$s.%3$s", _logPath, FileUtilities.getFilenameWithoutExtension(jobFilename), logFileExtension);
 		} else {
-			_logFilename = FileUtilities.getRandomFilename(_logPath, "html");
+			_logFilename = FileUtilities.getRandomFilename(_logPath, logFileExtension);
 		}
 
 		_cacheMinutes = StringUtilities.toInteger(eleConfig.getAttribute("CacheMinutes"), 30);
@@ -132,10 +139,14 @@ public class SessionManager {
 			_encryptionKey = Encryption.setupKey(encryptionKey);
 		}
 
-		// Create Debug page.
-		_logger = new LogManager(_templatePath, _logFilename);
+		// Create Log page.
+		_logger = new LogManager(_templatePath, _logFilename, logFormat, logLevel);
 		_logger.addMessage("", "Data Caching", _dataCachingEnabled ? "Enabled" : "Disabled");
 
+		if ((jobFilename != null) && !jobFilename.toLowerCase().endsWith(".xml")) {
+			jobFilename += ".xml";
+		}
+		
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _definitionPath + jobFilename;
 			if (FileUtilities.isValidFile(sAdjustedDefinitionFilename))
@@ -161,8 +172,7 @@ public class SessionManager {
 				throw new RuntimeException("No settings information found.");
 
 			_job = xmlJobDefinition.getDocumentElement();
-			String finalJobDefinition = FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.xmlDocumentToString(xmlJobDefinition));
-			// _session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + finalJobDefinition);
+			String finalJobDefinition = _logger.logExternalFiles() ? FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.xmlDocumentToString(xmlJobDefinition)) : "";
 			_logger.addMessage("", "Prepared Definition", "View Definition", "file://" + finalJobDefinition);
 			_logger.addMessage("", "Adjusted Size", String.format("%,d bytes", XmlUtilities.getOuterXml(_job).length()));
 			_tokenizer.addToken("Application", "LogFilename", FileUtilities.getFilenameOnly(_logFilename));
@@ -326,6 +336,10 @@ public class SessionManager {
 	public void addErrorMessage(Exception ex) {
 		_logger.addErrorMessage(ex);
 	}
+	
+	public void addWarnMessage(String event, String description) {
+		_logger.addWarnMessage(event, description);
+	}
 
 	public Element getConnection(String connectionName) {
 		if (StringUtilities.isNullOrEmpty(connectionName))
@@ -361,6 +375,14 @@ public class SessionManager {
 	public void addTokens(Node node) {
 		_tokenizer.addTokens(node);
 	}
+	
+	public void addTokens(Map<String,String> newTokens) {
+		_tokenizer.addTokens(newTokens);
+	}
+	
+	public void addTokens(String tokenType, Map<String,String> newTokens) {
+		_tokenizer.addTokens(tokenType, newTokens);
+	}
 
 	public void addTokens(String tokenType, String[][] kvps) {
 		_tokenizer.addTokens(tokenType, kvps);
@@ -376,6 +398,17 @@ public class SessionManager {
 
 	public void addDataSet(String name, DataStream ds) {
 		_dataSets.put(name, ds);
+	}
+	
+	public List<String> getDataStreamList() {
+		List<String> dataSets = new ArrayList<String>();
+		if ((_dataSets == null) || (_dataSets.size() == 0))
+			return dataSets;
+		
+		for (Map.Entry<String,DataStream> kvp : _dataSets.entrySet()) {
+			dataSets.add(kvp.getKey());
+		}
+		return dataSets;
 	}
 
 	public DataStream getDataStream(String name) {
