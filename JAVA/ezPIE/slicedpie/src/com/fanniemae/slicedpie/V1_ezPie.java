@@ -17,7 +17,8 @@ import java.util.Map;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.PUT;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -38,14 +39,22 @@ import com.fanniemae.ezpie.JobManager;
 
 @Path("/v1")
 public class V1_ezPie {
+	
+	@Path("/status")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response data() {
+		String json="[{\"Message\": \"SlicedPie responding.\"}]";
+		return Response.ok(json).build();
+	}
 
 	@Path("/data")
-	@PUT
+	@POST
 	@Consumes({ MediaType.APPLICATION_FORM_URLENCODED, MediaType.APPLICATION_JSON })
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response data2(String jsonMessage) {
+	public Response datapost(String jsonMessage) {
 		if (jsonMessage == null) {
-			return Response.status(400).entity("JSON message body is null.").build();
+			return Response.status(400).entity("JSON message body is null.").build();			
 		}
 		//System.out.println(jsonMessage);
 		try {
@@ -68,17 +77,17 @@ public class V1_ezPie {
 
 			String data = jm.getDataJson();
 			//System.out.println(data);
-			return Response.ok(data).build();
+			return Response.ok(data).build();			
 		} catch (JSONException ex) {
 			JSONObject error = new JSONObject();
 			error.put("Error", String.format("Message body is not valid JSON. %s", ex.getMessage()));
-			return Response.status(400).entity(error.toString()).build();
+			return Response.status(400).entity(error.toString()).build();			
 		} catch (Exception ex) {
 			JSONObject error = new JSONObject();
 			error.put("Error", ex.getMessage());
-			return Response.status(500).entity(error.toString()).build();
+			return Response.status(500).entity(error.toString()).build();			
 		}
-	}
+	}	
 	
 	@Context ServletContext context;
 	public String getSettingsFile() {
