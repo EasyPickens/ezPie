@@ -77,6 +77,10 @@ public class TensorFlow extends Action {
 		default:
 			throw new RuntimeException(String.format("%s is not a currently supported type.", inputDataSetType));
 		}
+		
+		if ((data == null) || (data.length == 0) || (data[0].length == 0)) {
+			throw new RuntimeException(String.format("Input dataset %s is empty.",inputDataSetName));
+		}
 
 		try (SavedModelBundle b = SavedModelBundle.load(modelBundlePath, modelBundleTags)) { // "C:/Developers/model_out/1501775585", "serve")) {
 			Session sess = b.session();
@@ -147,8 +151,8 @@ public class TensorFlow extends Action {
 			} catch (IOException e) {
 				throw new RuntimeException(String.format("Error while saving model results. %s", e.getMessage()), e);
 			}
-			System.out.println(bestItemNumber);
-			System.out.println("=== Done ==");
+			//System.out.println(bestItemNumber);
+			//System.out.println("=== Done ==");
 			;
 		}
 
