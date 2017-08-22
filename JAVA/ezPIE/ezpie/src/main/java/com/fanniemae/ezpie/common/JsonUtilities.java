@@ -1,6 +1,6 @@
 /**
  *  
- * Copyright (c) 2015 Fannie Mae, All rights reserved.
+ * Copyright (c) 2017 Fannie Mae, All rights reserved.
  * This program and the accompany materials are made available under
  * the terms of the Fannie Mae Open Source Licensing Project available 
  * at https://github.com/FannieMaeOpenSource/ezPie/wiki/License
@@ -11,6 +11,7 @@
 
 package com.fanniemae.ezpie.common;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import org.json.JSONArray;
@@ -51,11 +52,11 @@ public class JsonUtilities {
 					} else if (dataTypes[i] == DataType.StringData) {
 						jsonDataRow.put(columnNames[i], dataRow[i]);
 					} else if (dataTypes[i] == DataType.DoubleData) {
-						jsonDataRow.put(columnNames[i], (double) dataRow[i]);
+						jsonDataRow.put(columnNames[i], new BigDecimal((double) dataRow[i]).toPlainString());
 					} else if (dataTypes[i] == DataType.IntegerData) {
 						jsonDataRow.put(columnNames[i], (int) dataRow[i]);
 					} else if (dataTypes[i] == DataType.FloatData) {
-						jsonDataRow.put(columnNames[i], (float) dataRow[i]);
+						jsonDataRow.put(columnNames[i], new BigDecimal((double) dataRow[i]).toPlainString());
 					} else if (dataTypes[i] == DataType.LongData) {
 						jsonDataRow.put(columnNames[i], (long) dataRow[i]);
 					} else if (dataTypes[i] == DataType.ShortData) {

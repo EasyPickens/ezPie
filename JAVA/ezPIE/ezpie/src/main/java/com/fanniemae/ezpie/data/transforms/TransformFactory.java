@@ -40,6 +40,8 @@ public class TransformFactory {
 			return new Join(session, transform);
 		case "ColumnFilter":
 			return new ColumnFilter(session, transform);
+		case "SqlParameter":
+			return null;
 		default:
 			throw new RuntimeException(String.format("%s data transformation is not currently supported.", transform.getNodeName()));
 		}

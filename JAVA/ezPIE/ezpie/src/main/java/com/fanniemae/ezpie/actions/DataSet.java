@@ -27,6 +27,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.DataEngine;
 import com.fanniemae.ezpie.datafiles.DataReader;
@@ -44,9 +45,11 @@ public class DataSet extends Action {
 
 	protected List<DataStream> _dataStreams = new ArrayList<DataStream>();
 	protected HashMap<String, String> _dataTokens = null;
+	protected boolean _isInternal = false;
 
 	public DataSet(SessionManager session, Element action) {
 		super(session, action);
+		_isInternal = StringUtilities.toBoolean(optionalAttribute("Internal","False"));
 	}
 
 	@Override
@@ -72,9 +75,9 @@ public class DataSet extends Action {
 			_dataTokens = dataTokens;
 			runLoopDataSources(loopNode);
 		}
-
 		if (length == 1) {
 			// Only one data source (should be majority of the time)
+			_dataStreams.get(0).setInternal(_isInternal);
 			_session.addDataSet(_name, _dataStreams.get(0));
 		} else if ((_dataStreams != null) && (_dataStreams.size() > 0)) {
 			unionDataStreams();
@@ -168,6 +171,7 @@ public class DataSet extends Action {
 			dw.close();
 
 			fullDataStream = dw.getDataStream();
+			fullDataStream.setInternal(_isInternal);
 			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", fullRowCount, fullDataStream.getSize(), fullDataStream.IsMemory() ? "memorystream" : "filestream"));
 			_session.addDataSet(_name, fullDataStream);
 		} catch (RuntimeException ex) {
