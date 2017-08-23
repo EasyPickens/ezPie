@@ -11,6 +11,7 @@
 
 package com.fanniemae.ezpie.data.connectors;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -59,7 +60,17 @@ public class SqlConnector extends DataConnector {
 
 		_sqlCommand = _session.getAttribute(dataSource, "Command");
 		if (_sqlCommand.startsWith("file://")) {
-			_sqlCommand = _session.resolveTokens(FileUtilities.loadFile(_sqlCommand.substring(7)));
+			String filename = _sqlCommand.substring(7);
+			if (FileUtilities.isInvalidFile(filename)) {
+				String resourceDir = String.format("[Configuration.ApplicationPath]%s_Resources%s%s", File.separator, File.separator, filename);
+				resourceDir = _session.resolveTokens(resourceDir);
+				if (FileUtilities.isValidFile(resourceDir)) {
+					filename = resourceDir;
+				} else {
+					throw new RuntimeException(String.format("SQL command file %s was not found.", filename));
+				}
+			}
+			_sqlCommand = _session.resolveTokens(FileUtilities.loadFile(filename));
 		}
 		_session.addLogMessagePreserveLayout("", "Command", _sqlCommand);
 

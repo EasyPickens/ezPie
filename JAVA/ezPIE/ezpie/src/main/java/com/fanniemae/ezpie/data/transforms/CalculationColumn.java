@@ -11,6 +11,8 @@
 
 package com.fanniemae.ezpie.data.transforms;
 
+import java.io.File;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -19,6 +21,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataUtilities;
+import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -30,7 +33,8 @@ import com.fanniemae.ezpie.common.StringUtilities;
 
 public class CalculationColumn extends DataTransform {
 
-	protected String _formula;
+	protected String _jsFunctionFile = "";
+	protected String _formula = "";
 	protected ScriptEngine _engine;
 	
 	protected int _errorLimit = 1;
@@ -38,6 +42,22 @@ public class CalculationColumn extends DataTransform {
 
 	public CalculationColumn(SessionManager session, Element transform) {
 		super(session, transform);
+
+
+		_jsFunctionFile = "";
+		String jsFile = getOptionalAttribute("JavaScriptFile", "");
+		if (!jsFile.isEmpty()) {
+			if (FileUtilities.isInvalidFile(jsFile)) {
+				String resourceDir = String.format("[Configuration.ApplicationPath]%s_Resources%s%s", File.separator, File.separator, jsFile);
+				resourceDir = _session.resolveTokens(resourceDir);
+				if (FileUtilities.isValidFile(resourceDir)) {
+					jsFile = resourceDir;
+				} else {
+					throw new RuntimeException(String.format("JavaScript file %s was not found.", jsFile));
+				}
+			}
+			_jsFunctionFile = FileUtilities.loadFile(jsFile) + "\n";
+		}
 
 		_formula = getRequiredAttribute("Formula");
 		
@@ -58,7 +78,7 @@ public class CalculationColumn extends DataTransform {
 	@Override
 	public Object[] processDataRow(Object[] dataRow) {
 		_session.setDataTokens(DataUtilities.dataRowToTokenHash(_inputSchema, dataRow));
-		String resolvedForumla = _session.resolveTokens(_formula);
+		String resolvedForumla = _jsFunctionFile + _session.resolveTokens(_formula);
 		
 		dataRow = addDataColumn(dataRow);
 		dataRow[_outColumnIndex] = evaluate(resolvedForumla);
@@ -75,7 +95,7 @@ public class CalculationColumn extends DataTransform {
 			_errors++;
 			_session.addLogMessage(String.format("*** Warning #%d ***",_errors),"Evaluation", String.format("Could not evaluate JavaScript formula \"%s\". Reason: %s", expression, e.getMessage()));
 			if (_errors >= _errorLimit)
-			   throw new RuntimeException(String.format("Calculation formula evaluation error limit of %d reached. The ErrorLimit attribute of the Calculation transform controls this behavior.", _errorLimit));
+			   throw new RuntimeException(String.format("Calculation formula evaluation error limit of %d reached. The ErrorLimit attribute of the Calculation transform controls this behavior.", _errorLimit), e);
 		}
 		return null;
 	}

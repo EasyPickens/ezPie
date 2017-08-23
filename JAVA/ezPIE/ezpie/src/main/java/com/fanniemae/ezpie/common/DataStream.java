@@ -24,6 +24,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums;
  */
 
 public class DataStream {
+	protected boolean _isInternal = false;
     protected boolean _isMemory = true;
     protected byte[] _data;
     protected String _filename;
@@ -42,6 +43,10 @@ public class DataStream {
         _isMemory = false;
         _headerInformation = headerInformation;
         _schema = schema;
+    }
+    
+    public boolean isInternal() {
+    	return _isInternal;
     }
     
     public boolean IsMemory() {
@@ -63,6 +68,10 @@ public class DataStream {
     		File fi = new File(_filename);
     		return fi.length();
     	}
+    }
+    
+    public void setInternal(boolean flag) {
+    	_isInternal = flag;
     }
     
     public Map<DataFileEnums.BinaryFileInfo, Object> getHeader() {

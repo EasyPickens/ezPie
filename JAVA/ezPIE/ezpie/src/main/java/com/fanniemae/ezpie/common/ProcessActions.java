@@ -45,6 +45,7 @@ import com.fanniemae.ezpie.actions.Schedule;
 import com.fanniemae.ezpie.actions.SendEmail;
 import com.fanniemae.ezpie.actions.Sleep;
 import com.fanniemae.ezpie.actions.Svn;
+import com.fanniemae.ezpie.actions.TensorFlow;
 import com.fanniemae.ezpie.actions.Tokens;
 import com.fanniemae.ezpie.actions.UpdateStatus;
 import com.fanniemae.ezpie.actions.VerifyJavaFiles;
@@ -191,6 +192,9 @@ public class ProcessActions {
 					break;
 				case "GitClone":
 					action = new GitClone(session, actionElement);
+					break;
+				case "TensorFlow":
+					action = new TensorFlow(session, actionElement);
 					break;
 				default:
 					session.addLogMessage("** Warning **", actionList.item(i).getNodeName(), "Operation not currently supported.");

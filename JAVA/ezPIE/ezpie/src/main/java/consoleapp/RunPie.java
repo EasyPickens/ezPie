@@ -107,7 +107,8 @@ public class RunPie {
 		// String job = "CAST_Daily.xml";
 		// String job = "Git.xml";
 		// String job = "_Empty.xml";
-		String job = "ListDefinitions";
+		// String job = "ListDefinitions";
+		String job = "_Tensorflow";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

@@ -71,6 +71,9 @@ public class JobManager {
 		JSONArray jsonDataSets = new JSONArray();
 		for (int i = 0; i < length; i++) {
 			String name = dataSets.get(i);
+			if (_session.getDataStream(name).isInternal()) {
+				continue;
+			}
 			_session.addLogMessage("", "DataSet Name", name );
 			// convert each dataset to JSON.
 			jsonDataSets.put(JsonUtilities.convert(name, _session.getDataStream(name)));
