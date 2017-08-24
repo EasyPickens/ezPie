@@ -189,7 +189,7 @@ public class DefinitionManager {
 		} catch (Exception ex) {
 			if (_session != null) {
 				File file = new File(_currentDefinitionFilename);
-				_session.addLogMessage("** Warning **", "Save File", String.format("Could not save the %s definition with secured attribute values.", file.getName()));
+				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Save File", String.format("Could not save the %s definition with secured attribute values.", file.getName()));
 			}
 		}
 	}

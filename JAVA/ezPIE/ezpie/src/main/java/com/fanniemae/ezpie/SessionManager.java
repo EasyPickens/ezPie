@@ -337,10 +337,6 @@ public class SessionManager {
 		_logger.addErrorMessage(ex);
 	}
 	
-	public void addWarnMessage(String event, String description) {
-		_logger.addWarnMessage(event, description);
-	}
-
 	public Element getConnection(String connectionName) {
 		if (StringUtilities.isNullOrEmpty(connectionName))
 			return null;

@@ -21,6 +21,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.Miscellaneous;
@@ -112,7 +113,7 @@ public class CastScan extends CastAction {
 				configurePreferences(castAction);
 				break;
 			default:
-				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastScan does not currently support this processing step.");
+				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, castAction.getNodeName(), "CastScan does not currently support this processing step.");
 			}
 		}
 		_session.clearDataTokens();

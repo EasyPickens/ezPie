@@ -153,7 +153,6 @@ public class TensorFlow extends Action {
 			}
 			//System.out.println(bestItemNumber);
 			//System.out.println("=== Done ==");
-			;
 		}
 
 		return null;

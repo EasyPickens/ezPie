@@ -17,6 +17,7 @@ import java.util.HashMap;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.Constants;
 
 /**
  * 
@@ -55,7 +56,7 @@ public class Rename extends Copy {
 			if (_required) {
 				throw new RuntimeException(String.format("%s does not exist.  To make this action optional, set the attribute Required to False.", source));
 			}
-			_session.addLogMessage("", "** Warning **", String.format(" Nothing found to %s. %s does not exist.", _actionName, source));
+			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "File", String.format(" Nothing found to %s. %s does not exist.", _actionName, source));
 		}
 	}
 }

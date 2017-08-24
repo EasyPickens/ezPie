@@ -28,6 +28,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 
@@ -154,7 +155,7 @@ public class RunCommand extends Action {
 				try {
 					FileUtilities.deleteFile(_batchFilename);
 				} catch (Exception e) {
-					_session.addLogMessage("*** Warning ***", "Delete Batch", "Could not delete batch file. " + e.getMessage());
+					_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Delete Batch", "Could not delete batch file. " + e.getMessage());
 				}
 			}
 		}

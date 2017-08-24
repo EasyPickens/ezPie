@@ -19,6 +19,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
@@ -46,7 +47,7 @@ public class AppendChild extends XmlTransform {
 		if (_required && (length == 0)) {
 			throw new RuntimeException("XmlString does not contain any nodes to append.");
 		} else if (length == 0) {
-			_session.addLogMessage("", "** Warning **", "XmlString does not contain any nodes to append.");
+			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Nodes", "XmlString does not contain any nodes to append.");
 			return xmlDocument;
 		}
 

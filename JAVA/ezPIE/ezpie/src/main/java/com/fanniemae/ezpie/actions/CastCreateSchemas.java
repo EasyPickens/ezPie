@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.SqlUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -79,7 +80,7 @@ public class CastCreateSchemas extends CastAction {
 				createSchema(castAction, "mngt", "ManagementTemplate");
 				break;
 			default:
-				_session.addLogMessage("** Warning **", castAction.getNodeName(), "CastOnboard does not currently support this processing step.");
+				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, castAction.getNodeName(), "CastOnboard does not currently support this processing step.");
 			}
 		}
 		_session.clearDataTokens();

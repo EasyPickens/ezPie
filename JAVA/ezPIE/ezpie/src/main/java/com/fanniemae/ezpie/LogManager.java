@@ -23,7 +23,6 @@ import java.util.Date;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -154,10 +153,6 @@ public class LogManager {
 		updateLog(false, logGroup, event, description, cargo, false, false);
 	}
 
-	public void addWarnMessage(String event, String description) {
-		addMessage(Constants.LOG_WARNING_MESSAGE, event, description, "");
-	}
-
 	public void addHtmlMessage(String logGroup, String event, String description, String cargo) {
 		updateLog(false, logGroup, event, description, cargo, false, true);
 	}
@@ -167,28 +162,28 @@ public class LogManager {
 	}
 
 	public void addErrorMessage(Throwable ex, Boolean isInner) {
-		String sLogGroup = isInner ? "" : "** ERROR **";
-		String sInner = isInner ? "Inner " : "";
+		String logGroup = isInner ? "" : "** ERROR **";
+		String inner = isInner ? "Inner " : "";
 
-		String sMessage = ex.getMessage();
-		if (StringUtilities.isNullOrEmpty(sMessage))
-			sMessage = "See stack trace for error details.";
-		updateLog(true, sLogGroup, sInner + "Message", sMessage);
+		String message = ex.getMessage();
+		if (StringUtilities.isNullOrEmpty(message))
+			message = "See stack trace for error details.";
+		updateLog(true, logGroup, inner + "Message", message);
 		if (!ex.getClass().getName().equals("java.lang.RuntimeException"))
-			updateLog(true, "", sInner + "Exception Type", ex.getClass().getName().toString());
+			updateLog(true, "", inner + "Exception Type", ex.getClass().getName().toString());
 
 		StringBuilder sbStack = new StringBuilder();
-		boolean bAddLinebreak = false;
+		boolean addLinebreak = false;
 		for (StackTraceElement ele : ex.getStackTrace()) {
-			if (bAddLinebreak)
+			if (addLinebreak)
 				sbStack.append(getNewLineTab());
 			sbStack.append(ele.toString());
-			bAddLinebreak = true;
+			addLinebreak = true;
 		}
-		updateLog(true, "", sInner + "Details", sbStack.toString());
-		Throwable inner = ex.getCause();
-		if (inner != null)
-			addErrorMessage(inner, true);
+		updateLog(true, "", inner + "Details", sbStack.toString());
+		Throwable innerException = ex.getCause();
+		if (innerException != null)
+			addErrorMessage(innerException, true);
 	}
 
 	public String getNewLineTab() {
@@ -204,13 +199,13 @@ public class LogManager {
 	
 	protected void initializeLog() {
 		// Read JVM runtime settings
-		Runtime oRuntime = Runtime.getRuntime();
+		Runtime runtime = Runtime.getRuntime();
 		// Read the debug template
-		String sTemplate = (_logFormat == LogFormat.HTML) ? readTemplateFile(_templatePath + "Debug.txt") : "";
+		String template = (_logFormat == LogFormat.HTML) ? readTemplateFile(_templatePath + "Debug.txt") : "";
 		_startTime = System.currentTimeMillis();
 		// Create debug file
 		try (FileOutputStream fos = new FileOutputStream(_logFilename, false)) {
-			fos.write(sTemplate.getBytes());
+			fos.write(template.getBytes());
 			// Add machine information
 			fos.write(String.format(_basicLine, "Environment Information", "Started", new SimpleDateFormat("MMMM d, yyyy HH:mm:ss").format(new Date()), elapsedTime()).getBytes());
 			fos.write(String.format(_basicLine, groupString(""), "User account name", System.getProperty("user.name"), elapsedTime()).getBytes());
@@ -220,10 +215,10 @@ public class LogManager {
 			fos.write(String.format(_basicLine, groupString(""), "JAVA Home", System.getProperty("java.home"), elapsedTime()).getBytes());
 			fos.write(String.format(_basicLine, groupString(""), "JAVA Vendor", System.getProperty("java.vendor"), elapsedTime()).getBytes());
 			fos.write(String.format(_longTextLine, groupString(""), "JAVA Class Path", System.getProperty("java.class.path").replace(";", ";" + _newLineTab), elapsedTime()).getBytes());
-			fos.write(String.format(_basicLine, groupString(""), "JVM Maximum Memory", String.format("%,d Megabytes", oRuntime.maxMemory() / 1048576), elapsedTime()).getBytes());
-			fos.write(String.format(_basicLine, groupString(""), "JVM Total Allocated Memory", String.format("%,d Megabytes reserved", oRuntime.totalMemory() / 1048576), elapsedTime()).getBytes());
-			fos.write(String.format(_basicLine, groupString(""), "JVM Used Memory", String.format("%,d Megabytes", (oRuntime.totalMemory() - oRuntime.freeMemory()) / 1048576), elapsedTime()).getBytes());
-			fos.write(String.format(_basicLine, groupString(""), "JVM Free Memory", String.format("%,d Megabytes", oRuntime.freeMemory() / 1048576), elapsedTime()).getBytes());
+			fos.write(String.format(_basicLine, groupString(""), "JVM Maximum Memory", String.format("%,d Megabytes", runtime.maxMemory() / 1048576), elapsedTime()).getBytes());
+			fos.write(String.format(_basicLine, groupString(""), "JVM Total Allocated Memory", String.format("%,d Megabytes reserved", runtime.totalMemory() / 1048576), elapsedTime()).getBytes());
+			fos.write(String.format(_basicLine, groupString(""), "JVM Used Memory", String.format("%,d Megabytes", (runtime.totalMemory() - runtime.freeMemory()) / 1048576), elapsedTime()).getBytes());
+			fos.write(String.format(_basicLine, groupString(""), "JVM Free Memory", String.format("%,d Megabytes", runtime.freeMemory() / 1048576), elapsedTime()).getBytes());
 			fos.write(String.format(_basicLine, groupString(""), "Operating system name", System.getProperty("os.name"), elapsedTime()).getBytes());
 			fos.write(String.format(_basicLine, groupString(""), "User working directory", System.getProperty("user.dir"), elapsedTime()).getBytes());
 			fos.write(_footerByteArray);
@@ -239,11 +234,11 @@ public class LogManager {
 
 		try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
 			StringBuilder sb = new StringBuilder();
-			String sLine = br.readLine();
-			while (sLine != null) {
-				sb.append(sLine);
+			String line = br.readLine();
+			while (line != null) {
+				sb.append(line);
 				// sb.append("\n");
-				sLine = br.readLine();
+				line = br.readLine();
 			}
 			return sb.toString();
 		} catch (IOException e) {

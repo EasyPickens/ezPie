@@ -29,6 +29,7 @@ import com.fanniemae.ezpie.actions.xmltransforms.NodeExists;
 import com.fanniemae.ezpie.actions.xmltransforms.SaveFile;
 import com.fanniemae.ezpie.actions.xmltransforms.SetAttribute;
 import com.fanniemae.ezpie.actions.xmltransforms.XmlTransform;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -113,7 +114,7 @@ public class XmlEdit extends Action {
 				xmlTransforms.add(new SaveFile(_session, xmlEdit, _isFolder));
 				break;
 			default:
-				_session.addLogMessage("** Warning **", nodeName, "XmlEdit does not currently support this processing step.");
+				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, nodeName, "XmlEdit does not currently support this processing step.");
 			}
 		}
 
@@ -156,36 +157,6 @@ public class XmlEdit extends Action {
 			_filesModified++;
 		}
 		_session.addLogMessage("", "File Count", String.format("%,d files modified out of %,d files found.",_filesModified,_filesFound));
-
-		// NodeList nlEdits = XmlUtilities.selectNodes(_action, "*");
-		// int length = nlEdits.getLength();
-		// if (length == 0)
-		// return "";
-		//
-		// for (int i = 0; i < length; i++) {
-		// Element xmlEdit = (Element) (nlEdits.item(i));
-		// String nodeName = xmlEdit.getNodeName();
-		// _session.addLogMessage(nodeName, "Process", "Processing XML edit action.");
-		// switch (nodeName) {
-		// case "SetAttribute":
-		// setAttribute(xmlEdit);
-		// break;
-		// case "AppendChild":
-		// appendChild(xmlEdit);
-		// break;
-		// case "InsertBefore":
-		// insertBefore(xmlEdit);
-		// break;
-		// case "InsertAfter":
-		// insertAfter(xmlEdit);
-		// break;
-		// case "SaveFile":
-		// saveFile(xmlEdit);
-		// break;
-		// default:
-		// _session.addLogMessage("** Warning **", nodeName, "XmlEdit does not currently support this processing step.");
-		// }
-		// }
 		_session.clearDataTokens();
 		return null;
 	}
@@ -221,7 +192,7 @@ public class XmlEdit extends Action {
 		if (required && (length == 0)) {
 			throw new RuntimeException("XmlString does not contain any nodes to append.");
 		} else if (length == 0) {
-			_session.addLogMessage("", "** Warning **", "XmlString does not contain any nodes to append.");
+			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Node", "XmlString does not contain any nodes to append.");
 			return;
 		}
 
@@ -258,7 +229,7 @@ public class XmlEdit extends Action {
 		if (required && (length == 0)) {
 			throw new RuntimeException("XmlString does not contain any nodes to append.");
 		} else if (length == 0) {
-			_session.addLogMessage("", "** Warning **", "XmlString does not contain any nodes to append.");
+			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Node", "XmlString does not contain any nodes to append.");
 			return;
 		}
 
@@ -282,7 +253,7 @@ public class XmlEdit extends Action {
 		if (required && (length == 0)) {
 			throw new RuntimeException("XmlString does not contain any nodes to append.");
 		} else if (length == 0) {
-			_session.addLogMessage("", "** Warning **", "XmlString does not contain any nodes to append.");
+			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Node", "XmlString does not contain any nodes to append.");
 			return;
 		}
 

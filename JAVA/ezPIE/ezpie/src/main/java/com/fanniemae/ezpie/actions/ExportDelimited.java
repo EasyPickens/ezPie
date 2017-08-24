@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -142,7 +143,7 @@ public class ExportDelimited extends Action {
 				_outputColumnNames[i] = StringUtilities.isNotNullOrEmpty(alais) ? alais : inputName;
 				_outputColumnIndexes[i] = inputColumnNames.indexOf(inputName);
 				if (_outputColumnIndexes[i] == -1) {
-					_session.addLogMessage("", "*** Warning ***", String.format("Column %s not found in the data set. Defaulting to empty string.", StringUtilities.isNullOrEmpty(inputName) ? alais : inputName));
+					_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Column", String.format("Column %s not found in the data set. Defaulting to empty string.", StringUtilities.isNullOrEmpty(inputName) ? alais : inputName));
 				}
 			}
 		} else {

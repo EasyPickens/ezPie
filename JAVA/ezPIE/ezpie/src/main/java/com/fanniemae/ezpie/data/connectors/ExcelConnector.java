@@ -31,6 +31,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -113,7 +114,7 @@ public class ExcelConnector extends DataConnector {
 			_session.addLogMessage("", "Worksheets Found", sb.toString());
 			_sheet = StringUtilities.isNotNullOrEmpty(_sheetName) ? _workbook.getSheet(_sheetName) : _workbook.getSheetAt(0);
 			if (_sheet == null) {
-				_session.addLogMessage("","** WARNING **", String.format("%s worksheet not found, Skipping this file.", _sheetName));
+				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE,"Worksheet", String.format("%s worksheet not found, Skipping this file.", _sheetName));
 				return false;
 			}
 			readSchema();

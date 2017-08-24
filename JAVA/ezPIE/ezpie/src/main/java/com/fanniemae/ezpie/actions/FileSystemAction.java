@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -111,7 +112,7 @@ public abstract class FileSystemAction extends Action {
 				case "IncludeFile":
 					throw new RuntimeException(String.format("%s child element no longer supported. Use Include or Exclude.", name));
 				default:
-					_session.addLogMessage("** Warning **", name, "Operation not currently supported.");
+					_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, name, "Operation not currently supported.");
 				}
 			}
 			_excludeRegex = new Pattern[exclude.size()];
@@ -195,7 +196,7 @@ public abstract class FileSystemAction extends Action {
 			if (_required) {
 				throw new RuntimeException(String.format("%s does not exist.  To make this action optional, set the attribute Required to False.", source));
 			}
-			_session.addLogMessage("", "** Warning **", String.format(" Nothing found to %s. %s does not exist.", _actionName, source));
+			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "File System", String.format(" Nothing found to %s. %s does not exist.", _actionName, source));
 			return;
 		} else if (sourceLocation.isFile()) {
 			_totalBytes += FileUtilities.getLength(source);

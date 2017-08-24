@@ -20,6 +20,7 @@ import java.util.Calendar;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -367,7 +368,7 @@ public class Index extends DataTransform {
 						FileUtilities.deleteFile(_indexStreams[i].getFilename());
 					} catch (Exception ex) {
 						String message = ((ex != null) && (ex.getMessage() != null)) ? ex.getMessage() : "No Details";
-						_session.addLogMessage("", "** Warning **", "Tried to close stream: " + message);
+						_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Stream", "Tried to close stream: " + message);
 					}
 				}
 			}

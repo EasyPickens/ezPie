@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
@@ -181,7 +182,7 @@ public class DataEngine {
 					try {
 						FileUtilities.deleteFile(tempFiles.get(i));
 					} catch (Exception ex) {
-						_session.addLogMessage("", "*** WARNING ***", String.format("Could not delete temporary file. Reason: %s", ex.getMessage()));
+						_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Cleanup", String.format("Could not delete temporary file. Reason: %s", ex.getMessage()));
 					}
 				}
 			}
