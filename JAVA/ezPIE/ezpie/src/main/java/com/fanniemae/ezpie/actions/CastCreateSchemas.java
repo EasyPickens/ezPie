@@ -33,7 +33,6 @@ import com.fanniemae.ezpie.common.XmlUtilities;
  */
 
 public class CastCreateSchemas extends CastAction {
-
 	protected Element _castConnection;
 
 	public CastCreateSchemas(SessionManager session, Element action) {
@@ -56,7 +55,7 @@ public class CastCreateSchemas extends CastAction {
 		int length = castActions.getLength();
 		String sqlCommand = _session.getTokenValue("SelfServiceScan", "UpdateStatus");
 		if (_session.updateScanManager() && StringUtilities.isNullOrEmpty(sqlCommand)) {
-			throw new RuntimeException("No value for @SelfServiceScan.UpdateStatus~ token.");
+			throw new RuntimeException(String.format("No value for %sSelfServiceScan.UpdateStatus%s token.",_session.getTokenPrefix(), _session.getTokenSuffix()));
 		}
 		for (int i = 0; i < length; i++) {
 			Element castAction = (Element) (castActions.item(i));

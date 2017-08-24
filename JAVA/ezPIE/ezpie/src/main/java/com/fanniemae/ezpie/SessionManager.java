@@ -355,7 +355,7 @@ public class SessionManager {
 	public String getRequiredTokenValue(String tokenType, String tokenKey) {
 		String value = getTokenValue(tokenType, tokenKey);
 		if (StringUtilities.isNullOrEmpty(value)) {
-			throw new RuntimeException(String.format("No value is defined for the [%s.%s] token.", tokenType, tokenKey));
+			throw new RuntimeException(String.format("No value is defined for the %s%s.%s%s token.", _tokenPrefix, tokenType, tokenKey, _tokenSuffix));
 		}
 		return value;
 	}
@@ -430,6 +430,14 @@ public class SessionManager {
 
 	public DataTable getCodeLocations() {
 		return _codeLocations;
+	}
+	
+	public String getTokenPrefix() {
+		return _tokenPrefix;
+	}
+	
+	public String getTokenSuffix() {
+		return _tokenSuffix;
 	}
 
 	public void setDataTokens(HashMap<String, String> dataTokens) {

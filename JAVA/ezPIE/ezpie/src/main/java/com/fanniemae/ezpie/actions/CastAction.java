@@ -40,7 +40,7 @@ public abstract class CastAction extends RunCommand {
 
 	public CastAction(SessionManager session, Element action) {
 		super(session, action);
-		_castFolder = optionalAttribute("CastFolder", _session.resolveTokens("@CAST.ProgramFolder~"));
+		_castFolder = optionalAttribute("CastFolder", _session.getTokenValue("CAST", "ProgramFolder"));
 
 		if (FileUtilities.isInvalidDirectory(_castFolder)) {
 			throw new RuntimeException(String.format("CastFolder %s does not exist", _castFolder));
@@ -53,7 +53,7 @@ public abstract class CastAction extends RunCommand {
 			if (_connection == null) {
 				throw new RuntimeException("Missing JavaScanManager connection element.");
 			}
-			String key = _session.resolveTokens("@Local.JobKey~");
+			String key = _session.getTokenValue("Local", "JobKey");
 			if (StringUtilities.isNullOrEmpty(key))
 				throw new RuntimeException("Missing job primary key required to update ScanManager status.");
 			_jobKey = StringUtilities.toInteger(key, -1);

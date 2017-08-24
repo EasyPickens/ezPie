@@ -30,8 +30,13 @@ import com.fanniemae.ezpie.common.XmlUtilities;
 
 public class SaveFile extends XmlTransform {
 
+	protected String _tokenPrefix;
+	protected String _tokenSuffix;
+
 	public SaveFile(SessionManager session, Element action, boolean isFolder) {
 		super(session, action, isFolder);
+		_tokenPrefix = session.getTokenPrefix();
+		_tokenSuffix = session.getTokenSuffix();
 	}
 
 	@Override
@@ -41,16 +46,18 @@ public class SaveFile extends XmlTransform {
 		String tokenName = (_isFolder) ? _session.getAttribute(_action, "Name") : optionalAttribute("Name", "");
 
 		// Resolve the data tokens for filename (if any)
-		if ((file != null) && (filename.indexOf('@') > -1) && (filename.indexOf('~') > -1)) {
+		if ((file != null) && (filename.indexOf(_tokenPrefix) > -1) && (filename.indexOf(_tokenSuffix) > -1)) {
 			String filenameNoExtension = FileUtilities.getFilenameOnly(file.getName());
 			String filenameAndExtension = FileUtilities.getFilenameOnly(file.getName());
 			String extension = "xml";
 			String fullNameAndPath = file.getAbsolutePath();
 			String justPath = file.getParent();
 			//@formatter:off
-			filename = filename.replace("@Data.FileNameNoExtension~", filenameNoExtension).replace("@Data.FullFileName~", filenameAndExtension)
-					           .replace("@Data.FileExtension~", extension).replace("@Data.FileNameAndPath~", fullNameAndPath)
-					           .replace("@Data.FilePathOnly~", justPath);
+			filename = filename.replace(_tokenPrefix + "Data.FileNameNoExtension" + _tokenSuffix, filenameNoExtension)
+					           .replace(_tokenPrefix + "Data.FullFileName" + _tokenSuffix, filenameAndExtension)
+					           .replace(_tokenPrefix + "Data.FileExtension" + _tokenSuffix, extension)
+					           .replace(_tokenPrefix + "Data.FileNameAndPath" + _tokenSuffix, fullNameAndPath)
+					           .replace(_tokenPrefix + "Data.FilePathOnly" + _tokenSuffix, justPath);
 			//@formatter:on
 		}
 

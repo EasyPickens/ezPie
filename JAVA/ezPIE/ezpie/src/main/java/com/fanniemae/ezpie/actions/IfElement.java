@@ -39,8 +39,7 @@ public class IfElement extends Action {
 		String jsFile = optionalAttribute("JavaScriptFile", null);
 		if (jsFile != null) {
 			if (FileUtilities.isInvalidFile(jsFile)) {
-				String resourceDir = String.format("@Configuration.ApplicationPath~%s_Resources%s%s", File.separator, File.separator, jsFile);
-				resourceDir = _session.resolveTokens(resourceDir);
+				String resourceDir = String.format("%s%s_Resources%s%s", _session.getTokenValue("Configuration","ApplicationPath"), File.separator, File.separator, jsFile);
 				if (FileUtilities.isValidFile(resourceDir)) {
 					jsFile = resourceDir;
 				} else {

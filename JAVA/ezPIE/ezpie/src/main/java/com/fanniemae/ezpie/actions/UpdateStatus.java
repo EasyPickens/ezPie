@@ -39,18 +39,13 @@ public class UpdateStatus extends Action {
 
 	public UpdateStatus(SessionManager session, Element action) {
 		super(session, action, false);
-		_updateCommand = optionalAttribute("Command", "@SelfServiceScan.UpdateStatus~");
+		_updateCommand = optionalAttribute("Command", _session.getTokenValue("SelfServiceScan", "UpdateStatus"));
 		_connectionID = optionalAttribute("ConnectionName", "JavaScanManager");
 		_message = requiredAttribute("Message");
 
-		// String key = _session.resolveTokens("@Local.JobKey~");
-		// if (StringUtilities.isNullOrEmpty(key))
-		// throw new RuntimeException("Missing job primary key required to update ScanManager status.");
-		// _jobKey = StringUtilities.toInteger(key, -1);
-
 		if (_session.updateScanManager()) {
 			_connection = _session.getConnection(_connectionID);
-			String key = _session.resolveTokens("@Local.JobKey~");
+			String key = _session.getTokenValue("Local", "JobKey");
 			if (StringUtilities.isNullOrEmpty(key))
 				throw new RuntimeException("Missing job primary key required to update ScanManager status.");
 			_jobKey = StringUtilities.toInteger(key, -1);

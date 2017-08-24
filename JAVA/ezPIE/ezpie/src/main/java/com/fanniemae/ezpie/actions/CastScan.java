@@ -41,7 +41,7 @@ public class CastScan extends CastAction {
 	protected String _connectionProfile;
 	protected String _applicationName;
 	protected String _version;
-	
+
 	public CastScan(SessionManager session, Element action) {
 		super(session, action);
 	}
@@ -62,9 +62,9 @@ public class CastScan extends CastAction {
 		int length = castActions.getLength();
 		String sqlCommand = _session.getTokenValue("SelfServiceScan", "UpdateStatus");
 		if (_session.updateScanManager() && StringUtilities.isNullOrEmpty(sqlCommand)) {
-			throw new RuntimeException("No value for @SelfServiceScan.UpdateStatus~ token.");
+			throw new RuntimeException(String.format("No value for %sSelfServiceScan.UpdateStatus%s token.", _session.getTokenPrefix(), _session.getTokenSuffix()));
 		}
-		
+
 		for (int i = 0; i < length; i++) {
 			Element castAction = (Element) (castActions.item(i));
 			String nodeName = castAction.getNodeName();
@@ -81,7 +81,7 @@ public class CastScan extends CastAction {
 				SqlUtilities.ExecuteScalar(_connection, String.format("UPDATE fnma_measure8.scan_manager SET dblog_name = null WHERE pkey = %d", _jobKey), null, _session.updateScanManager());
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
 				backupDatabase(castAction);
-				break;				
+				break;
 			case "AnalyzeCode":
 				params[0][1] = "Analyze Code";
 				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
@@ -119,13 +119,13 @@ public class CastScan extends CastAction {
 		_session.clearDataTokens();
 		return "";
 	}
-	
+
 	@Override
 	protected void initialize() {
 		_connectionProfile = requiredAttribute("ConnectionProfile");
 		_applicationName = requiredAttribute("ApplicationName");
 		_version = requiredAttribute("ApplicationVersion");
-		
+
 		// If empty child element, build default pattern
 		NodeList castCommands = XmlUtilities.selectNodes(_action, "*");
 		if (castCommands.getLength() == 0) {
@@ -154,13 +154,13 @@ public class CastScan extends CastAction {
 		boolean haveDbFilename = false;
 		while (Calendar.getInstance().compareTo(endTime) < 0) {
 			if (!haveDbFilename) {
-				Object logname = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@SelfServiceScan.GetLogFilename~"), params, _session.updateScanManager());
+				Object logname = SqlUtilities.ExecuteScalar(_connection, _session.getTokenValue("SelfServiceScan", "GetLogFilename"), params, _session.updateScanManager());
 				if (logname != null) {
 					_session.addLogMessage("", "External Activity Log", "View Database Backup Log", "file://" + (String) logname);
 					haveDbFilename = true;
 				}
 			}
-			Object value = SqlUtilities.ExecuteScalar(_connection, _session.resolveTokens("@SelfServiceScan.CheckStatus~"), params, _session.updateScanManager());
+			Object value = SqlUtilities.ExecuteScalar(_connection, _session.getTokenValue("SelfServiceScan", "CheckStatus"), params, _session.updateScanManager());
 			if (value != null) {
 				String status = value.toString();
 				if (status.toLowerCase().startsWith("error")) {
@@ -250,7 +250,7 @@ public class CastScan extends CastAction {
 		String dbDriver = optionalAttribute(castAction, "DbDriver", _session.getRequiredTokenValue("CAST", "DbDriver"));
 		String dbUrl = optionalAttribute(castAction, "DbUrl", _session.getRequiredTokenValue("CAST", "DbUrl"));
 		String dbSchema = optionalAttribute(castAction, "DbSchema", _session.getRequiredTokenValue("CAST", "DbSchema"));
-		String dbAppCentral = optionalAttribute(castAction, "DbCentral", _session.getRequiredTokenValue("LocalData", "dbprefix")+"_central");
+		String dbAppCentral = optionalAttribute(castAction, "DbCentral", _session.getRequiredTokenValue("LocalData", "dbprefix") + "_central");
 		String dbUser = optionalAttribute(castAction, "DbUser", _session.getRequiredTokenValue("CAST", "DbUser"));
 		String dbPassword = optionalAttribute(castAction, "DbPassword", _session.getRequiredTokenValue("CAST", "DbPassword"));
 
@@ -322,7 +322,7 @@ public class CastScan extends CastAction {
 
 		executeCastAction("", "%s to configure transactions.", null);
 	}
-	
+
 	protected void configurePreferences(Element castAction) {
 		String licenseKey = requiredAttribute(castAction, "LicenseKey");
 		String deliveryFolder = requiredAttribute(castAction, "DeliveryFolder");
