@@ -84,7 +84,7 @@ public class SessionManager {
 		if (StringUtilities.isNullOrEmpty(settingsFilename)) {
 			throw new RuntimeException("Settings file is not defined.  Please provide the full path to the _settings.xml file.");
 		}
-		
+
 		if (!FileUtilities.isValidFile(settingsFilename)) {
 			if (FileUtilities.isValidFile(Miscellaneous.getApplicationRoot() + settingsFilename)) {
 				settingsFilename = Miscellaneous.getApplicationRoot() + settingsFilename;
@@ -146,7 +146,7 @@ public class SessionManager {
 		if ((jobFilename != null) && !jobFilename.toLowerCase().endsWith(".xml")) {
 			jobFilename += ".xml";
 		}
-		
+
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _definitionPath + jobFilename;
 			if (FileUtilities.isValidFile(sAdjustedDefinitionFilename))
@@ -336,7 +336,7 @@ public class SessionManager {
 	public void addErrorMessage(Exception ex) {
 		_logger.addErrorMessage(ex);
 	}
-	
+
 	public Element getConnection(String connectionName) {
 		if (StringUtilities.isNullOrEmpty(connectionName))
 			return null;
@@ -371,12 +371,12 @@ public class SessionManager {
 	public void addTokens(Node node) {
 		_tokenizer.addTokens(node);
 	}
-	
-	public void addTokens(Map<String,String> newTokens) {
+
+	public void addTokens(Map<String, String> newTokens) {
 		_tokenizer.addTokens(newTokens);
 	}
-	
-	public void addTokens(String tokenType, Map<String,String> newTokens) {
+
+	public void addTokens(String tokenType, Map<String, String> newTokens) {
 		_tokenizer.addTokens(tokenType, newTokens);
 	}
 
@@ -395,19 +395,23 @@ public class SessionManager {
 	public void addDataSet(String name, DataStream ds) {
 		_dataSets.put(name, ds);
 	}
-	
+
 	public List<String> getDataStreamList() {
 		List<String> dataSets = new ArrayList<String>();
 		if ((_dataSets == null) || (_dataSets.size() == 0))
 			return dataSets;
-		
-		for (Map.Entry<String,DataStream> kvp : _dataSets.entrySet()) {
+
+		for (Map.Entry<String, DataStream> kvp : _dataSets.entrySet()) {
 			dataSets.add(kvp.getKey());
 		}
 		return dataSets;
 	}
 
 	public DataStream getDataStream(String name) {
+		return getDataStream(name, false);
+	}
+
+	public DataStream getDataStream(String name, boolean silent) {
 		if (StringUtilities.isNullOrEmpty(name))
 			throw new RuntimeException("Missing required DataSetName value.");
 		// addLogMessage("", "DataSetName", name);
@@ -416,10 +420,12 @@ public class SessionManager {
 			throw new RuntimeException(String.format("DataSetName %s was not found in the list of available data sets.", name));
 
 		DataStream dataStream = _dataSets.get(name);
-		if (dataStream.IsMemory()) {
-			addLogMessage("", "DataStream Details", String.format("MemoryStream of %,d bytes", dataStream.getSize()));
-		} else {
-			addLogMessage("", "DataStream Details", String.format("FileStream (%s) of %,d bytes", dataStream.getFilename(), dataStream.getSize()));
+		if (!silent) {
+			if (dataStream.IsMemory()) {
+				addLogMessage("", "DataStream Details", String.format("MemoryStream of %,d bytes", dataStream.getSize()));
+			} else {
+				addLogMessage("", "DataStream Details", String.format("FileStream (%s) of %,d bytes", dataStream.getFilename(), dataStream.getSize()));
+			}
 		}
 		return dataStream;
 	}
@@ -431,11 +437,11 @@ public class SessionManager {
 	public DataTable getCodeLocations() {
 		return _codeLocations;
 	}
-	
+
 	public String getTokenPrefix() {
 		return _tokenPrefix;
 	}
-	
+
 	public String getTokenSuffix() {
 		return _tokenSuffix;
 	}

@@ -135,7 +135,7 @@ public abstract class DataTransform {
 	public abstract Object[] processDataRow(Object[] dataRow);
 
 	public String[][] UpdateSchema(String[][] schema) {
-		_inputSchema = schema;
+		_inputSchema =  ArrayUtilities.cloneArray(schema);
 		_outColumnIndex = ArrayUtilities.indexOf(schema, _name, true);
 
 		if (StringUtilities.isNotNullOrEmpty(_dataColumn)) {

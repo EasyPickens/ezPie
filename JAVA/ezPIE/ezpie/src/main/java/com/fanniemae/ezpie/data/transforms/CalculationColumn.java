@@ -40,7 +40,7 @@ public class CalculationColumn extends DataTransform {
 	
 	protected int _errorLimit = 1;
 	protected int _errors = 0;
-
+	
 	public CalculationColumn(SessionManager session, Element transform) {
 		super(session, transform);
 

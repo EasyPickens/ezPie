@@ -33,9 +33,16 @@ public final class DataUtilities {
 		HashMap<String, String> dataTokens = new HashMap<String, String>();
 		
 		for (int i = 0; i < schema.length; i++) {
-			if (dataRow[i] == null) {
+			String dataType = schema[i][1].toLowerCase();
+			if ((dataRow[i] == null) && (dataType.contains("double") 
+					                    || dataType.contains("int") 
+					                    || dataType.contains("float")
+					                    || dataType.contains("short")
+					                    || dataType.contains("byte")) ) {
+				dataTokens.put(schema[i][0], "0");
+			} else if (dataRow[i] == null) {
 				dataTokens.put(schema[i][0], "");
-			} else if (schema[i][1].contains("Date") || schema[i][1].contains("Time")) {
+			} else if (dataType.contains("date") || dataType.contains("time")) {
 				dataTokens.put(schema[i][0], DateUtilities.toIsoString((Date) dataRow[i]));
 			} else {
 				dataTokens.put(schema[i][0], dataRow[i].toString());

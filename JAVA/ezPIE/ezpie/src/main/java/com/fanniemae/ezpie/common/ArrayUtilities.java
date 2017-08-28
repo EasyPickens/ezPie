@@ -172,4 +172,13 @@ public final class ArrayUtilities {
 		}
 		return results.toArray(new String[results.size()]);
 	}
+	
+	public static String[][] cloneArray(String[][] source) {
+	    int length = source.length;
+	    String[][] clone = new String[length][source[0].length];
+	    for (int i = 0; i < length; i++) {
+	        System.arraycopy(source[i], 0, clone[i], 0, source[i].length);
+	    }
+	    return clone;
+	}	
 }

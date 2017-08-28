@@ -103,12 +103,14 @@ public class RunPie {
 		// String job = "ExcelTest.xml";
 		// String job = "SharepointTest.xml";
 		// String job = "ScheduleTest2.xml";
-		String job = "_DataTransforms";
+		// String job = "_DataTransforms";
 		// String job = "CAST_Daily.xml";
 		// String job = "Git.xml";
 		// String job = "_Empty.xml";
 		// String job = "ListDefinitions";
 		// String job = "_Tensorflow";
+		// String job = "_TransformDebug";
+		String job = "_Tensorflow_dual";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

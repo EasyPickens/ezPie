@@ -82,46 +82,37 @@ public class TensorFlow extends Action {
 			throw new RuntimeException(String.format("Input dataset %s is empty.",inputDataSetName));
 		}
 
-		try (SavedModelBundle b = SavedModelBundle.load(modelBundlePath, modelBundleTags)) { // "C:/Developers/model_out/1501775585", "serve")) {
+		try (SavedModelBundle b = SavedModelBundle.load(modelBundlePath, modelBundleTags)) {
 			Session sess = b.session();
-
-			// critical findings per lines of code, robustness, security, tqi, efficiency
-			// double[] inputDouble = {11.7596938 , 4.0 , 0.0 , 4.0 , 2.0 };
-			// float [] inputfloat=new float[inputDouble.length];
-			// for(int i=0;i<inputfloat.length;i++)
-			// {
-			// inputfloat[i]=(float)inputDouble[i];
-			// }
-			// FloatBuffer.wrap(inputfloat);
-			// float[][] data= new float[1][5];
-			// data[0]=inputfloat;
 			Tensor inputTensor = Tensor.create(data);
 
-			// run the model and get the result, 4.0f.
-			Tensor result = sess.runner().feed(feedOperationName, inputTensor) // "dnn/input_from_feature_columns/input_from_feature_columns/concat", inputTensor) //default names of inputs
-					.fetch(fetchOperationName) // "dnn/multi_class_head/predictions/probabilities")
+			Tensor result = sess.runner().feed(feedOperationName, inputTensor)
+					.fetch(fetchOperationName)
 					.run().get(0);
 
-			// print out the result.
-//			System.out.println("Result:");
-//			System.out.println("============");
-//			System.out.println(result);
-//			System.out.println();
-//			System.out.println("Predictions:");
-//			System.out.println("============");
-			float[][] m = new float[1][10];
-			float[][] vector = result.copyTo(m);
+			long[] shape = result.shape();
+			float[][] vector = null;
 			float bestPrediction = 0;
-			int itemNumber = 0;
 			int bestItemNumber = -1;
-			for (float val : vector[0]) {
-//				System.out.println(new BigDecimal(val).toPlainString());
-				if (val > bestPrediction) {
-					bestItemNumber = itemNumber;
-					bestPrediction = val;
-				}
-				itemNumber++;
+			if (shape.length == 1) {
+				vector = new float[1][(int)shape[0]];
+				vector[0] = result.copyTo(vector[0]);
+				bestPrediction = vector[0][0];
+				bestItemNumber = 0;
+			} else if (shape.length == 2) {
+				vector = new float[(int)shape[0]][(int)shape[1]];
+				vector = result.copyTo(vector);
+				
+				int itemNumber = 0;
+				for (float val : vector[0]) {
+					if (val > bestPrediction) {
+						bestItemNumber = itemNumber;
+						bestPrediction = val;
+					}
+					itemNumber++;
+				}				
 			}
+
 			if (bestItemNumber > -1) {
 				_session.addToken("TensorFlow", "Prediction", new BigDecimal(bestPrediction).toPlainString());
 				_session.addToken("TensorFlow", "ItemNumber", String.format("%d", bestItemNumber));
@@ -151,8 +142,6 @@ public class TensorFlow extends Action {
 			} catch (IOException e) {
 				throw new RuntimeException(String.format("Error while saving model results. %s", e.getMessage()), e);
 			}
-			//System.out.println(bestItemNumber);
-			//System.out.println("=== Done ==");
 		}
 
 		return null;
@@ -170,10 +159,6 @@ public class TensorFlow extends Action {
 			int rowNumber = 0;
 			while (!dr.eof()) {
 				dataRow = dr.getDataRow();
-				// row = new float[dataRow.length];
-				// for (int i = 0; i < row.length; i++) {
-				// row[i] = (float) dataRow[i];
-				// }
 				row = new float[_inputLength];
 				for (int i = 0; i < row.length; i++) {
 					Object value = dataRow[_inputColumnIndexes[i]];

@@ -11,6 +11,7 @@
 
 package com.fanniemae.ezpie;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -67,16 +68,17 @@ public class JobManager {
 
 		_session.addLogMessage("Format Data", "Convert", "Converting datasets to JSON." );
 		List<String> dataSets = _session.getDataStreamList();
+		Collections.sort(dataSets);
 		int length = dataSets.size();
 		JSONArray jsonDataSets = new JSONArray();
 		for (int i = 0; i < length; i++) {
 			String name = dataSets.get(i);
-			if (_session.getDataStream(name).isInternal()) {
+			if (_session.getDataStream(name, true).isInternal()) {
 				continue;
 			}
-			_session.addLogMessage("", "DataSet Name", name );
+			_session.addLogMessage("", "DataSet Returned", name );
 			// convert each dataset to JSON.
-			jsonDataSets.put(JsonUtilities.convert(name, _session.getDataStream(name)));
+			jsonDataSets.put(JsonUtilities.convert(name, _session.getDataStream(name, true)));
 		}
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
 		return jsonDataSets.toString();
