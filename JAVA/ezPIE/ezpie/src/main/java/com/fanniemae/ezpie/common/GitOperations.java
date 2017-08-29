@@ -163,8 +163,26 @@ public class GitOperations {
 	}
 
 	private void setupProxy() {
-		if (!_useProxy)
+		if (!_useProxy) {
+			// Repository does not require a proxy, so clear any proxy information from the environement.
+			AuthCacheValue.setAuthCache(new AuthCacheImpl());
+			ProxySelector.setDefault(new ProxySelector() {
+				
+				@Override
+				public List<Proxy> select(URI uri) {
+					return Arrays.asList(Proxy.NO_PROXY);
+				}
+
+				@Override
+				public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+					if (uri == null || sa == null || ioe == null) {
+						throw new IllegalArgumentException("Arguments can't be null.");
+					}
+				}
+			});
+			
 			return;
+		}
 
 		if (_proxyRequiresAuthentication) {
 			setupProxyAuthentication();
