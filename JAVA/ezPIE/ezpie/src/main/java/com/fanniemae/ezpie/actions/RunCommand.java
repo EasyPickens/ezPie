@@ -11,7 +11,6 @@
 
 package com.fanniemae.ezpie.actions;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -19,10 +18,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import org.w3c.dom.Element;
 
@@ -80,72 +81,82 @@ public class RunCommand extends Action {
 				}
 				_session.addLogMessage("", "CommandLine", (_hideConsoleOutput || _session.lastAttributeSecure()) ? _session.getHiddenMessage() : _commandLine);
 
-				String waitForExit = optionalAttribute("WaitForExit", null);
-				String timeout = optionalAttribute("Timeout", "2h");
-				Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
-
-				_waitForExit = StringUtilities.toBoolean(waitForExit, true);
-				_timeout = parseTimeout(timeout);
-
 				_arguments = parseCommandLine(_commandLine);
 
-				if (makeBatchFile) {
-					makeBatchFile();
-				}
 			}
 
+			String waitForExit = optionalAttribute("WaitForExit", null);
+			String timeout = optionalAttribute("Timeout", "2h");
+			Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
+			if (makeBatchFile) {
+				makeBatchFile();
+			}
+
+			_waitForExit = StringUtilities.toBoolean(waitForExit, true);
+			_timeout = parseTimeout(timeout);
+
 			String sConsoleFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
-			Timer commandTimer = null;
 			ProcessBuilder pb = new ProcessBuilder(_arguments);
 			pb.directory(new File(_workDirectory));
-			pb.redirectErrorStream(true);
 			try {
+				Calendar calendar = Calendar.getInstance();
+				calendar.add(Calendar.SECOND, _timeout);
+				Date expireTime = calendar.getTime();
+
 				pb.redirectErrorStream(true);
 				Process p = pb.start();
-				TimerTask killer = new TimeoutRunCommandManager(_session, p);
-				if (_timeout > 0) {
-					commandTimer = new Timer();
-					commandTimer.schedule(killer, _timeout * 1000);
-				}
-
-				try (InputStream is = p.getInputStream(); InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr); FileWriter fw = new FileWriter(sConsoleFilename); BufferedWriter bw = new BufferedWriter(fw);) {
-					String line = "";
-					boolean bAddLineBreak = false;
-					int iLines = 0;
-					while ((line = br.readLine()) != null) {
-						if (bAddLineBreak)
-							bw.append(System.lineSeparator());
-						if (_acceptableErrorOutput != null && _acceptableErrorOutput.equals(line.trim()))
-							_ignoreErrorCode = true;
-						bw.append(line);
-						bAddLineBreak = true;
-						iLines++;
+				try (InputStream is = p.getInputStream(); InputStreamReader isr = new InputStreamReader(is); FileWriter fw = new FileWriter(sConsoleFilename); BufferedWriter bw = new BufferedWriter(fw);) {
+					boolean processTimedOut = false;
+					int count = 0;
+					char[] buffer = new char[100];
+					while (true) {
+						if (expireTime.before(new Date())) {
+							break;
+						}
+						if (!p.isAlive()) {
+							break;
+						} else if (!isr.ready()) {
+							p.waitFor(500, TimeUnit.MILLISECONDS);
+							continue;
+						}
+						int charCount = isr.read(buffer);
+						if (charCount != -1) {
+							bw.write(Arrays.copyOf(buffer, charCount));
+							count += charCount;
+						}
+						count++;
+						if (!p.isAlive() && !isr.ready()) {
+							break;
+						}
 					}
-					if (_waitForExit)
-						p.waitFor(); //500, TimeUnit.MILLISECONDS);
-
+					if (_waitForExit) {
+						if (p.isAlive() && !p.waitFor(200, TimeUnit.MILLISECONDS)) {
+							p.destroy();
+							processTimedOut = true;
+						}
+					}
 					bw.flush();
 					bw.close();
 					if (_hideConsoleOutput) {
 						_session.addLogMessage("", "Console Output", _session.getHiddenMessage());
 						FileUtilities.deleteFile(sConsoleFilename);
 					} else {
-						_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d lines)", iLines), "file://" + sConsoleFilename);
+						_session.addLogMessage("", "Console Output", String.format("View Console Output (%,d bytes)", count), "file://" + sConsoleFilename);
+					}
+					if (processTimedOut) {
+						// @formatter:off
+						throw new RuntimeException("The external command did not return within the timeout period.  It is possible that external command was waiting for some input or it simply became blocked.\n" 
+					                               + "Please check for an input prompt before running the command again or use the Timeout attribute to control the timeout length.\n"
+								                   + "NOTE: When the command times out the console output could be empty or incomplete due to internal buffering.");
+						// @formatter:on
+					} else if (!_ignoreErrorCode && ArrayUtilities.indexOf(_exitCodes, p.exitValue()) == -1) {
+						throw new RuntimeException(String.format("External command returned an error code of %d.  View console output for error details.", p.exitValue()));
 					}
 				} catch (InterruptedException ex) {
 					_session.addErrorMessage(ex);
-					throw new RuntimeException("Error while running external command.", ex);
-				} finally {
-					if (commandTimer != null) {
-						commandTimer.cancel();
-						if (p.exitValue() != 0)
-							throw new RuntimeException(String.format("External command returned an error code of %d", p.exitValue()));
-					} else {
-						if (!_ignoreErrorCode && ArrayUtilities.indexOf(_exitCodes, p.exitValue()) == -1)
-							throw new RuntimeException(String.format("External command returned an error code of %d.  View console output for error details.", p.exitValue()));
-					}
-					_session.addLogMessage("", "Exit Code", p.exitValue() + "");
+					throw new RuntimeException("Interrupted exception error while running external command.", ex);
 				}
+				_session.addLogMessage("", "Exit Code", p.exitValue() + "");
 			} catch (IOException ex) {
 				throw new RuntimeException("Error while running external command.", ex);
 			}
@@ -248,24 +259,5 @@ public class RunCommand extends Action {
 		_batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", ArrayUtilities.toCommandLine(_arguments));
 		_session.addLogMessage("", "Created Batch File", _batchFilename.replace(_session.getApplicationPath(), ""));
 		_arguments = new String[] { _batchFilename };
-	}
-}
-
-class TimeoutRunCommandManager extends TimerTask {
-	
-	private SessionManager _session;
-	private Process _p;
-
-	public TimeoutRunCommandManager(SessionManager session, Process p) {
-		_p = p;
-		_session = session;
-	}
-
-	@Override
-	public void run() {
-		cancel();
-		_p.destroy();
-		InterruptedException ex = new InterruptedException("The external command did not return within the timeout period.  It is possible that external command was waiting for some input or it simply became blocked.  Please check for an input prompt before running the command again or use the Timeout attribute to control the timeout length.\nNOTE: When the command times out the console output is usually empty or incomplete due to internal buffering.");
-		_session.addErrorMessage(ex);
 	}
 }
