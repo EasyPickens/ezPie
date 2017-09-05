@@ -35,7 +35,7 @@ public class GitClone extends Action {
 	public GitClone(SessionManager session, Element action) {
 		super(session, action, false);
 	}
-
+	
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
 		// Repository connection information could be on the local element or stored in the settings file.

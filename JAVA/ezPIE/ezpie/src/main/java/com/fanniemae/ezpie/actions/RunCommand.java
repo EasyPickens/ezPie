@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import org.w3c.dom.Element;
 
@@ -102,7 +103,7 @@ public class RunCommand extends Action {
 			try {
 				pb.redirectErrorStream(true);
 				Process p = pb.start();
-				TimerTask killer = new TimeoutRunCommandManager(p);
+				TimerTask killer = new TimeoutRunCommandManager(_session, p);
 				if (_timeout > 0) {
 					commandTimer = new Timer();
 					commandTimer.schedule(killer, _timeout * 1000);
@@ -122,7 +123,7 @@ public class RunCommand extends Action {
 						iLines++;
 					}
 					if (_waitForExit)
-						p.waitFor();
+						p.waitFor(500, TimeUnit.MILLISECONDS);
 
 					bw.flush();
 					bw.close();
@@ -252,14 +253,20 @@ public class RunCommand extends Action {
 }
 
 class TimeoutRunCommandManager extends TimerTask {
+	
+	private SessionManager _session;
 	private Process _p;
 
-	public TimeoutRunCommandManager(Process p) {
-		this._p = p;
+	public TimeoutRunCommandManager(SessionManager session, Process p) {
+		_p = p;
+		_session = session;
 	}
 
 	@Override
 	public void run() {
+		cancel();
 		_p.destroy();
+		InterruptedException ex = new InterruptedException("The external command did not return within the timeout period.  It is possible that external command was waiting for some input or it simply became blocked.  Please check for an input prompt before running the command again or use the Timeout attribute to control the timeout length.\nNOTE: When the command times out the console output is usually empty or incomplete due to internal buffering.");
+		_session.addErrorMessage(ex);		
 	}
 }
