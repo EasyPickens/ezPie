@@ -13,9 +13,11 @@ package com.fanniemae.ezpie.actions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
@@ -23,6 +25,8 @@ import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
+import com.fanniemae.ezpie.common.XmlUtilities;
+import com.fanniemae.ezpie.common.ZipUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
 
 /**
@@ -34,6 +38,8 @@ import com.fanniemae.ezpie.datafiles.DataReader;
 public class GetSourceCode extends RunCommand {
 
 	protected List<String> _usedDirectories = new ArrayList<String>();
+	
+	protected String _timeoutString = "2h"; 
 
 	public GetSourceCode(SessionManager session, Element action) {
 		super(session, action, false);
@@ -46,6 +52,7 @@ public class GetSourceCode extends RunCommand {
 		String locationTypeColumn = requiredAttribute("LocationTypeColumn").trim();
 		String locationColumn = requiredAttribute("LocationColumn").trim();
 		String directoryColumn = optionalAttribute("DirectoryColumn", "directory_name");
+		_timeoutString = optionalAttribute("Timeout","2h");
 
 		_workDirectory = requiredAttribute("LocalPath").trim();
 		if (FileUtilities.isInvalidDirectory(_workDirectory)) {
@@ -85,41 +92,41 @@ public class GetSourceCode extends RunCommand {
 				switch (codeLocationType) {
 				case 1:
 					// SVN
-					batchCommands.appendFormatLine("REM svn checkout %s %s", codeLocation, StringUtilities.wrapValue(localPath));
+					batchCommands.appendFormatLine("svn checkout %s %s", codeLocation, StringUtilities.wrapValue(localPath));
 					break;
 				case 2:
 					// Git
-					batchCommands.appendFormatLine("REM git clone --verbose %s %s", StringUtilities.wrapValue(codeLocation), StringUtilities.wrapValue(localPath));
+					Document gitDocument = XmlUtilities.createXMLDocument(String.format("<script><GitClone URL=\"%s\" LocalPath=\"%s\" Timeout=\"%s\" /></script>", codeLocation, localPath, _timeoutString));
+					Action git = new GitClone(_session, (Element) gitDocument.getDocumentElement().getFirstChild());
+					git.execute(_dataTokens);
 					break;
 				case 3:
 					// File path
-					batchCommands.appendFormatLine("REM xcopy %s %s", StringUtilities.wrapValue(codeLocation), StringUtilities.wrapValue(localPath));
+					Document copyDocument = XmlUtilities.createXMLDocument(String.format("<script><Copy Source=\"%s\" Destination=\"%s\" /></script>", codeLocation, localPath));
+					Action copyFiles = new Copy(_session, (Element) copyDocument.getDocumentElement().getFirstChild());
+					copyFiles.execute(_dataTokens);
 					break;
 				case 4:
 					// Zip file
-					// TODO: move the token outside method, used due to time. Code locations should contain full path to zip file.
-					if (!codeLocation.startsWith("\\\\")) {
-						codeLocation = _session.resolveTokens(FileUtilities.addDirectory(_session.getTokenValue("CAST", "DropBox"), codeLocation));
-					}
-					_session.addLogMessageHtml("", "Decompress", String.format("%s into %s", codeLocation, localPath));
-					batchCommands.appendFormatLine("REM unzip %s %s", StringUtilities.wrapValue(codeLocation), StringUtilities.wrapValue(localPath));
-					// TODO: Disabled until I can get back and test, it should be ready.
-					// String[] list = ZipUtilities.unzip(codeLocation, localPath, null, null);
-					// String filelist = ArrayUtilities.toString(list);
-					// _session.addLogMessageHtml("", "Files Decompressed", filelist);
-					// _session.addLogMessage("", "Count", String.format("%,d files", list.length - 2));
+					Document unzipDocument = XmlUtilities.createXMLDocument(String.format("<script><Unzip ZipFilename=\"%s\" Destination=\"%s\" /></script>", codeLocation, localPath));
+					Action unzipFiles = new Compression(_session, (Element) unzipDocument.getDocumentElement().getFirstChild());
+					unzipFiles.execute(_dataTokens);
 					break;
 				default:
 					throw new RuntimeException(String.format("Requested code location type (%s) not currently supported.", codeLocationType));
 				}
 			}
 			dr.close();
-			_session.addLogMessage("", "Commands", batchCommands.toString());
-			String batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", batchCommands.toString());
-			_session.addLogMessage("", "Batch File", batchFilename);
-			_arguments = new String[] { batchFilename };
+			if (batchCommands.hasText()) {
+				_session.addLogMessage("RunCommand", "Process", String.format("Processing %s action (started: %s)", "RunCommand", _sdf.format(new Date())));
+				_session.addLogMessage("", "Commands", batchCommands.toString());
+				String batchFilename = FileUtilities.writeRandomFile(_session.getStagingPath(), "bat", batchCommands.toString());
+				_session.addLogMessage("", "Batch File", batchFilename);
+				_arguments = new String[] { batchFilename };
+				super.executeAction(_dataTokens);
+			}
 		} catch (Exception e) {
-			RuntimeException ex = new RuntimeException("Error while trying to get the source code.", e);
+			RuntimeException ex = new RuntimeException("Error retrieving the source code.", e);
 			throw ex;
 		}
 

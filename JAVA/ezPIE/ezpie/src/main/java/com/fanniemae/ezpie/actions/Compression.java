@@ -11,6 +11,7 @@
 
 package com.fanniemae.ezpie.actions;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,7 +68,9 @@ public class Compression extends Action {
 		} else {
 			_destination = requiredAttribute("Destination");
 			if (FileUtilities.isInvalidDirectory(_destination)) {
-				throw new RuntimeException("UnZip error: Destination does not exist.");
+				File fi = new File(_destination);
+				fi.mkdir();
+				//throw new RuntimeException("UnZip error: Destination does not exist.");
 			}
 		}
 		
