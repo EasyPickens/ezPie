@@ -26,7 +26,6 @@ import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
-import com.fanniemae.ezpie.common.ZipUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
 
 /**
