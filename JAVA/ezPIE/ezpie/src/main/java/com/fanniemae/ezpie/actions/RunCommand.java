@@ -17,6 +17,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -46,7 +47,6 @@ public class RunCommand extends Action {
 
 	protected String[] _arguments;
 
-	protected Boolean _waitForExit = true;
 	protected Boolean _hideConsoleOutput = false;
 
 	protected int _timeout = 0;
@@ -69,53 +69,47 @@ public class RunCommand extends Action {
 	public String executeAction(HashMap<String, String> dataTokens) {
 		try {
 			_session.setDataTokens(dataTokens);
-
 			if (_action.getNodeName().equals("RunCommand")) {
-
 				_hideConsoleOutput = StringUtilities.toBoolean(optionalAttribute("HideConsoleOutput", null), false);
 				_workDirectory = requiredAttribute("WorkDirectory");
-
 				_commandLine = _session.getAttribute(_action, "CommandLine");
 				if (StringUtilities.isNullOrEmpty(_commandLine)) {
 					throw new RuntimeException("Missing a value for CommandLine on the RunCommand element.");
 				}
 				_session.addLogMessage("", "CommandLine", (_hideConsoleOutput || _session.lastAttributeSecure()) ? _session.getHiddenMessage() : _commandLine);
-
 				_arguments = parseCommandLine(_commandLine);
-
 			}
 
-			String waitForExit = optionalAttribute("WaitForExit", null);
 			String timeout = optionalAttribute("Timeout", "2h");
 			Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
 			if (makeBatchFile) {
 				makeBatchFile();
 			}
 
-			_waitForExit = StringUtilities.toBoolean(waitForExit, true);
 			_timeout = parseTimeout(timeout);
-
 			String sConsoleFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
 			ProcessBuilder pb = new ProcessBuilder(_arguments);
 			pb.directory(new File(_workDirectory));
 			try {
 				Calendar calendar = Calendar.getInstance();
-				calendar.add(Calendar.SECOND, _timeout);
+				if (_timeout <= 0) {
+					calendar.add(Calendar.YEAR, 1);
+				} else {
+					calendar.add(Calendar.SECOND, _timeout);
+				}
 				Date expireTime = calendar.getTime();
 
 				pb.redirectErrorStream(true);
 				Process p = pb.start();
+				OutputStream out = p.getOutputStream();
+				if (out != null)
+					out.close();
 				try (InputStream is = p.getInputStream(); InputStreamReader isr = new InputStreamReader(is); FileWriter fw = new FileWriter(sConsoleFilename); BufferedWriter bw = new BufferedWriter(fw);) {
 					boolean processTimedOut = false;
 					int count = 0;
 					char[] buffer = new char[100];
-					while (true) {
-						if (expireTime.before(new Date())) {
-							break;
-						}
-						if (!p.isAlive()) {
-							break;
-						} else if (!isr.ready()) {
+					while (p.isAlive() && expireTime.after(new Date())) {
+						if (!isr.ready()) {
 							p.waitFor(500, TimeUnit.MILLISECONDS);
 							continue;
 						}
@@ -123,17 +117,20 @@ public class RunCommand extends Action {
 						if (charCount != -1) {
 							bw.write(Arrays.copyOf(buffer, charCount));
 							count += charCount;
-						}
-						count++;
-						if (!p.isAlive() && !isr.ready()) {
-							break;
+							continue;
 						}
 					}
-					if (_waitForExit) {
-						if (p.isAlive() && !p.waitFor(200, TimeUnit.MILLISECONDS)) {
-							p.destroy();
-							processTimedOut = true;
-						}
+					// Kill the process if it is still running
+					if (p.isAlive() && !p.waitFor(200, TimeUnit.MILLISECONDS)) {
+						p.destroy();
+						processTimedOut = true;
+					}
+					// Check the buffer and empty it if text is found.
+					int charCount = isr.read(buffer);
+					while (charCount != -1) {
+						bw.write(Arrays.copyOf(buffer, charCount));
+						count += charCount;
+						charCount = isr.read(buffer);
 					}
 					bw.flush();
 					bw.close();
@@ -177,82 +174,82 @@ public class RunCommand extends Action {
 		if (commandLine == null)
 			return null;
 
-		List<String> aArgs = new ArrayList<String>();
-		boolean bInQuotes = false;
-		int iLen = commandLine.length();
-		int iStart = 0;
-		for (int i = 0; i < iLen; i++) {
+		List<String> args = new ArrayList<String>();
+		boolean inQuotes = false;
+		int length = commandLine.length();
+		int start = 0;
+		for (int i = 0; i < length; i++) {
 			char c = commandLine.charAt(i);
 			switch (c) {
 			case '"':
-				if (bInQuotes) {
+				if (inQuotes) {
 					if ((i - 1 > 0) && (commandLine.charAt(i - 1) == '\\'))
 						continue;
-					aArgs.add(commandLine.substring(iStart, i + 1));
-					bInQuotes = false;
-					iStart = i + 1;
+					args.add(commandLine.substring(start, i + 1));
+					inQuotes = false;
+					start = i + 1;
 				} else {
-					bInQuotes = true;
+					inQuotes = true;
 				}
 				break;
 			case ' ':
-				if (bInQuotes)
+				if (inQuotes)
 					continue;
-				if (iStart == i) {
-					iStart += 1;
+				if (start == i) {
+					start += 1;
 					continue;
 				}
-				if (iStart >= iLen)
+				if (start >= length)
 					break;
-				aArgs.add(commandLine.substring(iStart, i));
-				iStart = i + 1;
+				args.add(commandLine.substring(start, i));
+				start = i + 1;
 				break;
 			}
 		}
-		if (iStart < iLen)
-			aArgs.add(commandLine.substring(iStart));
+		if (start < length)
+			args.add(commandLine.substring(start));
 
-		return aArgs.toArray(new String[0]);
+		return args.toArray(new String[0]);
 	}
 
 	protected int parseTimeout(String value) {
 		if (StringUtilities.isNullOrEmpty(value))
 			return -1;
 
-		char cUnits = 's';
+		char units = 's';
 
-		int iStart = 0;
-		int iSeconds = 0;
-		int iPosition = 0;
-		int iCurrentValue = 0;
+		int start = 0;
+		int seconds = 0;
+		int position = 0;
+		int currentValue = 0;
 
 		value = value.toLowerCase();
-		String[] aNumbers = value.split("d|h|m|s");
-		for (int i = 0; i < aNumbers.length; i++) {
-			if (StringUtilities.isNullOrEmpty(aNumbers[i]))
+		String[] numberArray = value.split("d|h|m|s");
+		for (int i = 0; i < numberArray.length; i++) {
+			if (StringUtilities.isNullOrEmpty(numberArray[i]))
 				continue;
 
-			iPosition = value.indexOf(aNumbers[i], iStart) + aNumbers[i].length();
-			iStart = iPosition + 1;
-			cUnits = (iPosition < value.length()) ? value.charAt(iPosition) : 's';
-			iCurrentValue = StringUtilities.toInteger(aNumbers[i], 0);
+			position = value.indexOf(numberArray[i], start) + numberArray[i].length();
+			start = position + 1;
+			units = (position < value.length()) ? value.charAt(position) : 's';
+			currentValue = StringUtilities.toInteger(numberArray[i], 0);
 
-			switch (cUnits) {
+			switch (units) {
 			case 'd':
-				iSeconds += iCurrentValue * 86400;
+				seconds += currentValue * 86400;
 				break;
 			case 'h':
-				iSeconds += iCurrentValue * 3600;
+				seconds += currentValue * 3600;
 				break;
 			case 'm':
-				iSeconds += iCurrentValue * 60;
+				seconds += currentValue * 60;
 				break;
 			case 's':
-				iSeconds += iCurrentValue;
+				seconds += currentValue;
 				break;
 			}
 		}
-		return (iSeconds < 1) ? -1 : iSeconds;
+		return (seconds < 1) ? -1 : seconds;
 	}
 
 	protected void makeBatchFile() {

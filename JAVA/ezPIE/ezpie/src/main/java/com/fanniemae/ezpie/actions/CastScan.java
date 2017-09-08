@@ -199,7 +199,6 @@ public class CastScan extends CastAction {
 		//@formatter:on
 		_workDirectory = _castFolder;
 		_timeout = 0;
-		_waitForExit = true;
 
 		executeCastAction("View Code Packaging Log", "%s to package source code.", logFile);
 	}
@@ -215,7 +214,6 @@ public class CastScan extends CastAction {
 		//@formatter:on
 		_workDirectory = _castFolder;
 		_timeout = 0;
-		_waitForExit = true;
 
 		executeCastAction("View Code Analysis Log", "%s to analyze code.", logFile);
 	}
@@ -240,7 +238,6 @@ public class CastScan extends CastAction {
 		//@formatter:on
 		_workDirectory = _castFolder;
 		_timeout = 0;
-		_waitForExit = true;
 
 		executeCastAction("View Snapshot Log", "%s to generate anaysis snapshot.", logFile);
 	}
@@ -271,7 +268,6 @@ public class CastScan extends CastAction {
 		//@formatter:on
 		_workDirectory = FileUtilities.addDirectory(_castFolder, "\\AAD\\CLI\\");
 		_timeout = 0;
-		_waitForExit = true;
 
 		executeCastAction("View AAD Publish Log", "%s to publish results into AAD.", logFile);
 	}
@@ -300,7 +296,6 @@ public class CastScan extends CastAction {
 		//@formatter:on
 		_workDirectory = FileUtilities.addDirectory(_castFolder, "\\AAD\\CLI\\");
 		_timeout = 0;
-		_waitForExit = true;
 
 		executeCastAction("View Site Link Log", "%s to link the AAD and CED sites.", logFile);
 	}
@@ -318,7 +313,6 @@ public class CastScan extends CastAction {
 		//@formatter:on
 		_workDirectory = _castFolder;
 		_timeout = 0;
-		_waitForExit = true;
 
 		executeCastAction("", "%s to configure transactions.", null);
 	}
@@ -338,7 +332,6 @@ public class CastScan extends CastAction {
 		//@formatter:on
 		_workDirectory = _castFolder;
 		_timeout = 0;
-		_waitForExit = true;
 
 		executeCastAction("", "%s to configure preferences.", null);
 	}

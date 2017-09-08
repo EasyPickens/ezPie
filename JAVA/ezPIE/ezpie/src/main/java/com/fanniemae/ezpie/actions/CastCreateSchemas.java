@@ -135,7 +135,6 @@ public class CastCreateSchemas extends CastAction {
 		_workDirectory = _castFolder;
 		_session.addLogMessage("", "Work Directory", _workDirectory);
 		_timeout = 0;
-		_waitForExit = true;
 
 		executeCastAction("View Create Schema Log", "%s to configure schema.", null);
 		FileUtilities.deleteFile(tempXml);
