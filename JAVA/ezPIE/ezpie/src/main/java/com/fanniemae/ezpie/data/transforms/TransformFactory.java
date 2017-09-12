@@ -23,6 +23,8 @@ import com.fanniemae.ezpie.SessionManager;
 */
 
 public class TransformFactory {
+	
+	private TransformFactory() {}
 
 	public static DataTransform getTransform(SessionManager session, Element transform) {
 		switch (transform.getNodeName()) {
@@ -42,6 +44,9 @@ public class TransformFactory {
 			return new ColumnFilter(session, transform);
 		case "SqlParameter":
 			return null;
+		case "Rename":
+		case "RenameColumn":
+			return new RenameColumn(session, transform);
 		default:
 			throw new RuntimeException(String.format("%s data transformation is not currently supported.", transform.getNodeName()));
 		}
