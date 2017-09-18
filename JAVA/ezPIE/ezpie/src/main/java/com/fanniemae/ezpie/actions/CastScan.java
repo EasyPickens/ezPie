@@ -73,43 +73,43 @@ public class CastScan extends CastAction {
 			switch (nodeName) {
 			case "PackageCode":
 				params[0][1] = "Package Code";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				packageCode(castAction);
 				break;
 			case "BackupDatabase":
 				params[0][1] = "Backup Database";
-				SqlUtilities.ExecuteScalar(_connection, String.format("UPDATE fnma_measure8.scan_manager SET dblog_name = null WHERE pkey = %d", _jobKey), null, _session.updateScanManager());
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, String.format("UPDATE fnma_measure8.scan_manager SET dblog_name = null WHERE pkey = %d", _jobKey), null, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				backupDatabase(castAction);
 				break;
 			case "AnalyzeCode":
 				params[0][1] = "Analyze Code";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				analyzeCode(castAction);
 				break;
 			case "GenerateSnapshot":
 				params[0][1] = "Generate Snapshot";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				generateSnapshot(castAction);
 				break;
 			case "PublishResults":
 				params[0][1] = "Publish Results";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				publishResults(castAction);
 				break;
 			case "LinkApplicationSite":
 				params[0][1] = "Link CED Site";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				linkSiteToAAD(castAction);
 				break;
 			case "ConfigureTransactions":
 				params[0][1] = "Configure TCC";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				configureTransactions(castAction);
 				break;
 			case "ConfigurePreferences":
 				params[0][1] = "Add License";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				configurePreferences(castAction);
 				break;
 			default:
@@ -154,13 +154,13 @@ public class CastScan extends CastAction {
 		boolean haveDbFilename = false;
 		while (Calendar.getInstance().compareTo(endTime) < 0) {
 			if (!haveDbFilename) {
-				Object logname = SqlUtilities.ExecuteScalar(_connection, _session.getTokenValue("SelfServiceScan", "GetLogFilename"), params, _session.updateScanManager());
+				Object logname = SqlUtilities.ExecuteScalar(_session, _connection, _session.getTokenValue("SelfServiceScan", "GetLogFilename"), params, _session.updateScanManager());
 				if (logname != null) {
 					_session.addLogMessage("", "External Activity Log", "View Database Backup Log", "file://" + (String) logname);
 					haveDbFilename = true;
 				}
 			}
-			Object value = SqlUtilities.ExecuteScalar(_connection, _session.getTokenValue("SelfServiceScan", "CheckStatus"), params, _session.updateScanManager());
+			Object value = SqlUtilities.ExecuteScalar(_session, _connection, _session.getTokenValue("SelfServiceScan", "CheckStatus"), params, _session.updateScanManager());
 			if (value != null) {
 				String status = value.toString();
 				if (status.toLowerCase().startsWith("error")) {

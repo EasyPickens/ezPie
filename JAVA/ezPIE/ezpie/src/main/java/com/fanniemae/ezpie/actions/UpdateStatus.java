@@ -62,7 +62,7 @@ public class UpdateStatus extends Action {
 
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
-		SqlUtilities.ExecuteScalar(_connection, _updateCommand, _parameters, true);
+		SqlUtilities.ExecuteScalar(_session, _connection, _updateCommand, _parameters, true);
 		return null;
 	}
 

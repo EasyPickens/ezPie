@@ -29,7 +29,10 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.StringUtilities;
+import com.fanniemae.ezpie.data.jdbcproviders.JdbcProvider;
+import com.fanniemae.ezpie.data.jdbcproviders.JdbcProviderFactory;
 import com.fanniemae.ezpie.data.utilities.DriverShim;
 import com.fanniemae.ezpie.data.utilities.FieldInfo;
 import com.fanniemae.ezpie.data.utilities.SqlParameterInfo;
@@ -53,7 +56,7 @@ public class DataProvider {
 
 	protected int _CommandTimeout = 60;
 
-	public DataProvider(Element eleConnection) {
+	public DataProvider(SessionManager session, Element eleConnection) {
 		if (eleConnection == null) {
 			throw new RuntimeException("No connection element provided.");
 		}
@@ -67,9 +70,16 @@ public class DataProvider {
 		_url = eleConnection.getAttribute("URL");
 		_className = eleConnection.getAttribute("ClassName");
 		_connectionString = eleConnection.getAttribute("ConnectionString");
-		// if (FileUtilities.isInvalidFile(_url)) {
-		// throw new RuntimeException(String.format("JDBC provider file %s was not found.", _url));
-		// }
+		String connectionType = eleConnection.getAttribute("Type"); 
+		JdbcProvider jdbcDriver = null;
+		if (StringUtilities.isNullOrEmpty(_className) || StringUtilities.isNullOrEmpty(_url) ) {
+			jdbcDriver = JdbcProviderFactory.getProvider(session, connectionType);
+			if (jdbcDriver != null) {
+				_className = jdbcDriver.getClassName(_className);
+				_url = jdbcDriver.getJarFilename(_url);
+			}
+		}
+		
 		if (StringUtilities.isNullOrEmpty(_className)) {
 			throw new RuntimeException("Missing class name for JDBC provider.");
 		}

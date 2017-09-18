@@ -81,7 +81,7 @@ public class SqlConnector extends DataConnector {
 	@Override
 	public Boolean open() {
 		try {
-			_provider = new DataProvider(_connection);
+			_provider = new DataProvider(_session, _connection);
 			_con = _provider.getConnection();
 			if (_usingTransactions)
 				_con.setAutoCommit(false);

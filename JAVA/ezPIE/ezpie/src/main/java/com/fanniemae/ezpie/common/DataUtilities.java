@@ -31,14 +31,15 @@ public final class DataUtilities {
 
 	public static HashMap<String, String> dataRowToTokenHash(String[][] schema, Object[] dataRow) {
 		HashMap<String, String> dataTokens = new HashMap<String, String>();
-		
+
 		for (int i = 0; i < schema.length; i++) {
 			String dataType = schema[i][1].toLowerCase();
+			//@formatter:off
 			if ((dataRow[i] == null) && (dataType.contains("double") 
-					                    || dataType.contains("int") 
-					                    || dataType.contains("float")
-					                    || dataType.contains("short")
-					                    || dataType.contains("byte")) ) {
+					                  || dataType.contains("int") 
+					                  || dataType.contains("float") 
+					                  || dataType.contains("short") 
+					                  || dataType.contains("byte"))) {
 				dataTokens.put(schema[i][0], "0");
 			} else if (dataRow[i] == null) {
 				dataTokens.put(schema[i][0], "");
@@ -47,6 +48,7 @@ public final class DataUtilities {
 			} else {
 				dataTokens.put(schema[i][0], dataRow[i].toString());
 			}
+			//@formatter:on
 		}
 		return dataTokens;
 	}

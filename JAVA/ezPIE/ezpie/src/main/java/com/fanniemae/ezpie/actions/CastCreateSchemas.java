@@ -65,17 +65,17 @@ public class CastCreateSchemas extends CastAction {
 			switch (nodeName) {
 			case "CreateCentral":
 				params[0][1] = "Create Central Schema";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				createSchema(castAction, "central", "CentralTemplate");
 				break;
 			case "CreateLocal":
 				params[0][1] = "Create Local Schema";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				createSchema(castAction, "local", "LocalTemplate");
 				break;
 			case "CreateManagement":
 				params[0][1] = "Create Management Schema";
-				SqlUtilities.ExecuteScalar(_connection, sqlCommand, params, _session.updateScanManager());
+				SqlUtilities.ExecuteScalar(_session, _connection, sqlCommand, params, _session.updateScanManager());
 				createSchema(castAction, "mngt", "ManagementTemplate");
 				break;
 			default:
@@ -124,7 +124,7 @@ public class CastCreateSchemas extends CastAction {
 
 		String sqlCommand = String.format("CREATE SCHEMA %s_%s AUTHORIZATION \"operator\"", _session.getRequiredTokenValue("LocalData", "dbprefix").toLowerCase(), dbsuffix);
 		_session.addLogMessage("", "Create Schema", sqlCommand);
-		SqlUtilities.ExecuteScalar(_castConnection, sqlCommand, null);
+		SqlUtilities.ExecuteScalar(_session, _castConnection, sqlCommand, null);
 
 		_session.addLogMessage("", "Add Technologies", "Installing default technologies.");
 		//@formatter:off

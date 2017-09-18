@@ -34,16 +34,16 @@ public final class SqlUtilities {
 	private SqlUtilities() {
 	}
 
-	public static Object ExecuteScalar(Element connection, String sqlCommand, Object[][] params) {
-		return ExecuteScalar(connection, sqlCommand, params, true);
+	public static Object ExecuteScalar(SessionManager session, Element connection, String sqlCommand, Object[][] params) {
+		return ExecuteScalar(session, connection, sqlCommand, params, true);
 	}
 
-	public static Object ExecuteScalar(Element connection, String sqlCommand, Object[][] params, boolean updateScanManager) {
+	public static Object ExecuteScalar(SessionManager session, Element connection, String sqlCommand, Object[][] params, boolean updateScanManager) {
 		if (!updateScanManager)
 			return "";
 
 		Object result = null;
-		DataProvider dp = new DataProvider(connection);
+		DataProvider dp = new DataProvider(session, connection);
 		try (Connection con = dp.getConnection()) {
 			PreparedStatement pstmt = con.prepareStatement(sqlCommand);
 

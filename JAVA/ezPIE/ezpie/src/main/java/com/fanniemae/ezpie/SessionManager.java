@@ -11,6 +11,8 @@
 
 package com.fanniemae.ezpie;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -200,6 +202,10 @@ public class SessionManager {
 
 	public String getApplicationPath() {
 		return _appPath;
+	}
+
+	public String getJarPath() {
+		return _appPath + "_bin";
 	}
 
 	public String getStagingPath() {
@@ -505,5 +511,14 @@ public class SessionManager {
 
 	public int getCacheMinutes() {
 		return _cacheMinutes;
+	}
+
+	protected String getJarDirectory() {
+		try {
+			File fi = new File(SessionManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+			return fi.getAbsolutePath();
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("Could not read the jar location.");
+		}
 	}
 }
