@@ -33,7 +33,9 @@ public class JdbcProviderFactory {
 		case "oracle":
 			return new Oracle(session);
 		default:
-			throw new RuntimeException(String.format("No default provider information defined for %s database servers.", sqlServerType));
+			session.addLogMessage("", "JDBC", "Using generic provide.  URL, class name, and port information must be provided via the connection element.");
+			return new Generic(session);
+			//throw new RuntimeException(String.format("No default provider information defined for %s database servers.", sqlServerType));
 		}
 	}
 
