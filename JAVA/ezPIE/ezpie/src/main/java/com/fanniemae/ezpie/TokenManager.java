@@ -50,9 +50,11 @@ public class TokenManager {
 		NONE, TOKEN_NAME, FULL
 	};
 
-	public TokenManager(Element eleSettings, LogManager logger, byte[][] encryptionKey) {
+	public TokenManager(Element eleSettings, LogManager logger, byte[][] encryptionKey, String tokenPrefix, String tokenSuffix) {
 		_logger = logger;
 		_encryptionKey = encryptionKey;
+		_tokenPrefix = tokenPrefix;
+		_tokenSuffix = tokenSuffix;
 		
 		loadTokenValues(eleSettings, "Configuration");
 		
@@ -132,9 +134,17 @@ public class TokenManager {
 	public String getTokenPrefix() {
 		return _tokenPrefix;
 	}
+	
+	public void setTokenPrefix(String value) {
+		_tokenPrefix = value;
+	}
 
 	public String getTokenSuffix() {
 		return _tokenSuffix;
+	}
+	
+	public void setTokenSuffix(String value) {
+		_tokenSuffix = value;
 	}
 
 	public String resolveTokens(String value) {
@@ -157,7 +167,7 @@ public class TokenManager {
 
 		int iTokenSplit = 0;
 		int iTokenEnd = 0;
-		String[] aTokens = value.split(String.format("\\%s", _tokenPrefix));
+		String[] aTokens = value.split(String.format("\\Q%s\\E", _tokenPrefix));
 
 		for (int i = 0; i < aTokens.length; i++) {
 			iTokenSplit = aTokens[i].indexOf('.');
@@ -204,8 +214,8 @@ public class TokenManager {
 					break;
 				case "ElapsedTime": // returns minutes.
 					Date dtCurrent = new Date();
-					long minutes = (dtCurrent.getTime() - _startDateTime.getTime()) / 60000;
-					value = value.replace(sFullToken, String.format("%d", minutes));
+					double minutes = (dtCurrent.getTime() - _startDateTime.getTime()) / 60000.0;
+					value = value.replace(sFullToken, String.format("%f", minutes));
 					break;
 				case "UUID":
 					value = value.replace(sFullToken, UUID.randomUUID().toString());

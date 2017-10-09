@@ -122,6 +122,8 @@ public class SessionManager {
 		_appPath = FileUtilities.formatPath(eleConfig.getAttribute("ApplicationPath"), System.getProperty("user.dir"), "ApplicationPath");
 		_stagingPath = FileUtilities.formatPath(eleConfig.getAttribute("StagingPath"), String.format("%1$s_Staging", _appPath), "StagingPath");
 		_logPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _appPath), "LogPath");
+		_tokenPrefix = eleConfig.hasAttribute("TokenPrefix") ? eleConfig.getAttribute("TokenPrefix") : _tokenPrefix;
+		_tokenSuffix = eleConfig.hasAttribute("TokenSuffix") ? eleConfig.getAttribute("TokenSuffix") : _tokenSuffix;
 		String logFormat = eleConfig.getAttribute("LogFormat");
 		String logLevel = eleConfig.getAttribute("LogLevel");
 		String logFileExtension = ("Text".equalsIgnoreCase(logFormat)) ? "txt" : "html";
@@ -163,9 +165,9 @@ public class SessionManager {
 
 		try {
 			_logger.addMessage("Setup Token Dictionary", "Load Tokens", "Read values from settings file.");
-			_tokenizer = new TokenManager(_settings, _logger, _encryptionKey);
-			_tokenPrefix = _tokenizer.getTokenPrefix();
-			_tokenSuffix = _tokenizer.getTokenSuffix();
+			_tokenizer = new TokenManager(_settings, _logger, _encryptionKey, _tokenPrefix, _tokenSuffix);
+			//_tokenPrefix = _tokenizer.getTokenPrefix();
+			//_tokenSuffix = _tokenizer.getTokenSuffix();
 
 			_logger.addFileDetails(_jobFilename, "Definition Details");
 			dm = new DefinitionManager(this, _encryptionKey);
@@ -177,6 +179,17 @@ public class SessionManager {
 			String finalJobDefinition = _logger.logExternalFiles() ? FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.xmlDocumentToString(xmlJobDefinition)) : "";
 			_logger.addMessage("", "Prepared Definition", "View Definition", "file://" + finalJobDefinition);
 			_logger.addMessage("", "Adjusted Size", String.format("%,d bytes", XmlUtilities.getOuterXml(_job).length()));
+			// Check for definition specific token prefix and suffix configuration
+			if (_job.hasAttribute("TokenPrefix")) {
+				_tokenPrefix = _job.getAttribute("TokenPrefix");
+				_tokenizer.setTokenPrefix(_tokenPrefix);
+				_logger.addMessage("", "Token Prefix", String.format("This definition changed the token prefix to %s", _tokenPrefix));
+			}
+			if (_job.hasAttribute("TokenSuffix")) {
+				_tokenSuffix = _job.getAttribute("TokenSuffix");
+				_tokenizer.setTokenSuffix(_tokenSuffix);
+				_logger.addMessage("", "Token Suffix", String.format("This definition changed the token suffix to %s", _tokenSuffix));
+			}
 			_tokenizer.addToken("Application", "LogFilename", FileUtilities.getFilenameOnly(_logFilename));
 		} catch (Exception ex) {
 			_logger.addErrorMessage(ex);
@@ -291,7 +304,7 @@ public class SessionManager {
 
 		int iTokenSplit = 0;
 		int iTokenEnd = 0;
-		String[] aTokens = value.split("\\" + _tokenPrefix);
+		String[] aTokens = value.split("\\Q" + _tokenPrefix+"\\E");
 
 		for (int i = 0; i < aTokens.length; i++) {
 			iTokenSplit = aTokens[i].indexOf('.');

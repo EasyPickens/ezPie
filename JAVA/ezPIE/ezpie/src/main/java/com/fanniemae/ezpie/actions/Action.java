@@ -62,7 +62,7 @@ public abstract class Action {
 			throw new RuntimeException(String.format("The %s action requires a Name value in order to use token generated.", _action.getNodeName()));
 		}
 
-		if (!"Log".equals(_actionName)) {
+		if (!"Log".equals(_actionName) && !"LogComment".equals(_actionName)) {
 			_session.addLogMessage(_actionName, "Process", String.format("Processing %s action (started: %s)", _actionName, _sdf.format(new Date())));
 		}
 		_start = System.currentTimeMillis();
@@ -73,7 +73,7 @@ public abstract class Action {
 
 	public String execute(HashMap<String, String> dataTokens) {
 		String result = executeAction(dataTokens);
-		if (!"Log".equals(_actionName) && !"If".equals(_actionName)) {
+		if (!"Log".equals(_actionName) && !"LogComment".equals(_actionName) && !"If".equals(_actionName)) {
 			_session.addLogMessage("", String.format("%s Completed", _actionName), String.format("Elapsed time: %s", DateUtilities.elapsedTime(_start)));
 		}
 		return result;
