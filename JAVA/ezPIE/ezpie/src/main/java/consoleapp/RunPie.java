@@ -110,7 +110,11 @@ public class RunPie {
 		// String job = "ListDefinitions";
 		// String job = "_Tensorflow";
 		// String job = "_TransformDebug";
-		String job = "_Tensorflow_dual";
+		// String job = "_Tensorflow_dual";
+		// String job ="_CodeRepositories";
+		// String job ="_RenameColumn";
+		String job = "TokenTests";
+		// String job = "FULL_ETL_TEST";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

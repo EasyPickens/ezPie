@@ -33,7 +33,8 @@ public final class DataUtilities {
 		HashMap<String, String> dataTokens = new HashMap<String, String>();
 
 		for (int i = 0; i < schema.length; i++) {
-			String dataType = schema[i][1].toLowerCase();
+			String dataType = schema[i][1];
+			dataType = (dataType == null) ? "string" : dataType.toLowerCase();
 			//@formatter:off
 			if ((dataRow[i] == null) && (dataType.contains("double") 
 					                  || dataType.contains("int") 

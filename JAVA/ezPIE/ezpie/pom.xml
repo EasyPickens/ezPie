@@ -4,7 +4,7 @@
 
 	<groupId>com.fanniemae.opensource</groupId>
 	<artifactId>ezpie</artifactId>
-	<version>1.1.4</version>
+	<version>1.1.6</version>
 	<packaging>jar</packaging>
 
 	<name>ezpie</name>
@@ -28,7 +28,7 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.6</version>
 				<configuration>
-					<finalName>ezpie-${version}</finalName>
+					<finalName>${project.artifactId}-${project.version}</finalName>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
@@ -36,6 +36,9 @@
 						<manifest>
 							<mainClass>cli/RunPie</mainClass>
 						</manifest>
+						<manifestEntries>
+							<Dependencies></Dependencies>
+						</manifestEntries>
 					</archive>
 					<appendAssemblyId>false</appendAssemblyId>
 					<attach>false</attach>
@@ -111,19 +114,19 @@
 			<version>3.16</version>
 		</dependency>
 		<dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>3.16</version>
-       </dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.16</version>
+		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
 			<version>4.6.0.201612231935-r</version>
 		</dependency>
 		<dependency>
-	  		<groupId>org.tensorflow</groupId>
-	  		<artifactId>tensorflow</artifactId>
-	  		<version>1.2.1</version>
-		</dependency>   
+			<groupId>org.tensorflow</groupId>
+			<artifactId>tensorflow</artifactId>
+			<version>1.2.1</version>
+		</dependency>
 	</dependencies>
 </project>

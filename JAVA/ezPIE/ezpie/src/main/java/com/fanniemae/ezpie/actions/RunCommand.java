@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.Constants;
+import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 
@@ -98,6 +99,7 @@ public class RunCommand extends Action {
 					calendar.add(Calendar.SECOND, _timeout);
 				}
 				Date expireTime = calendar.getTime();
+				_session.addLogMessage("", "Process Expires", DateUtilities.toPrettyString(calendar));
 
 				pb.redirectErrorStream(true);
 				Process p = pb.start();

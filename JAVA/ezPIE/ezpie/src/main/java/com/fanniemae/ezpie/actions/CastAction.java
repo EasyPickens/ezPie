@@ -42,7 +42,7 @@ public abstract class CastAction extends RunCommand {
 		super(session, action);
 		_castFolder = optionalAttribute("CastFolder", _session.getTokenValue("CAST", "ProgramFolder"));
 
-		if (FileUtilities.isInvalidDirectory(_castFolder)) {
+		if ((1==2) && FileUtilities.isInvalidDirectory(_castFolder)) {
 			throw new RuntimeException(String.format("CastFolder %s does not exist", _castFolder));
 		}
 
