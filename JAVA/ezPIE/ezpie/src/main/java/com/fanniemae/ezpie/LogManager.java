@@ -286,7 +286,8 @@ public class LogManager {
 
 		if ((_logFormat == LogFormat.HTML) && cargo.startsWith("file://")) {
 			// add html link line to view the file.
-			description = String.format("<a href=\"%2$s\">%1$s</a>", description, cargo.substring(7));
+			String fileName = FileUtilities.getFilenameOnly(cargo.substring(7));
+			description = String.format("<a href=\"%2$s\">%1$s</a>", description, fileName);
 		} else if (cargo.startsWith("file://")) {
 			description = String.format("%1$s %2$s", description, cargo.substring(7));
 		}

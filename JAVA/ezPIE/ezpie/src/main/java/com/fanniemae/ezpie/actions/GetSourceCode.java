@@ -38,7 +38,7 @@ public class GetSourceCode extends RunCommand {
 
 	protected List<String> _usedDirectories = new ArrayList<String>();
 	
-	protected String _timeoutString = "2h"; 
+	protected String _timeoutString = "6h"; 
 
 	public GetSourceCode(SessionManager session, Element action) {
 		super(session, action, false);
@@ -51,7 +51,7 @@ public class GetSourceCode extends RunCommand {
 		String locationTypeColumn = requiredAttribute("LocationTypeColumn").trim();
 		String locationColumn = requiredAttribute("LocationColumn").trim();
 		String directoryColumn = optionalAttribute("DirectoryColumn", "directory_name");
-		_timeoutString = optionalAttribute("Timeout","2h");
+		_timeoutString = optionalAttribute("Timeout",_timeoutString);
 
 		_workDirectory = requiredAttribute("LocalPath").trim();
 		if (FileUtilities.isInvalidDirectory(_workDirectory)) {

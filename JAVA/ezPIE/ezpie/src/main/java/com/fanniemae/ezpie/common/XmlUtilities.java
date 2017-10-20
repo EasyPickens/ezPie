@@ -11,7 +11,8 @@
 
 package com.fanniemae.ezpie.common;
 
-import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -165,8 +166,7 @@ public final class XmlUtilities {
 	public static void saveXmlFile(String filename, Document doc) {
 		try {
 			Source src = new DOMSource(doc);
-			File file = new File(filename);
-			Result result = new StreamResult(file);
+			Result result = new StreamResult(new FileOutputStream(filename));
 			// Remove white spaces outside tags, required to update indents
 			doc.normalize();
 			XPath xPath = XPathFactory.newInstance().newXPath();
@@ -183,6 +183,8 @@ public final class XmlUtilities {
 			transform.transform(src, result);
 		} catch (IllegalArgumentException | TransformerException | XPathExpressionException ex) {
 			throw new RuntimeException("Error saving XML document. " + ex.getMessage(), ex);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("Error saving XML document. " + e.getMessage(), e);
 		}
 	}
 
