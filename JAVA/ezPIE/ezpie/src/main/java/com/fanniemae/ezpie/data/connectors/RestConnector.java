@@ -38,6 +38,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
  */
 
 public class RestConnector extends DataConnector {
+	protected String _validateCertificate = "true";
 	protected Element _conn;
 	protected String _url;
 	protected String _username;
@@ -64,9 +65,10 @@ public class RestConnector extends DataConnector {
 		_proxyPort = StringUtilities.toInteger(_session.getAttribute(_conn, "ProxyPort"));
 		_proxyUsername = _session.getAttribute(_conn, "ProxyUsername");
 		_proxyPassword = _session.getAttribute(_conn, "ProxyPassword");
-		_url = _session.getAttribute(_conn, "URL");
+		_url = _session.getAttribute(dataSource, "URL");
 		if (StringUtilities.isNullOrEmpty(_url))
-			throw new RuntimeException(String.format("%s URL element not found in the definition file.", _url));
+			throw new RuntimeException("Missing required URL value for the RestDataSource");
+		
 		_columns = XmlUtilities.selectNodes(_dataSource, "*");
 		
 	}
@@ -75,18 +77,26 @@ public class RestConnector extends DataConnector {
 	public Boolean open() {
 		try{
 			String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password);
-			_session.addLogMessage("", "RestConnector", String.format("View Response"), "file://" + RestUtilities.writeResponseToFile(response, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
+			int length = (response == null) ? 0 : response.length();
+			_session.addLogMessage("", "RestConnector", String.format("View Response (%,d bytes)",length), "file://" + RestUtilities.writeResponseToFile(response, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
 			
 			int numColumns = _columns.getLength();
 			_session.addLogMessage("", "RestConnector", String.format("%,d columns found", numColumns));
+			
+			
+			// Read/create column names.
+			_dataSchema = new String[numColumns][2];
+			_dataTypes = new DataType[numColumns];
 			
 			//get columns from definition file and split 
 			ArrayList<TreeNode<String>> columns = new ArrayList<TreeNode<String>>();
 			ArrayList<String[]> tempPaths = new ArrayList<String[]>();
 			for (int i = 0; i < numColumns; i++) {
+				String columnName = _session.getAttribute(_columns.item(i), "Name");
 				String path = _session.getAttribute(_columns.item(i), "JsonPath");
 				String[] pathParts = path.split("\\.");
 				tempPaths.add(pathParts);
+				_dataSchema[i][0] = columnName;
 			}
 			
 			//build tree that will contain all of the JSON attributes to return
@@ -169,6 +179,7 @@ public class RestConnector extends DataConnector {
 				String value = row.get(j);
 				String dataType = StringUtilities.getDataType(value, j > 0 ? row.get(j-1) : "");
 				_dataTypes[j] = DataUtilities.DataTypeToEnum(dataType);
+				_dataSchema[j][1] = dataType; 
 				_rows[i][j] = castValue(j, value);
 			}
 		}
@@ -203,6 +214,10 @@ public class RestConnector extends DataConnector {
 		Object j= null;
 		if(column.getData().equals("root")){
 			j = json;
+		} else if (!json.has(column.getData())) {
+			ArrayList<ArrayList<String>> childRows = new ArrayList<ArrayList<String>>();
+			childRows.addAll(parentRows);
+			return childRows;
 		} else {
 			j = json.get(column.getData());
 		}

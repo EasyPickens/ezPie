@@ -84,7 +84,7 @@ public class RunPie {
 		// String job = "RemoveStarRisk.xml";
 		// String job = "BlankDefinition.xml";
 		// String job = "If_Test.xml";
-		String job = "Xml_Test.xml";
+		// String job = "Xml_Test.xml";
 		// String job = "Snapshot_Date.xml";
 		// String job = "RemoveStarRiskRating.xml";
 		// String job = "DeleteEmpty.xml";
@@ -115,6 +115,7 @@ public class RunPie {
 		// String job ="_RenameColumn";
 		// String job = "TokenTests";
 		// String job = "FULL_ETL_TEST";
+		String job="Nexus_REST";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

@@ -166,8 +166,8 @@ public class SessionManager {
 		try {
 			_logger.addMessage("Setup Token Dictionary", "Load Tokens", "Read values from settings file.");
 			_tokenizer = new TokenManager(_settings, _logger, _encryptionKey, _tokenPrefix, _tokenSuffix);
-			//_tokenPrefix = _tokenizer.getTokenPrefix();
-			//_tokenSuffix = _tokenizer.getTokenSuffix();
+			// _tokenPrefix = _tokenizer.getTokenPrefix();
+			// _tokenSuffix = _tokenizer.getTokenSuffix();
 
 			_logger.addFileDetails(_jobFilename, "Definition Details");
 			dm = new DefinitionManager(this, _encryptionKey);
@@ -302,34 +302,34 @@ public class SessionManager {
 		if ((value.indexOf(_tokenPrefix) == -1) || (value.indexOf(_tokenSuffix) == -1))
 			return value;
 
-		int iTokenSplit = 0;
-		int iTokenEnd = 0;
-		String[] aTokens = value.split("\\Q" + _tokenPrefix+"\\E");
+		int tokenSplit = 0;
+		int tokenEnd = 0;
+		String[] aTokens = value.split("\\Q" + _tokenPrefix + "\\E");
 
 		for (int i = 0; i < aTokens.length; i++) {
-			iTokenSplit = aTokens[i].indexOf('.');
-			iTokenEnd = aTokens[i].indexOf(_tokenSuffix);
-			if ((iTokenSplit == -1) || (iTokenEnd == -1))
+			tokenSplit = aTokens[i].indexOf('.');
+			tokenEnd = aTokens[i].indexOf(_tokenSuffix);
+			if ((tokenSplit == -1) || (tokenEnd == -1))
 				continue;
-			if (iTokenSplit > iTokenEnd)
+			if (tokenSplit > tokenEnd)
 				continue;
 
-			String sFullToken = _tokenPrefix + aTokens[i].substring(0, iTokenEnd + 1);
-			String sGroup = aTokens[i].substring(0, iTokenSplit);
-			String sKey = aTokens[i].substring(iTokenSplit + 1, iTokenEnd);
+			String fullToken = _tokenPrefix + aTokens[i].substring(0, tokenEnd + 1);
+			String tokenGroup = aTokens[i].substring(0, tokenSplit);
+			String tokenKey = aTokens[i].substring(tokenSplit + 1, tokenEnd);
 
 			// Skip everything but DataSet tokens - others are resolved in
 			// Tokenizer.
-			if (!sGroup.equals("DataSet")) {
+			if (!"DataSet".equals(tokenGroup)) {
 				continue;
-			} else if (!_dataSets.containsKey(sKey)) {
-				throw new RuntimeException(String.format("Could not find any DataSet object named %s", sKey));
+			} else if (!_dataSets.containsKey(tokenKey)) {
+				throw new RuntimeException(String.format("Could not find any DataSet object named %s", tokenKey));
 			} else {
-				String dataFilename = _dataSets.get(sKey).getFilename();
+				String dataFilename = _dataSets.get(tokenKey).getFilename();
 				if (StringUtilities.isNullOrEmpty(dataFilename)) {
-					value = value.replace(sFullToken, String.format("Memory Stream (%,d bytes)", _dataSets.get(sKey).getSize()));
+					value = value.replace(fullToken, String.format("Memory Stream (%,d bytes)", _dataSets.get(tokenKey).getSize()));
 				} else {
-					value = value.replace(sFullToken, _dataSets.get(sKey).getFilename());
+					value = value.replace(fullToken, _dataSets.get(tokenKey).getFilename());
 				}
 			}
 		}
@@ -531,7 +531,7 @@ public class SessionManager {
 			File fi = new File(SessionManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 			return fi.getAbsolutePath();
 		} catch (URISyntaxException e) {
-			throw new RuntimeException("Could not read the jar location.");
+			throw new RuntimeException("Could not read the jar location.", e);
 		}
 	}
 }

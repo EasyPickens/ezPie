@@ -104,7 +104,7 @@ public class TokenManager {
 		StringBuilder sb = new StringBuilder();
 		for (Map.Entry<String, String> entry : newTokens.entrySet()) {
 			if (added > 0) {
-				sb.append(_logger._newLineTab);
+				sb.append(_logger.getNewLineTab());
 			}
 		    String key = entry.getKey();
 		    String value = entry.getValue();
@@ -165,67 +165,67 @@ public class TokenManager {
 		if (tokenEnd == -1)
 			return value;
 
-		int iTokenSplit = 0;
+		int tokenSplit = 0;
 		int iTokenEnd = 0;
 		String[] aTokens = value.split(String.format("\\Q%s\\E", _tokenPrefix));
 
 		for (int i = 0; i < aTokens.length; i++) {
-			iTokenSplit = aTokens[i].indexOf('.');
+			tokenSplit = aTokens[i].indexOf('.');
 			iTokenEnd = aTokens[i].indexOf(_tokenSuffix);
-			if ((iTokenSplit == -1) || (iTokenEnd == -1))
+			if ((tokenSplit == -1) || (iTokenEnd == -1))
 				continue;
 
-			String sFullToken = _tokenPrefix + aTokens[i].substring(0, iTokenEnd + 1);
-			String sGroup = aTokens[i].substring(0, iTokenSplit);
-			String sKey = aTokens[i].substring(iTokenSplit + 1, iTokenEnd);
+			String fullToken = _tokenPrefix + aTokens[i].substring(0, iTokenEnd + 1);
+			String tokenGroup = aTokens[i].substring(0, tokenSplit);
+			String tokenKey = aTokens[i].substring(tokenSplit + 1, iTokenEnd);
 
 			// Skip data tokens if no row of data is provided.
-			if ((_dataTokens == null) && sGroup.equals("Data"))
+			if ((_dataTokens == null) && "Data".equals(tokenGroup))
 				continue;
-			else if ("Data".equals(sGroup) && _dataTokens.containsKey(sKey)) {
-				value = value.replace(sFullToken, _dataTokens.get(sKey));
-			} else if ("System".equals(sGroup)) {
+			else if ("Data".equals(tokenGroup) && _dataTokens.containsKey(tokenKey)) {
+				value = value.replace(fullToken, _dataTokens.get(tokenKey));
+			} else if ("System".equals(tokenGroup)) {
 				// System tokens call methods
 				SimpleDateFormat sdf;
-				switch (sKey) {
+				switch (tokenKey) {
 				case "CurrentDateTimeString":
 					sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-					value = value.replace(sFullToken, sdf.format(new Date()));
+					value = value.replace(fullToken, sdf.format(new Date()));
 					break;
 				case "StartDateTimeString":
 					sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-					value = value.replace(sFullToken, sdf.format(_startDateTime));
+					value = value.replace(fullToken, sdf.format(_startDateTime));
 					break;
 				case "ISOStartDateTime":
 					sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					value = value.replace(sFullToken, sdf.format(_startDateTime));
+					value = value.replace(fullToken, sdf.format(_startDateTime));
 					break;
 				case "Year":
 					sdf = new SimpleDateFormat("yyyy");
-					value = value.replace(sFullToken, sdf.format(_startDateTime));
+					value = value.replace(fullToken, sdf.format(_startDateTime));
 					break;
 				case "Month":
 					sdf = new SimpleDateFormat("MM");
-					value = value.replace(sFullToken, sdf.format(_startDateTime));
+					value = value.replace(fullToken, sdf.format(_startDateTime));
 					break;
 				case "Day":
 					sdf = new SimpleDateFormat("dd");
-					value = value.replace(sFullToken, sdf.format(_startDateTime));
+					value = value.replace(fullToken, sdf.format(_startDateTime));
 					break;
 				case "ElapsedTime": // returns minutes.
 					Date dtCurrent = new Date();
 					double minutes = (dtCurrent.getTime() - _startDateTime.getTime()) / 60000.0;
-					value = value.replace(sFullToken, String.format("%f", minutes));
+					value = value.replace(fullToken, String.format("%f", minutes));
 					break;
 				case "UUID":
-					value = value.replace(sFullToken, UUID.randomUUID().toString());
+					value = value.replace(fullToken, UUID.randomUUID().toString());
 					break;
 				}
-			} else if (_tokens.containsKey(sGroup) && _tokens.get(sGroup).containsKey(sKey)) {
-				value = value.replace(sFullToken, _tokens.get(sGroup).get(sKey));
+			} else if (_tokens.containsKey(tokenGroup) && _tokens.get(tokenGroup).containsKey(tokenKey)) {
+				value = value.replace(fullToken, _tokens.get(tokenGroup).get(tokenKey));
 			} else {
 				// if the token is not found, it evaluates to empty string.
-				value = value.replace(sFullToken, "");
+				value = value.replace(fullToken, "");
 			}
 		}
 		return resolveTokens(value);
@@ -242,8 +242,9 @@ public class TokenManager {
 		StringBuilder sb = new StringBuilder();
 		int length = kvps.length;
 		for (int i = 0; i < length; i++) {
-			if (i > 0)
+			if (i > 0) {
 				sb.append(_logger.getNewLineTab());
+			}
 			String name = kvps[i][0];
 			String value = kvps[i][1];
 			tokenKeyValues.put(name, value);
@@ -281,6 +282,9 @@ public class TokenManager {
 
 		for (int i = 0; i < nodeCount; i++) {
 			String tokenType = nl.item(i).getNodeName();
+			if ("DataSource".equals(tokenType)) {
+				continue;
+			}
 			if (isTokenNode && (Constants.TOKEN_TYPES_RESERVED.indexOf(tokenType.toLowerCase()) != -1)) {
 				throw new RuntimeException(String.format("%s is one of the reserved token types.  Please rename your token type.", tokenType));
 			}
@@ -329,7 +333,9 @@ public class TokenManager {
 			}
 			_tokens.put(tokenType, tokenKeyValues);
 		}
-		if ((tokensAdded > 0) && (linesAdded == 0)) {
+		if ((tokensAdded == 0) && (linesAdded == 0)) {
+			// Nothing added, no log message needed.
+		} else if ((tokensAdded > 0) && (linesAdded == 0)) {
 			_logger.addMessage("", tokensAdded == 1 ? "Token Added" : "Tokens Added", String.format("%,d tokens added", tokensAdded));
 		} else {
 			_logger.addMessage("", linesAdded == 1 ? "Token Added" : "Tokens Added", sb.toString());
