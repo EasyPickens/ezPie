@@ -125,7 +125,7 @@ public final class DataUtilities {
 	}
 
 	public static DataType DataTypeToEnum(String sTypeName) {
-		if (sTypeName == null) {
+		if ((sTypeName == null) || sTypeName.isEmpty()) {
 			return DataType.StringData;
 		}
 		switch (sTypeName) {

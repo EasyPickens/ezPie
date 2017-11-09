@@ -177,7 +177,7 @@ public class RestConnector extends DataConnector {
 			ArrayList<String> row = rows.get(i);
 			for(int j = 0; j < row.size(); j++){
 				String value = row.get(j);
-				String dataType = StringUtilities.getDataType(value, j > 0 ? row.get(j-1) : "");
+				String dataType = StringUtilities.getDataType(value, j > 0 ? _dataTypes[j-1].toString() : "");
 				_dataTypes[j] = DataUtilities.DataTypeToEnum(dataType);
 				_dataSchema[j][1] = dataType; 
 				_rows[i][j] = castValue(j, value);
@@ -215,17 +215,22 @@ public class RestConnector extends DataConnector {
 		if(column.getData().equals("root")){
 			j = json;
 		} else if (!json.has(column.getData())) {
-			ArrayList<ArrayList<String>> childRows = new ArrayList<ArrayList<String>>();
-			childRows.addAll(parentRows);
-			return childRows;
+			j = "";
 		} else {
 			j = json.get(column.getData());
+		}
+		
+		if ((j == null) || "null".equalsIgnoreCase(j.toString())) {
+			j = "";
 		}
 		
 		if (j instanceof JSONArray) {
 			// It's an array
 			ArrayList<ArrayList<String>> oldParentRows = parentRows;
 			ArrayList<ArrayList<String>> childRows = new ArrayList<ArrayList<String>>();
+			if (((JSONArray)j).length() == 0) {
+				return parentRows;
+			}
 			for(int m = 0; m < ((JSONArray)j).length(); m++){
 				parentRows = oldParentRows;
 				JSONObject jj = ((JSONArray) j).getJSONObject(m);
