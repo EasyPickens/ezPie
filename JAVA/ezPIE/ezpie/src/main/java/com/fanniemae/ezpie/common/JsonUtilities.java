@@ -70,7 +70,7 @@ public class JsonUtilities {
 			dr.close();
 			dataSet.put("Data", data);
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while converting %s datastream into JSON. %s", name, ex.getMessage()));
+			throw new RuntimeException(String.format("Error while converting %s datastream into JSON. %s", name, ex.getMessage()), ex);
 		}
 
 		return dataSet;

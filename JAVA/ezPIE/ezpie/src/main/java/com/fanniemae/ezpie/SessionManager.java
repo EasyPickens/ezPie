@@ -465,7 +465,7 @@ public class SessionManager {
 		return _tokenSuffix;
 	}
 
-	public void setDataTokens(HashMap<String, String> dataTokens) {
+	public void setDataTokens(Map<String, String> dataTokens) {
 		_tokenizer.setDataTokens(dataTokens);
 	}
 

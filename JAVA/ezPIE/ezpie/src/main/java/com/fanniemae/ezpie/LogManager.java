@@ -119,7 +119,7 @@ public class LogManager {
 		if (_logLevel == LogLevel.ERROR_ONLY) {
 			return;
 		}
-		
+
 		if (!FileUtilities.isValidFile(_logFilename))
 			return;
 
@@ -201,7 +201,7 @@ public class LogManager {
 	public boolean logExternalFiles() {
 		return _logLevel == LogLevel.FULL_LOG;
 	}
-	
+
 	protected void initializeLog() {
 		// Read JVM runtime settings
 		Runtime runtime = Runtime.getRuntime();
@@ -229,7 +229,7 @@ public class LogManager {
 			fos.write(_footerByteArray);
 			fos.close();
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error trying to create log file. %s", _logFilename));
+			throw new RuntimeException(String.format("Error trying to create log file. %s", _logFilename), e);
 		}
 	}
 
@@ -271,7 +271,7 @@ public class LogManager {
 		if (!isError && (_logLevel == LogLevel.ERROR_ONLY)) {
 			return;
 		}
-		
+
 		// Skip blank description messages
 		if (description == null)
 			return;

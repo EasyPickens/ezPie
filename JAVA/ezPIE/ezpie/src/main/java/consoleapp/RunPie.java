@@ -115,7 +115,7 @@ public class RunPie {
 		// String job ="_RenameColumn";
 		// String job = "TokenTests";
 		// String job = "FULL_ETL_TEST";
-		String job="Nexus_REST";
+		String job="Nexus_RESTxx";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
@@ -128,7 +128,7 @@ public class RunPie {
 			System.out.println(dataSets);
 			System.out.println("Job defintion processing completed.");
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			throw new RuntimeException(ex);
 		}
 		// viewlog(logFilename);
 	}

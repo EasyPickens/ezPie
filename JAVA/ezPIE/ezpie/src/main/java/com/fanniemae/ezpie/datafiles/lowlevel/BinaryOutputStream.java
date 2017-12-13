@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.UUID;
 
+import com.fanniemae.ezpie.common.ExceptionUtilities;
+
 /**
  * 
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
@@ -89,6 +91,7 @@ public class BinaryOutputStream implements AutoCloseable {
                 _dos.close();
             }
         } catch (IOException ex) {
+        	ExceptionUtilities.goSilent(ex);
         }
         try {
             if (_bos != null) {
@@ -96,12 +99,14 @@ public class BinaryOutputStream implements AutoCloseable {
                 _bos.close();
             }
         } catch (IOException ex) {
+        	ExceptionUtilities.goSilent(ex);
         }
         try {
             if (_fos != null) {
                 _fos.close();
             }
         } catch (IOException ex) {
+        	ExceptionUtilities.goSilent(ex);
         }
         _isOpen = false;
     }

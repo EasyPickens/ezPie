@@ -153,7 +153,7 @@ public class ProcessActions {
 					action = new Sleep(session, actionElement);
 					break;
 				case "Stop":
-					if (!session.getAttribute(actionElement, "Silent").equals("True"))
+					if (!"True".equalsIgnoreCase(session.getAttribute(actionElement, "Silent")))
 						session.addLogMessage("Stop", "Control Action", "Stopping definition processing. No error.");
 					action = null;
 					stopProcessing = true;

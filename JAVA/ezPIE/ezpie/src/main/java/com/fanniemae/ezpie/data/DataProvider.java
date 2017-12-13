@@ -70,16 +70,16 @@ public class DataProvider {
 		_url = eleConnection.getAttribute("URL");
 		_className = eleConnection.getAttribute("ClassName");
 		_connectionString = eleConnection.getAttribute("ConnectionString");
-		String connectionType = eleConnection.getAttribute("Type"); 
+		String connectionType = eleConnection.getAttribute("Type");
 		JdbcProvider jdbcDriver = null;
-		if (StringUtilities.isNullOrEmpty(_className) || StringUtilities.isNullOrEmpty(_url) ) {
+		if (StringUtilities.isNullOrEmpty(_className) || StringUtilities.isNullOrEmpty(_url)) {
 			jdbcDriver = JdbcProviderFactory.getProvider(session, connectionType);
 			if (jdbcDriver != null) {
 				_className = jdbcDriver.getClassName(_className);
 				_url = jdbcDriver.getJarFilename(_url);
 			}
 		}
-		
+
 		if (StringUtilities.isNullOrEmpty(_className)) {
 			throw new RuntimeException("Missing class name for JDBC provider.");
 		}
@@ -112,34 +112,35 @@ public class DataProvider {
 		return con;
 	}
 
-	public List<FieldInfo> getSchema(String sSqlCommand) {
-		List<FieldInfo> aResults = new ArrayList<>();
+	public List<FieldInfo> getSchema(String sqlCommand) {
+		List<FieldInfo> results = new ArrayList<>();
 		ResultSet rs = null;
 		try (Connection con = getConnection(); Statement stmt = con.createStatement()) {
 			stmt.setMaxRows(1);
 			stmt.setQueryTimeout(_CommandTimeout);
-			rs = stmt.executeQuery(sSqlCommand);
+			rs = stmt.executeQuery(sqlCommand);
 
-			ResultSetMetaData oSchema = rs.getMetaData();
-			for (int i = 1; i <= oSchema.getColumnCount(); i++) {
-				FieldInfo oInfo = new FieldInfo();
-				oInfo.setName(oSchema.getColumnName(i));
-				oInfo.setDbType(oSchema.getColumnType(i));
-				oInfo.setDbTypeName(oSchema.getColumnTypeName(i));
-				aResults.add(oInfo);
+			ResultSetMetaData schemaMetaData = rs.getMetaData();
+			for (int i = 1; i <= schemaMetaData.getColumnCount(); i++) {
+				FieldInfo info = new FieldInfo();
+				info.setName(schemaMetaData.getColumnName(i));
+				info.setDbType(schemaMetaData.getColumnType(i));
+				info.setDbTypeName(schemaMetaData.getColumnTypeName(i));
+				results.add(info);
 			}
 		} catch (SQLException ex) {
-			_lastErrorMessage = ex.getMessage();
-			aResults = null;
+			results = null;
+			throw new RuntimeException("Could not read schema information from SQL command.", ex);
 		} finally {
 			if (rs != null) {
 				try {
 					rs.close();
 				} catch (SQLException e) {
+					throw new RuntimeException("Could not close SQL result set.", e);
 				}
 			}
 		}
-		return aResults;
+		return results;
 	}
 
 	public CallableStatement deriveParameters(Connection con, String storedProcName) {
@@ -204,7 +205,7 @@ public class DataProvider {
 
 			}
 		} catch (SQLException e) {
-			_lastErrorMessage = e.getMessage();
+			throw new RuntimeException("Could not derive stored procedure parameters.", e);
 		}
 		return cstmt;
 	}

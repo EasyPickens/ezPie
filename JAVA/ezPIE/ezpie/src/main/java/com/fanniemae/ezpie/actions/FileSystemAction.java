@@ -133,11 +133,11 @@ public abstract class FileSystemAction extends Action {
 			postprocessDirectory(_source);
 		}
 		// _session.addLogMessage("", String.format("%s Complete", _actionName), String.format("%,d files (%,d bytes)", _filesProcessed, _totalBytes));
-		if (_actionName.equals("VerifyJavaFiles")) {
+		if ("VerifyJavaFiles".equals(_actionName)) {
 			_sb.append("Verification completed.");
 			String removedFiles = (_filesProcessed > 0) ? "file://"+FileUtilities.writeRandomFile(_session.getLogPath(), ".txt", _sb.toString()) : "";
 			_session.addLogMessage("", "Count", String.format("%,d empty JAVA files found, %,d files checked.", _filesProcessed, _filesFound), removedFiles);
-		} else if (_actionName.equals("DeleteEmpty")) {
+		} else if ("DeleteEmpty".equals(_actionName)) {
 			_session.addLogMessage("", "Count", String.format("%,d empty files %s, %,d files checked.", _filesProcessed, _countMessage, _filesFound));
 		} else {
 			_session.addLogMessage("", "Count", String.format("%,d files (%,d bytes) %s, %,d files checked.", _filesProcessed, _totalBytes, _countMessage, _filesFound));
@@ -202,7 +202,7 @@ public abstract class FileSystemAction extends Action {
 			_totalBytes += FileUtilities.getLength(source);
 			//_filesFound++;
 
-			if (_actionName.equals("Delete")) {
+			if ("Delete".equals(_actionName)) {
 				processFile(source, null, null);
 			} else if (destination == null) {
 				// Destination is null and file action is not delete?

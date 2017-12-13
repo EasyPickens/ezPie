@@ -23,10 +23,9 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-21
  * 
- * A single data point from one row of data. See IndexKeys class for the
- * rest of the data row.
+ * A single data point from one row of data. See IndexKeys class for the rest of the data row.
  * 
-*/
+ */
 
 class IndexDataPoint implements Comparable<IndexDataPoint> {
 	protected DataType _dataType;
@@ -138,17 +137,17 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 			throw new RuntimeException("IndexKey does not contain a value of the defined types.");
 		}
 	}
-	
+
 	public Object getValueAsString() {
 		switch (_dataType) {
 		case StringData:
 			return _s;
 		case IntegerData:
-			return String.format("%d",_i);
+			return String.format("%d", _i);
 		case LongData:
-			return String.format("%d",_l);
+			return String.format("%d", _l);
 		case DoubleData:
-			return String.format("%d",_d);
+			return String.format("%d", _d);
 		case BigDecimalData:
 			return _bd.toPlainString();
 		case BooleanData:
@@ -160,7 +159,7 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 			throw new RuntimeException("IndexKey does not contain a value of the defined types.");
 		}
 	}
-	
+
 	protected void updateModifier() {
 		_directionModifier = _isAscending ? 1 : -1;
 	}
@@ -200,5 +199,10 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 		default:
 			return 0;
 		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return compareTo((IndexDataPoint) o) == 0;
 	}
 }

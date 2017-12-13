@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -302,6 +303,7 @@ public class SqlConnector extends DataConnector {
 				_rs = null;
 			}
 		} catch (SQLException e) {
+			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "SQL", "Error while trying to close result set. " + e.getMessage());
 		}
 
 		try {
@@ -310,6 +312,7 @@ public class SqlConnector extends DataConnector {
 				_pstmt = null;
 			}
 		} catch (SQLException e) {
+			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "SQL", "Error while trying to close prepared statement. " + e.getMessage());
 		}
 
 		try {
@@ -318,6 +321,7 @@ public class SqlConnector extends DataConnector {
 				_con = null;
 			}
 		} catch (SQLException e) {
+			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "SQL", "Error while trying to close database connection. " + e.getMessage());
 		}
 	}
 

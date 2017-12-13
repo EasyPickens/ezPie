@@ -276,7 +276,7 @@ public class DataReader extends DataFormat {
                 String dataType = elementColumn.getAttribute("DataType");
                 String sGlobalValue = elementColumn.getAttribute("GlobalValue");
                 Object globalValue = null;
-                if (elementColumn.getAttribute("ColumnType").equalsIgnoreCase("GlobalValue")) {
+                if ("GlobalValue".equalsIgnoreCase(elementColumn.getAttribute("ColumnType"))) {
                     eColType = DataFileEnums.ColumnTypes.GlobalValue;
                     globalValue = StringUtilities.toObject(dataType, sGlobalValue);
                 }

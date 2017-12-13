@@ -48,11 +48,10 @@ public class RestConnector extends DataConnector {
 	protected String _proxyUsername;
 	protected String _proxyPassword;
 	protected NodeList _columns;
-	
-	protected Object[][]  _rows;
+
+	protected Object[][] _rows;
 	protected int _index = 0;
 	protected DataType[] _dataTypes;
-	
 
 	public RestConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
@@ -68,27 +67,26 @@ public class RestConnector extends DataConnector {
 		_url = _session.getAttribute(dataSource, "URL");
 		if (StringUtilities.isNullOrEmpty(_url))
 			throw new RuntimeException("Missing required URL value for the RestDataSource");
-		
+
 		_columns = XmlUtilities.selectNodes(_dataSource, "*");
-		
+
 	}
 
 	@Override
 	public Boolean open() {
-		try{
+		try {
 			String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password);
 			int length = (response == null) ? 0 : response.length();
-			_session.addLogMessage("", "RestConnector", String.format("View Response (%,d bytes)",length), "file://" + RestUtilities.writeResponseToFile(response, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
-			
+			_session.addLogMessage("", "RestConnector", String.format("View Response (%,d bytes)", length), "file://" + RestUtilities.writeResponseToFile(response, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
+
 			int numColumns = _columns.getLength();
 			_session.addLogMessage("", "RestConnector", String.format("%,d columns found", numColumns));
-			
-			
+
 			// Read/create column names.
 			_dataSchema = new String[numColumns][2];
 			_dataTypes = new DataType[numColumns];
-			
-			//get columns from definition file and split 
+
+			// get columns from definition file and split
 			ArrayList<TreeNode<String>> columns = new ArrayList<TreeNode<String>>();
 			ArrayList<String[]> tempPaths = new ArrayList<String[]>();
 			for (int i = 0; i < numColumns; i++) {
@@ -98,44 +96,43 @@ public class RestConnector extends DataConnector {
 				tempPaths.add(pathParts);
 				_dataSchema[i][0] = columnName;
 			}
-			
-			//build tree that will contain all of the JSON attributes to return
-			for(int m = 0; m < tempPaths.size(); m++){
+
+			// build tree that will contain all of the JSON attributes to return
+			for (int m = 0; m < tempPaths.size(); m++) {
 				boolean found = false;
-				for(int n = 0; n < columns.size(); n++){
-					if(searchTree(columns.get(n), tempPaths.get(m), 0)){
+				for (int n = 0; n < columns.size(); n++) {
+					if (searchTree(columns.get(n), tempPaths.get(m), 0)) {
 						found = true;
-					}	
+					}
 				}
-				if(!found){
+				if (!found) {
 					columns.add(new TreeNode<String>(tempPaths.get(m)[0]));
-					searchTree(columns.get(columns.size()-1), tempPaths.get(m), 0);
+					searchTree(columns.get(columns.size() - 1), tempPaths.get(m), 0);
 				}
 			}
-			
-			TreeNode<String> root = new TreeNode<String>("root");	
-			for(int n = 0; n < columns.size(); n++){
+
+			TreeNode<String> root = new TreeNode<String>("root");
+			for (int n = 0; n < columns.size(); n++) {
 				root.addChild(columns.get(n));
 			}
-			
+
 			Object json = new JSONTokener(response).nextValue();
-			
-			//create rows by parsing JSON and using the tree with the attributes to search for
+
+			// create rows by parsing JSON and using the tree with the attributes to search for
 			ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>();
-			if (json instanceof JSONObject){
+			if (json instanceof JSONObject) {
 				rows = buildRows((JSONObject) json, rows, root);
-			} else if (json instanceof JSONArray){
+			} else if (json instanceof JSONArray) {
 				ArrayList<ArrayList<String>> parentRows = new ArrayList<ArrayList<String>>(rows);
 				for (int i = 0; i < ((JSONArray) json).length(); i++) {
 					rows.addAll(buildRows(((JSONArray) json).getJSONObject(i), parentRows, root));
 				}
 			}
-		
-			//determine data types and cast values to correct type
+
+			// determine data types and cast values to correct type
 			dataTypeRows(rows);
 
-			
-		} catch (JSONException ex){
+		} catch (JSONException ex) {
 			throw new RuntimeException("Error while trying to make REST request: " + ex.getMessage(), ex);
 		}
 		return true;
@@ -143,9 +140,9 @@ public class RestConnector extends DataConnector {
 
 	@Override
 	public Boolean eof() {
-		if(_index < _rows.length){
+		if (_index < _rows.length) {
 			return false;
-		} else{ 
+		} else {
 			return true;
 		}
 	}
@@ -159,32 +156,32 @@ public class RestConnector extends DataConnector {
 
 	@Override
 	public void close() {
-		
+
 	}
-	
-	private void dataTypeRows(ArrayList<ArrayList<String>> rows){
-		//discover longest row
+
+	private void dataTypeRows(ArrayList<ArrayList<String>> rows) {
+		// discover longest row
 		int numColumns = 0;
-		for(int i = 0; i < rows.size(); i++){
+		for (int i = 0; i < rows.size(); i++) {
 			ArrayList<String> row = rows.get(i);
-			for(int j = 0; j < row.size(); j++){
+			for (int j = 0; j < row.size(); j++) {
 				numColumns = numColumns > row.size() ? numColumns : row.size();
 			}
 		}
 		_dataTypes = new DataType[numColumns];
 		_rows = new Object[rows.size()][numColumns];
-		for(int i = 0; i < rows.size(); i++){
+		for (int i = 0; i < rows.size(); i++) {
 			ArrayList<String> row = rows.get(i);
-			for(int j = 0; j < row.size(); j++){
+			for (int j = 0; j < row.size(); j++) {
 				String value = row.get(j);
-				String dataType = StringUtilities.getDataType(value, j > 0 ? _dataTypes[j-1].toString() : "");
-				_dataTypes[j] = DataUtilities.DataTypeToEnum(dataType);
-				_dataSchema[j][1] = dataType; 
+				String dataType = StringUtilities.getDataType(value, j > 0 ? _dataTypes[j - 1].toString() : "");
+				_dataTypes[j] = DataUtilities.dataTypeToEnum(dataType);
+				_dataSchema[j][1] = dataType;
 				_rows[i][j] = castValue(j, value);
 			}
 		}
 	}
-	
+
 	protected Object castValue(int i, String value) {
 		if (StringUtilities.isNullOrEmpty(value)) {
 			return null;
@@ -209,85 +206,85 @@ public class RestConnector extends DataConnector {
 			throw new RuntimeException(String.format("%s string conversion not currently available.", DataType.values()[i]));
 		}
 	}
-	
-	private ArrayList<ArrayList<String>> buildRows(JSONObject json, ArrayList<ArrayList<String>> parentRows, TreeNode<String> column){
-		Object j= null;
-		if(column.getData().equals("root")){
+
+	private ArrayList<ArrayList<String>> buildRows(JSONObject json, ArrayList<ArrayList<String>> parentRows, TreeNode<String> column) {
+		Object j = null;
+		if ("root".equals(column.getData())) {
 			j = json;
 		} else if (!json.has(column.getData())) {
 			j = "";
 		} else {
 			j = json.get(column.getData());
 		}
-		
+
 		if ((j == null) || "null".equalsIgnoreCase(j.toString())) {
 			j = "";
 		}
-		
+
 		if (j instanceof JSONArray) {
 			// It's an array
 			ArrayList<ArrayList<String>> oldParentRows = parentRows;
 			ArrayList<ArrayList<String>> childRows = new ArrayList<ArrayList<String>>();
-			if (((JSONArray)j).length() == 0) {
+			if (((JSONArray) j).length() == 0) {
 				return parentRows;
 			}
-			for(int m = 0; m < ((JSONArray)j).length(); m++){
+			for (int m = 0; m < ((JSONArray) j).length(); m++) {
 				parentRows = oldParentRows;
 				JSONObject jj = ((JSONArray) j).getJSONObject(m);
 				Iterator<TreeNode<String>> iter = column.iterator();
-				while(iter.hasNext()){
+				while (iter.hasNext()) {
 					ArrayList<ArrayList<String>> returned = buildRows(jj, parentRows, iter.next());
 					parentRows = returned;
 				}
 				childRows.addAll(parentRows);
 			}
-			
+
 			return childRows;
 		} else if (j instanceof JSONObject) {
-		    // It's an object
+			// It's an object
 			ArrayList<ArrayList<String>> childRows = new ArrayList<ArrayList<String>>();
 			Iterator<TreeNode<String>> iter = column.iterator();
-			while(iter.hasNext()){
-				ArrayList<ArrayList<String>> returned = buildRows((JSONObject)j, parentRows, iter.next());
+			while (iter.hasNext()) {
+				ArrayList<ArrayList<String>> returned = buildRows((JSONObject) j, parentRows, iter.next());
 				parentRows = returned;
 			}
 			childRows.addAll(parentRows);
-			
+
 			return childRows;
 		} else {
 			// It's a string, number etc.
 			ArrayList<ArrayList<String>> childRows = new ArrayList<ArrayList<String>>();
-			for(int n = 0; n < parentRows.size(); n++){
+			for (int n = 0; n < parentRows.size(); n++) {
 				ArrayList<String> temp = new ArrayList<String>(parentRows.get(n));
 				temp.add(j.toString());
 				childRows.add(temp);
 			}
-			if(parentRows.size() == 0){
+			if (parentRows.size() == 0) {
 				ArrayList<String> temp = new ArrayList<String>();
 				temp.add(j.toString());
 				childRows.add(temp);
 			}
-			
+
 			return childRows;
 		}
 	}
-	
-	private boolean searchTree(TreeNode<String> node, String[] pathParts, int index){
-		if(pathParts[index].equals(node.getData())){
+
+	private boolean searchTree(TreeNode<String> node, String[] pathParts, int index) {
+		if (pathParts[index].equals(node.getData())) {
 			index++;
-			if(pathParts.length <= index){
+			if (pathParts.length <= index) {
 				return true;
 			}
 			boolean found = false;
 			Iterator<TreeNode<String>> iter = node.getChildren().iterator();
-			while(iter.hasNext()){
+			while (iter.hasNext()) {
 				TreeNode<String> next = iter.next();
-				if(searchTree(next, pathParts, index))
+				if (searchTree(next, pathParts, index))
 					found = true;
 			}
-			if(!found){
+			if (!found) {
 				node.addChild(pathParts[index]);
-				searchTree(node.getChildren().get(node.getChildren().size()-1), pathParts, index);
+				searchTree(node.getChildren().get(node.getChildren().size() - 1), pathParts, index);
 			}
 			return true;
 		} else {

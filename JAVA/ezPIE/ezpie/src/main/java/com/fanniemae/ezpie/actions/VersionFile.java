@@ -66,7 +66,7 @@ public class VersionFile extends Action {
 				prop.store(output, null);
 				output.close();
 			} catch (IOException ex) {
-				throw new RuntimeException(String.format("Error while writing %s the version file. %s",_filename,ex.getMessage()));
+				throw new RuntimeException(String.format("Error while writing %s the version file. %s",_filename,ex.getMessage()), ex);
 			}
 		} else {
 			if (FileUtilities.isInvalidFile(_filename)) {
@@ -75,7 +75,7 @@ public class VersionFile extends Action {
 			try (FileInputStream input = new FileInputStream(_filename)) {
 				prop.load(input);
 			} catch (IOException ex) {
-				throw new RuntimeException(String.format("Error while trying to read %s the version file. %s", _filename, ex.getMessage()));
+				throw new RuntimeException(String.format("Error while trying to read %s the version file. %s", _filename, ex.getMessage()), ex);
 			}
 			_session.addToken("Local", _name, prop.getProperty("Version", ""));
 		}

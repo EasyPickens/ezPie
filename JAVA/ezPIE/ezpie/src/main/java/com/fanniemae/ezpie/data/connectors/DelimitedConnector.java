@@ -99,12 +99,12 @@ public class DelimitedConnector extends DataConnector {
 			// null the previous row values before reading the next row.
 			Arrays.fill(_dataRow, null);
 
-			// strongly type the new row values.		
+			// strongly type the new row values.
 			for (int i = 0; i < iLen; i++) {
 				_dataRow[i] = castValue(i, dataRow[i]);
 			}
 
-			// strongly type the new row values.		
+			// strongly type the new row values.
 			for (int i = 0; i < iLen; i++) {
 				if (_sourceIndex[i] == -1) {
 					_dataRow[i] = null;
@@ -158,7 +158,7 @@ public class DelimitedConnector extends DataConnector {
 				for (int i = 0; i < Math.min(dataRow.length, _dataSchema.length); i++) {
 					if (!skipSchemaCheck[i] && StringUtilities.isNotNullOrEmpty(dataRow[i])) {
 						_dataSchema[i][1] = StringUtilities.getDataType(dataRow[i], _dataSchema[i][1]);
-						if (StringUtilities.isNotNullOrEmpty(_dataSchema[i][1]) && _dataSchema[i][1].equals("StringData")) {
+						if (StringUtilities.isNotNullOrEmpty(_dataSchema[i][1]) && "StringData".equals(_dataSchema[i][1])) {
 							skipSchemaCheck[i] = true;
 						}
 					}
@@ -171,7 +171,7 @@ public class DelimitedConnector extends DataConnector {
 			_columnCount = _dataSchema.length;
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < _columnCount; i++) {
-				_dataTypes[i] = DataUtilities.DataTypeToEnum(_dataSchema[i][1]);
+				_dataTypes[i] = DataUtilities.dataTypeToEnum(_dataSchema[i][1]);
 				if (i > 0) {
 					sb.append(",\n");
 				}

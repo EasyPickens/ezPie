@@ -16,17 +16,18 @@ import java.util.Date;
 
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+//@formatter:off
 /**
  * 
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-21
  * 
- * One row of data (IndexDataRow) used to sort. Each entry is compared until a
- * greater than or less than is reached. If both rows are equal, the
- * position (unique long) is checked and first row remains first. By
- * using the file position the sort becomes a "stable sort".
+ * One row of data (IndexDataRow) used to sort. Each entry is compared until a greater than or 
+ * less than is reached. If both rows are equal, the position (unique long) is checked and first 
+ * row remains first. By using the file position the sort becomes a "stable sort".
  * 
-*/
+ */
+//@formatter:on
 
 class IndexDataRow implements Comparable<IndexDataRow> {
 	protected int _streamChannel;
@@ -35,9 +36,9 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 	protected boolean _used = false;
 
 	public IndexDataRow(long rowStart, int keyCount) {
-		this(1,rowStart, keyCount);
+		this(1, rowStart, keyCount);
 	}
-	
+
 	public IndexDataRow(int streamChannel, long rowStart, int keyCount) {
 		_streamChannel = streamChannel;
 		_rowStart = rowStart;
@@ -76,15 +77,15 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 	public int getStreamChannel() {
 		return _streamChannel;
 	}
-	
+
 	public long getRowStart() {
 		return _rowStart;
 	}
-	
+
 	public boolean haveUsed() {
 		return _used;
 	}
-	
+
 	public void setUsedFlag(boolean value) {
 		_used = value;
 	}
@@ -125,9 +126,14 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 		}
 		return 0;
 	}
-	
+
+	@Override
+	public boolean equals(Object o) {
+		return compareTo((IndexDataRow) o) == 0;
+	}
+
 	public int compareValues(IndexDataRow o) {
-		for (int i = 0; i < this._dataRowKeys.length-1; i++) {
+		for (int i = 0; i < this._dataRowKeys.length - 1; i++) {
 			int result = this._dataRowKeys[i].compareTo(o._dataRowKeys[i]);
 			if (result != 0) {
 				return result;

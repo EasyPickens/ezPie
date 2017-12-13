@@ -167,7 +167,7 @@ public class Directory extends Action {
 		FileUtils.moveDirectoryToDirectory(new File(_path), new File(_destinationPath), true);
 		return "";
 	}
-	
+
 	protected String copyDirectory() throws IOException {
 		if (StringUtilities.isNullOrEmpty(_destinationPath)) {
 			throw new RuntimeException(String.format("%s is missing a value for DestinationPath.", _actionName));
@@ -348,6 +348,11 @@ public class Directory extends Action {
 			} else {
 				return this._Extension.compareTo(o._Extension);
 			}
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			return compareTo((FileExtensionCount) o) == 0;
 		}
 	}
 

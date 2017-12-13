@@ -36,14 +36,14 @@ import com.fanniemae.ezpie.common.XmlUtilities;
 public class TokenManager {
 
 	protected HashMap<String, HashMap<String, String>> _tokens = new HashMap<String, HashMap<String, String>>();
-	protected HashMap<String, String> _dataTokens = null;
+	protected Map<String, String> _dataTokens = null;
 
 	protected LogManager _logger;
 	protected Date _startDateTime = new Date();
 
 	protected String _tokenPrefix = "[";
 	protected String _tokenSuffix = "]";
-	
+
 	protected byte[][] _encryptionKey = null;
 
 	protected enum LogVisibility {
@@ -55,17 +55,17 @@ public class TokenManager {
 		_encryptionKey = encryptionKey;
 		_tokenPrefix = tokenPrefix;
 		_tokenSuffix = tokenSuffix;
-		
+
 		loadTokenValues(eleSettings, "Configuration");
-		
+
 		NodeList nl = eleSettings.getElementsByTagName("Tokens");
 		int length = nl.getLength();
-		for (int i=0;i<length;i++) {
+		for (int i = 0; i < length; i++) {
 			loadTokenValues(nl.item(i));
 		}
 	}
 
-	public void setDataTokens(HashMap<String, String> dataTokens) {
+	public void setDataTokens(Map<String, String> dataTokens) {
 		_dataTokens = dataTokens;
 	}
 
@@ -75,8 +75,9 @@ public class TokenManager {
 
 	public void addToken(String tokenType, String key, String value) {
 		HashMap<String, String> aTokenValues = new HashMap<String, String>();
-		if (_tokens.containsKey(tokenType))
+		if (_tokens.containsKey(tokenType)) {
 			aTokenValues = _tokens.get(tokenType);
+		}
 
 		aTokenValues.put(key, value);
 		_tokens.put(tokenType, aTokenValues);
@@ -91,31 +92,32 @@ public class TokenManager {
 		loadTokenValues(tokenNode);
 	}
 
-	public void addTokens(Map<String,String> newTokens) {
+	public void addTokens(Map<String, String> newTokens) {
 		addTokens("Local", newTokens);
 	}
-	
-	public void addTokens(String tokenType, Map<String,String> newTokens) {
+
+	public void addTokens(String tokenType, Map<String, String> newTokens) {
 		HashMap<String, String> domainTokens = new HashMap<String, String>();
-		if (_tokens.containsKey(tokenType))
+		if (_tokens.containsKey(tokenType)) {
 			domainTokens = _tokens.get(tokenType);
-		
+		}
+
 		int added = 0;
 		StringBuilder sb = new StringBuilder();
 		for (Map.Entry<String, String> entry : newTokens.entrySet()) {
 			if (added > 0) {
 				sb.append(_logger.getNewLineTab());
 			}
-		    String key = entry.getKey();
-		    String value = entry.getValue();
-		    domainTokens.put(key, value);
-		    sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, value));
-		    added++;
+			String key = entry.getKey();
+			String value = entry.getValue();
+			domainTokens.put(key, value);
+			sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, value));
+			added++;
 		}
 		_tokens.put(tokenType, domainTokens);
 		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
 	}
-	
+
 	public void addTokens(String tokenType, String[][] kvps) {
 		loadTokenValues(tokenType, kvps);
 	}
@@ -134,7 +136,7 @@ public class TokenManager {
 	public String getTokenPrefix() {
 		return _tokenPrefix;
 	}
-	
+
 	public void setTokenPrefix(String value) {
 		_tokenPrefix = value;
 	}
@@ -142,28 +144,32 @@ public class TokenManager {
 	public String getTokenSuffix() {
 		return _tokenSuffix;
 	}
-	
+
 	public void setTokenSuffix(String value) {
 		_tokenSuffix = value;
 	}
 
 	public String resolveTokens(String value) {
-		if (value == null)
+		if (value == null) {
 			return value;
+		}
 
 		String rawString = (_dataTokens == null) ? value.replace(String.format("%sData.", _tokenPrefix), "|Data|") : value;
 
 		int tokenStart = rawString.indexOf(_tokenPrefix);
-		if (tokenStart == -1)
+		if (tokenStart == -1) {
 			return value;
+		}
 
 		int tokenMid = rawString.indexOf(".", tokenStart);
-		if (tokenMid == -1)
+		if (tokenMid == -1) {
 			return value;
+		}
 
 		int tokenEnd = rawString.indexOf(_tokenSuffix, tokenMid);
-		if (tokenEnd == -1)
+		if (tokenEnd == -1) {
 			return value;
+		}
 
 		int tokenSplit = 0;
 		int iTokenEnd = 0;
@@ -172,17 +178,18 @@ public class TokenManager {
 		for (int i = 0; i < aTokens.length; i++) {
 			tokenSplit = aTokens[i].indexOf('.');
 			iTokenEnd = aTokens[i].indexOf(_tokenSuffix);
-			if ((tokenSplit == -1) || (iTokenEnd == -1))
+			if ((tokenSplit == -1) || (iTokenEnd == -1)) {
 				continue;
+			}
 
 			String fullToken = _tokenPrefix + aTokens[i].substring(0, iTokenEnd + 1);
 			String tokenGroup = aTokens[i].substring(0, tokenSplit);
 			String tokenKey = aTokens[i].substring(tokenSplit + 1, iTokenEnd);
 
 			// Skip data tokens if no row of data is provided.
-			if ((_dataTokens == null) && "Data".equals(tokenGroup))
+			if ((_dataTokens == null) && "Data".equals(tokenGroup)) {
 				continue;
-			else if ("Data".equals(tokenGroup) && _dataTokens.containsKey(tokenKey)) {
+			} else if ("Data".equals(tokenGroup) && _dataTokens.containsKey(tokenKey)) {
 				value = value.replace(fullToken, _dataTokens.get(tokenKey));
 			} else if ("System".equals(tokenGroup)) {
 				// System tokens call methods
@@ -260,19 +267,21 @@ public class TokenManager {
 	}
 
 	protected void loadTokenValues(Node tokenNode) {
-		loadTokenValues(tokenNode,"*");
+		loadTokenValues(tokenNode, "*");
 	}
-	
+
 	protected void loadTokenValues(Node tokenNode, String xpath) {
-		if (tokenNode == null)
+		if (tokenNode == null) {
 			return;
+		}
 
 		boolean isTokenNode = "Token".equals(tokenNode.getLocalName());
-		
+
 		NodeList nl = XmlUtilities.selectNodes(tokenNode, xpath);
 		int nodeCount = nl.getLength();
-		if (nodeCount == 0)
+		if (nodeCount == 0) {
 			return;
+		}
 
 		LogVisibility defaultVisibility = HideStatus(((Element) tokenNode).getAttribute("Hide"), LogVisibility.FULL);
 		int linesAdded = 0;
@@ -291,8 +300,9 @@ public class TokenManager {
 			LogVisibility showLevel = HideStatus(((Element) nl.item(i)).getAttribute("Hide"), defaultVisibility);
 			NamedNodeMap attributes = nl.item(i).getAttributes();
 			int attrCount = attributes.getLength();
-			if (attrCount == 0)
+			if (attrCount == 0) {
 				continue;
+			}
 
 			HashMap<String, String> tokenKeyValues = _tokens.containsKey(tokenType) ? _tokens.get(tokenType) : new HashMap<String, String>();
 			for (int x = 0; x < attrCount; x++) {
@@ -312,16 +322,19 @@ public class TokenManager {
 					hideValue = true;
 				}
 
-				if ("Hide".equals(name))
+				if ("Hide".equals(name)) {
 					continue;
+				}
 
 				tokenKeyValues.put(name, value);
 				tokensAdded++;
-				if (showLevel == LogVisibility.NONE)
+				if (showLevel == LogVisibility.NONE) {
 					continue;
+				}
 
-				if (addNewLine)
+				if (addNewLine) {
 					sb.append(_logger.getNewLineTab());
+				}
 
 				if (hideValue || hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
 					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, Constants.VALUE_HIDDEN_MESSAGE));
@@ -343,27 +356,31 @@ public class TokenManager {
 	}
 
 	protected boolean hideIt(String value) {
-		if (value == null)
+		if (value == null) {
 			return false;
+		}
 
 		value = value.toLowerCase();
-		if (value.startsWith("password") || value.endsWith("password") || value.contains("password"))
+		if (value.startsWith("password") || value.endsWith("password") || value.contains("password")) {
 			return true;
-		else if (value.startsWith("user") || value.endsWith("user") || value.contains("user"))
+		} else if (value.startsWith("user") || value.endsWith("user") || value.contains("user")) {
 			return true;
-		else if (value.startsWith("encryptionkey") || value.endsWith("encryptionkey") || value.contains("encryptionkey"))
-			return true;		
+		} else if (value.startsWith("encryptionkey") || value.endsWith("encryptionkey") || value.contains("encryptionkey")) {
+			return true;
+		}
 		return false;
 	}
 
 	protected LogVisibility HideStatus(String value, LogVisibility defaultVisibility) {
-		if (StringUtilities.isNullOrEmpty(value))
+		if (StringUtilities.isNullOrEmpty(value)) {
 			return defaultVisibility;
+		}
 
-		if ("value".equalsIgnoreCase(value) || "values".equalsIgnoreCase(value))
+		if ("value".equalsIgnoreCase(value) || "values".equalsIgnoreCase(value)) {
 			return LogVisibility.TOKEN_NAME;
-		else if ("token".equalsIgnoreCase(value) || "tokens".equalsIgnoreCase(value))
+		} else if ("token".equalsIgnoreCase(value) || "tokens".equalsIgnoreCase(value)) {
 			return LogVisibility.NONE;
+		}
 
 		return defaultVisibility;
 	}

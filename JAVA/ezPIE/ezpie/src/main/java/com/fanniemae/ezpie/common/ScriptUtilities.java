@@ -43,7 +43,7 @@ public final class ScriptUtilities {
 			// evaluate the JavaScript expression
 			result = engine.eval(expression);
 		} catch (ScriptException e) {
-			throw new RuntimeException(String.format("Could not evaluate JavaScript expression \"%s\" to a boolean result. %s", expression, e.getMessage()));
+			throw new RuntimeException(String.format("Could not evaluate JavaScript expression \"%s\" to a boolean result. %s", expression, e.getMessage()), e);
 		}
 		if ((result == null) || (result.getClass() != Boolean.class)) {
 			return false;
@@ -67,7 +67,7 @@ public final class ScriptUtilities {
 			Object result = engine.eval(expression);
 			return result;
 		} catch (ScriptException e) {
-			throw new RuntimeException(String.format("Could not evaluate JavaScript expression \"%s\". Reason: %s", expression, e.getMessage()));
+			throw new RuntimeException(String.format("Could not evaluate JavaScript expression \"%s\". Reason: %s", expression, e.getMessage()), e);
 		}
 	}
 }
