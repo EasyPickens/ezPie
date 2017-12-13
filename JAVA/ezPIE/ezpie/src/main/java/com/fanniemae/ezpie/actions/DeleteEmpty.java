@@ -24,6 +24,7 @@ import java.io.File;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -52,8 +53,7 @@ public class DeleteEmpty extends Delete {
 				_filesProcessed++;
 			}
 		} catch (Exception e) {
-			RuntimeException ex = new RuntimeException(String.format("Error while trying to delete %s. Message is %s", source, e.getMessage()), e);
-			throw ex;
+			throw new PieException(String.format("Error while trying to delete %s. Message is %s", source, e.getMessage()), e);
 		}
 	}
 }

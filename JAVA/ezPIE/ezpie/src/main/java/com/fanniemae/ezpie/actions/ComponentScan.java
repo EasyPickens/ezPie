@@ -17,6 +17,7 @@ import org.w3c.dom.Element;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.RestUtilities;
 import com.fanniemae.ezpie.common.ZipUtilities;
 
@@ -68,7 +69,7 @@ public class ComponentScan extends RunCommand{
 		
 		_workDirectory = requiredAttribute("Source").trim();
 		if (FileUtilities.isInvalidDirectory(_workDirectory)) {
-			throw new RuntimeException(String.format("Source %s is not a valid directory.", _workDirectory));
+			throw new PieException(String.format("Source %s is not a valid directory.", _workDirectory));
 		}
 		
 		_zipPath = FileUtilities.getRandomFilename(_session.getStagingPath(), "zip");
@@ -124,7 +125,7 @@ public class ComponentScan extends RunCommand{
 				topJSON = new JSONObject(responseStr);
 				topJSON.get("id");
 			} catch (Exception ex) {
-				throw new RuntimeException(String.format("Error while sending POST request to create application: %s", ex.getMessage()), ex);
+				throw new PieException(String.format("Error while sending POST request to create application: %s", ex.getMessage()), ex);
 			}
 		}
 		

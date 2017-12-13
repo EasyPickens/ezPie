@@ -27,7 +27,9 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DateUtilities;
+import com.fanniemae.ezpie.common.ExceptionUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.connectors.DataConnector;
@@ -87,7 +89,7 @@ public class DataEngine {
 
 	public void setStagingPath(String path) {
 		if (FileUtilities.isInvalidDirectory(path))
-			throw new RuntimeException(String.format("Staging directory %s does not exist.", path));
+			throw new PieException(String.format("Staging directory %s does not exist.", path));
 
 		_stagingPath = path.endsWith(File.separator) ? path : path + File.separator;
 	}
@@ -182,6 +184,7 @@ public class DataEngine {
 					try {
 						FileUtilities.deleteFile(tempFiles.get(i));
 					} catch (Exception ex) {
+						ExceptionUtilities.goSilent(ex);
 						_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Cleanup", String.format("Could not delete temporary file. Reason: %s", ex.getMessage()));
 					}
 				}
@@ -198,7 +201,7 @@ public class DataEngine {
 		String connectorType = _dataSource.getAttribute("Type").toLowerCase();
 		switch (connectorType) {
 		case "":
-			throw new RuntimeException("DataSource Type attribute not defined.");
+			throw new PieException("DataSource Type attribute not defined.");
 		case "sql":
 			return new SqlConnector(_session, _dataSource, false);
 		case "directory":
@@ -212,7 +215,7 @@ public class DataEngine {
 		case "excel":
 			return new ExcelConnector(_session, _dataSource, false);
 		default:
-			throw new RuntimeException(String.format("Requested DataSource Type=%s not currently supported.", connectorType));
+			throw new PieException(String.format("Requested DataSource Type=%s not currently supported.", connectorType));
 		}
 	}
 
@@ -239,6 +242,7 @@ public class DataEngine {
 			expired = expires.before(current);
 			dr.close();
 		} catch (Exception ex) {
+			ExceptionUtilities.goSilent(ex);
 			return null;
 		}
 		if (expired)

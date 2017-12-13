@@ -20,6 +20,7 @@ import org.w3c.dom.NodeList;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DateUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.ProcessActions;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
@@ -76,7 +77,7 @@ public class DataLoop extends Action {
 			// _session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
 			// _session.addLogMessage("", "Completed", String.format("Data saved to %s", _outputFilename));
 		} catch (Exception e) {
-			RuntimeException ex = new RuntimeException(String.format("Error while looping through the data (row %,d)", rowNumber), e);
+			RuntimeException ex = new PieException(String.format("Error while looping through the data (row %,d)", rowNumber), e);
 			throw ex;
 		}
 		return null;

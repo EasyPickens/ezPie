@@ -25,6 +25,7 @@ import org.w3c.dom.Element;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.DataWriter;
@@ -72,7 +73,7 @@ public class DirectoryConnector extends DataConnector {
 
 		_path = _session.requiredAttribute(dataSource, "Path");
 		if (FileUtilities.isInvalidDirectory(_path)) {
-			throw new RuntimeException(String.format("Directory (%s) not found.", _path));
+			throw new PieException(String.format("Directory (%s) not found.", _path));
 		}
 
 		_doFullScan = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "FullScan", "False"));
@@ -169,7 +170,7 @@ public class DirectoryConnector extends DataConnector {
 			dw.close();
 			_dataStream = dw.getDataStream();
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while trying to scan directory %s.", _path), ex);
+			throw new PieException(String.format("Error while trying to scan directory %s.", _path), ex);
 		}
 	}
 

@@ -23,6 +23,7 @@ import org.w3c.dom.Element;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -70,10 +71,10 @@ public class GetSourceCode extends RunCommand {
 			int directoryIndex = ArrayUtilities.indexOf(columnNames, directoryColumn);
 
 			if (locationTypeIndex == -1) {
-				throw new RuntimeException(String.format("DataSetName %s does not contain a column named %s", datasetName, locationTypeColumn));
+				throw new PieException(String.format("DataSetName %s does not contain a column named %s", datasetName, locationTypeColumn));
 			}
 			if (locationIndex == -1) {
-				throw new RuntimeException(String.format("DataSetName %s does not contain a column named %s", datasetName, locationColumn));
+				throw new PieException(String.format("DataSetName %s does not contain a column named %s", datasetName, locationColumn));
 			}
 
 			_usedDirectories = new ArrayList<String>();
@@ -112,7 +113,7 @@ public class GetSourceCode extends RunCommand {
 					unzipFiles.execute(_dataTokens);
 					break;
 				default:
-					throw new RuntimeException(String.format("Requested code location type (%s) not currently supported.", codeLocationType));
+					throw new PieException(String.format("Requested code location type (%s) not currently supported.", codeLocationType));
 				}
 			}
 			dr.close();
@@ -187,7 +188,7 @@ public class GetSourceCode extends RunCommand {
 
 	protected int convertLocationType(String codeUrl, Object codeLocationType) {
 		if (codeLocationType == null) {
-			throw new RuntimeException(String.format("Missing code location type for %s", codeUrl));
+			throw new PieException(String.format("Missing code location type for %s", codeUrl));
 		} else if (codeLocationType.getClass().getName().indexOf("String") > -1) {
 			String locationType = (String) codeLocationType;
 			switch (locationType.toLowerCase()) {
@@ -200,7 +201,7 @@ public class GetSourceCode extends RunCommand {
 			case "zip":
 				return 4;
 			default:
-				throw new RuntimeException(String.format("Requested code location type (%s) not currently supported.", locationType));
+				throw new PieException(String.format("Requested code location type (%s) not currently supported.", locationType));
 			}
 		}
 		return (int) codeLocationType;

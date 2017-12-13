@@ -64,7 +64,7 @@ public class DataWriter extends DataFormat {
 	protected int _columnCount = 0;
 	protected Map<String, String[]> _globalValues = new HashMap<>();
 	protected Map<String, List<String[]>> _columProfiles = new HashMap<>();
-	
+
 	protected String[][] _schema;
 
 	public DataWriter(String filename) throws IOException {
@@ -90,7 +90,7 @@ public class DataWriter extends DataFormat {
 
 		if (isDynamicSqlBuffer) {
 			_indexInterval = 500L; // Used by index to determine how often to add
-								// entry.
+									// entry.
 			_nextBreak = 500L; // Next row count to add an index entry.
 		}
 
@@ -139,7 +139,7 @@ public class DataWriter extends DataFormat {
 		int columnCount = columnNamesAndTypes.length;
 		_dataRow = new DataRow(columnCount);
 		_schema = new String[columnCount][2];
-		
+
 		for (int i = 0; i < columnCount; i++) {
 			defineDataColumn(i, columnNamesAndTypes[i][0], columnNamesAndTypes[i][1]);
 			_schema[i] = columnNamesAndTypes[i];
@@ -158,8 +158,8 @@ public class DataWriter extends DataFormat {
 	public void writeDataRow(Object[] data) throws IOException {
 		if (_currentRowNumber == _nextBreak) {
 			IndexEntry ie = new IndexEntry();
-			ie.RowNumber = _currentRowNumber;
-			ie.OffSet = _bos.getPosition();
+			ie.setRowNumber(_currentRowNumber);
+			ie.setOffSet(_bos.getPosition());
 			_indexBlock.add(ie);
 			_nextBreak += _indexInterval;
 		}
@@ -184,7 +184,7 @@ public class DataWriter extends DataFormat {
 		if (_bos.IsFilestream()) {
 			return new DataStream(_filename, _HeaderInformation, _schema);
 		} else {
-			return new DataStream(_bos.getBuffer(),_HeaderInformation, _schema);
+			return new DataStream(_bos.getBuffer(), _HeaderInformation, _schema);
 		}
 	}
 
@@ -254,8 +254,8 @@ public class DataWriter extends DataFormat {
 		// Write the index
 		_indexStart = _bos.getPosition();
 		for (IndexEntry indexEntry : _indexBlock) {
-			long lRowNum = indexEntry.RowNumber;
-			long lOffSet = indexEntry.OffSet;
+			long lRowNum = indexEntry.getRowNumber();
+			long lOffSet = indexEntry.getOffSet();
 			_bos.writeLong(lRowNum);
 			_bos.writeLong(lOffSet);
 		}

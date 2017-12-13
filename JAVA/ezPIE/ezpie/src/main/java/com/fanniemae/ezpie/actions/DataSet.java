@@ -27,6 +27,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.DataEngine;
@@ -61,7 +62,7 @@ public class DataSet extends Action {
 
 		int length = nl.getLength();
 		if ((length == 0) && (loopNode == null)) {
-			throw new RuntimeException("Each DataSet element requires at least one DataSource child element.");
+			throw new PieException("Each DataSet element requires at least one DataSource child element.");
 		}
 
 		// pull all the DataSource elements
@@ -157,7 +158,7 @@ public class DataSet extends Action {
 					dc.close();
 					_session.addLogMessage("", String.format("DataSource #%d", streamNumber + 1), String.format("%,d data rows added", rowCount));
 				} catch (Exception e) {
-					throw new RuntimeException("Error while writing the combined data file. ERROR: " + e.getMessage(), e);
+					throw new PieException("Error while writing the combined data file. ERROR: " + e.getMessage(), e);
 				}
 
 			}
@@ -177,7 +178,7 @@ public class DataSet extends Action {
 		} catch (RuntimeException ex) {
 			throw ex;
 		} catch (IOException e) {
-			throw new RuntimeException("Error while writing the combined data file. " + e.getMessage(), e);
+			throw new PieException("Error while writing the combined data file. " + e.getMessage(), e);
 		}
 	}
 
@@ -227,7 +228,7 @@ public class DataSet extends Action {
 			// _session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
 			// _session.addLogMessage("", "Completed", String.format("Data saved to %s", _outputFilename));
 		} catch (Exception e) {
-			RuntimeException ex = new RuntimeException(String.format("Error while looping through the data (row %,d)", rowNumber), e);
+			RuntimeException ex = new PieException(String.format("Error while looping through the data (row %,d)", rowNumber), e);
 			throw ex;
 		}
 	}

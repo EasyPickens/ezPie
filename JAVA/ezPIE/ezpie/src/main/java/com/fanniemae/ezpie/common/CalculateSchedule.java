@@ -117,7 +117,7 @@ public class CalculateSchedule {
 			monthlySchedule(schedule);
 			break;
 		default:
-			throw new RuntimeException("Missing required Type attribute.");
+			throw new PieException("Missing required Type attribute.");
 		}
 	}
 

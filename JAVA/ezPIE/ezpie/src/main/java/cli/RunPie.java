@@ -14,11 +14,16 @@ package cli;
 /**
  * 
  * @author Tara Tritt
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2016-06-08
  * 
  */
 
 public class RunPie {
+	
+	private RunPie() {
+		
+	}
 	
 	public static void main(String[] args){
 		new CLI(args).parse();

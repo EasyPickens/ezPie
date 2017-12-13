@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -66,16 +67,16 @@ public class VersionFile extends Action {
 				prop.store(output, null);
 				output.close();
 			} catch (IOException ex) {
-				throw new RuntimeException(String.format("Error while writing %s the version file. %s",_filename,ex.getMessage()), ex);
+				throw new PieException(String.format("Error while writing %s the version file. %s",_filename,ex.getMessage()), ex);
 			}
 		} else {
 			if (FileUtilities.isInvalidFile(_filename)) {
-				throw new RuntimeException(String.format("File %s was not found.", _filename));
+				throw new PieException(String.format("File %s was not found.", _filename));
 			}
 			try (FileInputStream input = new FileInputStream(_filename)) {
 				prop.load(input);
 			} catch (IOException ex) {
-				throw new RuntimeException(String.format("Error while trying to read %s the version file. %s", _filename, ex.getMessage()), ex);
+				throw new PieException(String.format("Error while trying to read %s the version file. %s", _filename, ex.getMessage()), ex);
 			}
 			_session.addToken("Local", _name, prop.getProperty("Version", ""));
 		}

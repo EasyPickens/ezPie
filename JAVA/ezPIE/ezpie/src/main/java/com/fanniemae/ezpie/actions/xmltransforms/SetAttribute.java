@@ -18,6 +18,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
@@ -43,7 +44,7 @@ public class SetAttribute extends XmlTransform {
 		NodeList nl = XmlUtilities.selectNodes(xmlDocument, _xPath);
 		int length = nl.getLength();
 		if (_required && (length == 0)) {
-			throw new RuntimeException(String.format("No matching nodes found for the XPath %s", _xPath));
+			throw new PieException(String.format("No matching nodes found for the XPath %s", _xPath));
 		} else if (!_required && (length == 0)) {
 			return xmlDocument;
 		}

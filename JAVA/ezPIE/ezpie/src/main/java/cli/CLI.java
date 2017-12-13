@@ -53,8 +53,9 @@ public class CLI {
 		try {
 			cmd = parser.parse(_options, _args);
 
-			if (cmd.hasOption("h"))
+			if (cmd.hasOption("h")) {
 				help();
+			}
 
 			if (cmd.hasOption("s")) {
 				this._settings = cmd.getOptionValue("s");
@@ -78,9 +79,9 @@ public class CLI {
 	}
 
 	protected void runJobManager(CommandLine cmd) {
-		// String logFilename = null;
+		// String logFilename = null
 		try {
-			// System.out.println("Initializing PIE JobManager");
+			// System.out.println("Initializing PIE JobManager")
 			List<String> args = cmd.getArgList();
 			JobManager jobManager = new JobManager(_settings, _job, args);
 
@@ -88,11 +89,11 @@ public class CLI {
 				String[] keyValuePair = args.get(i).split("=");
 				jobManager.getSession().addToken("Local", keyValuePair[0], keyValuePair[1]);
 			}
-			// logFilename = jobManager.getLogFilename();
-			// viewlog(logFilename);
-			// System.out.println("Running job definition " + _job);
+			// logFilename = jobManager.getLogFilename()
+			// viewlog(logFilename)
+			// System.out.println("Running job definition " + _job)
 			jobManager.runJob();
-			// System.out.println("Job definition processing completed.");
+			// System.out.println("Job definition processing completed.")
 			System.exit(0);
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);

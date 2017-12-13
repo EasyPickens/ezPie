@@ -17,6 +17,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -47,7 +48,7 @@ public class Delete extends FileSystemAction {
 			sourceFile.delete();
 			_filesProcessed++;
 		} catch (Exception e) {
-			RuntimeException ex = new RuntimeException(String.format("Error while trying to delete %s. Message is %s", source, e.getMessage()), e);
+			RuntimeException ex = new PieException(String.format("Error while trying to delete %s. Message is %s", source, e.getMessage()), e);
 			throw ex;
 		}
 	}
@@ -60,7 +61,7 @@ public class Delete extends FileSystemAction {
 				File dir = new File(source);
 				dir.delete();
 			} catch (Exception e) {
-				RuntimeException ex = new RuntimeException(String.format("Could not remove empty directory (%s) during move operation. %s", source, e.getMessage()), e);
+				RuntimeException ex = new PieException(String.format("Could not remove empty directory (%s) during move operation. %s", source, e.getMessage()), e);
 				throw ex;
 			}
 		}

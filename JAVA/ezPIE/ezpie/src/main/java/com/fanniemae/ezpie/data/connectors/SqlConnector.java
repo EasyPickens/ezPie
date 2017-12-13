@@ -26,7 +26,9 @@ import org.w3c.dom.NodeList;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataUtilities;
+import com.fanniemae.ezpie.common.ExceptionUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.DataProvider;
@@ -68,7 +70,7 @@ public class SqlConnector extends DataConnector {
 				if (FileUtilities.isValidFile(resourceDir)) {
 					filename = resourceDir;
 				} else {
-					throw new RuntimeException(String.format("SQL command file %s was not found.", filename));
+					throw new PieException(String.format("SQL command file %s was not found.", filename));
 				}
 			}
 			_sqlCommand = _session.resolveTokens(FileUtilities.loadFile(filename));
@@ -201,6 +203,7 @@ public class SqlConnector extends DataConnector {
 		try {
 			return !_rs.next();
 		} catch (SQLException e) {
+			ExceptionUtilities.goSilent(e);
 			return true;
 		}
 	}
@@ -304,6 +307,7 @@ public class SqlConnector extends DataConnector {
 			}
 		} catch (SQLException e) {
 			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "SQL", "Error while trying to close result set. " + e.getMessage());
+			ExceptionUtilities.goSilent(e);
 		}
 
 		try {
@@ -313,6 +317,7 @@ public class SqlConnector extends DataConnector {
 			}
 		} catch (SQLException e) {
 			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "SQL", "Error while trying to close prepared statement. " + e.getMessage());
+			ExceptionUtilities.goSilent(e);
 		}
 
 		try {
@@ -322,6 +327,7 @@ public class SqlConnector extends DataConnector {
 			}
 		} catch (SQLException e) {
 			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "SQL", "Error while trying to close database connection. " + e.getMessage());
+			ExceptionUtilities.goSilent(e);
 		}
 	}
 

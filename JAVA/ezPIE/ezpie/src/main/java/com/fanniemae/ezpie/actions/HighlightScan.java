@@ -27,7 +27,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.ExceptionUtilities;
 import com.fanniemae.ezpie.common.Keyboard;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
 /**
@@ -88,7 +90,7 @@ public class HighlightScan extends Action {
 	protected void findCastExtractionFiles(Node nodeStep) {
 		_dbDeliveryToolPath = _session.getAttribute(nodeStep, "DBDeliveryToolPath");
 		if (_dbDeliveryToolPath == null) {
-			throw new RuntimeException("HLAgentPath not found in definition");
+			throw new PieException("HLAgentPath not found in definition");
 		}
 		_session.addLogMessage("", "HighlightScan", "Looking for .castextraction files.");
 		checkForCASTDBFiles();
@@ -97,13 +99,13 @@ public class HighlightScan extends Action {
 	protected void runHighlightAgent(Node nodeStep) {
 		_hlAgentPath = _session.getAttribute(nodeStep, "HLAgentPath");
 		if (_hlAgentPath == null) {
-			throw new RuntimeException("HLAgentPath not found in definition");
+			throw new PieException("HLAgentPath not found in definition");
 		}
 		_session.addLogMessage("", "HighlightScan", "Running Highlight Agent at " + _hlAgentPath);
 		try {
 			this._robot = new Robot();
 		} catch (AWTException e) {
-			throw new RuntimeException("Error while trying to start Highlight scan.", e);
+			throw new PieException("Error while trying to start Highlight scan.", e);
 		}
 		startAgent();
 		discoverFiles();
@@ -144,9 +146,9 @@ public class HighlightScan extends Action {
 			process = pb.start();
 			robot = new Robot();
 		} catch (IOException | AWTException e) {
-			throw new RuntimeException("Could not start Oracle extract.", e);
+			throw new PieException("Could not start Oracle extract.", e);
 		}
-		
+
 		sleep(15000);
 		// navigating to input text
 		for (int i = 0; i < 3; i++) {
@@ -199,7 +201,7 @@ public class HighlightScan extends Action {
 		try {
 			this._process = new ProcessBuilder(_hlAgentPath).start();
 		} catch (IOException e) {
-			throw new RuntimeException("Error while trying to start Highlight Agent.", e);
+			throw new PieException("Error while trying to start Highlight Agent.", e);
 
 		}
 	}
@@ -379,8 +381,7 @@ public class HighlightScan extends Action {
 		try {
 			Thread.sleep(milliseconds);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			ExceptionUtilities.goSilent(e);
 		}
 	}
 

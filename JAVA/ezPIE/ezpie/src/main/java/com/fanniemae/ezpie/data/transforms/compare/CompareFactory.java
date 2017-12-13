@@ -11,6 +11,7 @@
 
 package com.fanniemae.ezpie.data.transforms.compare;
 
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 /**
@@ -51,7 +52,7 @@ public class CompareFactory {
 		case UUIDData:
 			return new CompareUUID(compareValue);
 		default:
-			throw new RuntimeException(String.format("No compare class defined for data type %s.", dataType.name()));
+			throw new PieException(String.format("No compare class defined for data type %s.", dataType.name()));
 		}
 	}
 	

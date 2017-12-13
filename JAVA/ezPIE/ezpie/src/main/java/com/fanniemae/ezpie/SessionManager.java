@@ -26,8 +26,10 @@ import com.fanniemae.ezpie.common.CryptoUtilities;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DataTable;
 import com.fanniemae.ezpie.common.Encryption;
+import com.fanniemae.ezpie.common.ExceptionUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.Miscellaneous;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
@@ -39,6 +41,8 @@ import com.fanniemae.ezpie.common.XmlUtilities;
  */
 
 public class SessionManager {
+	private static final String TOKEN_PREFIX_ATTRIBUTE = "TokenPrefix";
+	private static final String TOKEN_SUFFIX_ATTRIBUTE = "TokenSuffix";
 	private static final String ENCRYPTED_PREFIX = "{ENCRYPT1}";
 	private static final String SECURE_SUFFIX = "Secure";
 	private static final String HIDE_SUFFIX = "Hide";
@@ -70,8 +74,6 @@ public class SessionManager {
 	protected LogManager _logger;
 	protected TokenManager _tokenizer;
 
-	// protected HashMap<String, String> _dataTokens = null;
-
 	protected Boolean _dataCachingEnabled = false;
 	protected Boolean _updateScanManager = false;
 	protected Boolean _lastAttributeSecure = false;
@@ -84,30 +86,32 @@ public class SessionManager {
 
 	public SessionManager(String settingsFilename, String jobFilename, List<String> args) {
 		if (StringUtilities.isNullOrEmpty(settingsFilename)) {
-			throw new RuntimeException("Settings file is not defined.  Please provide the full path to the _settings.xml file.");
+			throw new PieException("Settings file is not defined.  Please provide the full path to the _settings.xml file.");
 		}
 
 		if (!FileUtilities.isValidFile(settingsFilename)) {
 			if (FileUtilities.isValidFile(Miscellaneous.getApplicationRoot() + settingsFilename)) {
 				settingsFilename = Miscellaneous.getApplicationRoot() + settingsFilename;
 			} else {
-				throw new RuntimeException(String.format("Settings file not found in %s", settingsFilename));
+				throw new PieException(String.format("Settings file not found in %s", settingsFilename));
 			}
 		}
 		DefinitionManager dm = new DefinitionManager();
 		Document xSettings = dm.loadFile(settingsFilename);
-		if (xSettings == null)
-			throw new RuntimeException("No settings information found.");
+		if (xSettings == null) {
+			throw new PieException("No settings information found.");
+		}
 
 		_settingsDoc = xSettings;
 		_settings = xSettings.getDocumentElement();
 		Node nodeConfig = XmlUtilities.selectSingleNode(_settings, "Configuration");
-		if (nodeConfig == null)
-			throw new RuntimeException("Settings file is missing the Configuration element.  Please update the settings file.");
+		if (nodeConfig == null) {
+			throw new PieException("Settings file is missing the Configuration element.  Please update the settings file.");
+		}
 
 		Element eleConfig = (Element) nodeConfig;
 
-		if ((args != null) && (args.size() > 0)) {
+		if ((args != null) && (!args.isEmpty())) {
 			for (int i = 0; i < args.size(); i++) {
 				String[] keyValuePair = args.get(i).split("=");
 				if ("DefinitionFile".equals(keyValuePair[0])) {
@@ -122,11 +126,11 @@ public class SessionManager {
 		_appPath = FileUtilities.formatPath(eleConfig.getAttribute("ApplicationPath"), System.getProperty("user.dir"), "ApplicationPath");
 		_stagingPath = FileUtilities.formatPath(eleConfig.getAttribute("StagingPath"), String.format("%1$s_Staging", _appPath), "StagingPath");
 		_logPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _appPath), "LogPath");
-		_tokenPrefix = eleConfig.hasAttribute("TokenPrefix") ? eleConfig.getAttribute("TokenPrefix") : _tokenPrefix;
-		_tokenSuffix = eleConfig.hasAttribute("TokenSuffix") ? eleConfig.getAttribute("TokenSuffix") : _tokenSuffix;
+		_tokenPrefix = eleConfig.hasAttribute(TOKEN_PREFIX_ATTRIBUTE) ? eleConfig.getAttribute(TOKEN_PREFIX_ATTRIBUTE) : _tokenPrefix;
+		_tokenSuffix = eleConfig.hasAttribute(TOKEN_SUFFIX_ATTRIBUTE) ? eleConfig.getAttribute(TOKEN_SUFFIX_ATTRIBUTE) : _tokenSuffix;
 		String logFormat = eleConfig.getAttribute("LogFormat");
 		String logLevel = eleConfig.getAttribute("LogLevel");
-		String logFileExtension = ("Text".equalsIgnoreCase(logFormat)) ? "txt" : "html";
+		String logFileExtension = "Text".equalsIgnoreCase(logFormat) ? "txt" : "html";
 		_definitionPath = FileUtilities.formatPath(eleConfig.getAttribute("DefinitionPath"), String.format("%1$s_Definitions", _appPath), "DefinitionPath");
 		_templatePath = FileUtilities.formatPath(eleConfig.getAttribute("TemplatePath"), String.format("%1$s_Templates", _appPath), "TemplatePath");
 		if (!randomLogFilename && StringUtilities.isNotNullOrEmpty(_jobRescanFilename)) {
@@ -153,10 +157,10 @@ public class SessionManager {
 
 		if (FileUtilities.isInvalidFile(jobFilename)) {
 			String sAdjustedDefinitionFilename = _definitionPath + jobFilename;
-			if (FileUtilities.isValidFile(sAdjustedDefinitionFilename))
+			if (FileUtilities.isValidFile(sAdjustedDefinitionFilename)) {
 				jobFilename = sAdjustedDefinitionFilename;
-			else {
-				RuntimeException exRun = new RuntimeException(String.format("Definition file %s not found.", jobFilename));
+			} else {
+				RuntimeException exRun = new PieException(String.format("Definition file %s not found.", jobFilename));
 				_logger.addErrorMessage(exRun);
 				throw exRun;
 			}
@@ -166,27 +170,26 @@ public class SessionManager {
 		try {
 			_logger.addMessage("Setup Token Dictionary", "Load Tokens", "Read values from settings file.");
 			_tokenizer = new TokenManager(_settings, _logger, _encryptionKey, _tokenPrefix, _tokenSuffix);
-			// _tokenPrefix = _tokenizer.getTokenPrefix();
-			// _tokenSuffix = _tokenizer.getTokenSuffix();
 
 			_logger.addFileDetails(_jobFilename, "Definition Details");
 			dm = new DefinitionManager(this, _encryptionKey);
 			Document xmlJobDefinition = dm.loadFile(_jobFilename);
-			if (xmlJobDefinition == null)
-				throw new RuntimeException("No settings information found.");
+			if (xmlJobDefinition == null) {
+				throw new PieException("No settings information found.");
+			}
 
 			_job = xmlJobDefinition.getDocumentElement();
 			String finalJobDefinition = _logger.logExternalFiles() ? FileUtilities.writeRandomFile(_logPath, ".txt", XmlUtilities.xmlDocumentToString(xmlJobDefinition)) : "";
 			_logger.addMessage("", "Prepared Definition", "View Definition", "file://" + finalJobDefinition);
 			_logger.addMessage("", "Adjusted Size", String.format("%,d bytes", XmlUtilities.getOuterXml(_job).length()));
 			// Check for definition specific token prefix and suffix configuration
-			if (_job.hasAttribute("TokenPrefix")) {
-				_tokenPrefix = _job.getAttribute("TokenPrefix");
+			if (_job.hasAttribute(TOKEN_PREFIX_ATTRIBUTE)) {
+				_tokenPrefix = _job.getAttribute(TOKEN_PREFIX_ATTRIBUTE);
 				_tokenizer.setTokenPrefix(_tokenPrefix);
 				_logger.addMessage("", "Token Prefix", String.format("This definition changed the token prefix to %s", _tokenPrefix));
 			}
-			if (_job.hasAttribute("TokenSuffix")) {
-				_tokenSuffix = _job.getAttribute("TokenSuffix");
+			if (_job.hasAttribute(TOKEN_SUFFIX_ATTRIBUTE)) {
+				_tokenSuffix = _job.getAttribute(TOKEN_SUFFIX_ATTRIBUTE);
 				_tokenizer.setTokenSuffix(_tokenSuffix);
 				_logger.addMessage("", "Token Suffix", String.format("This definition changed the token suffix to %s", _tokenSuffix));
 			}
@@ -202,6 +205,7 @@ public class SessionManager {
 			_connScanManager = getConnection("JavaScanManager");
 			_updateScanManager = StringUtilities.toBoolean(getTokenValue("Configuration", "UpdateScanManager"), false);
 		} catch (Exception ex) {
+			ExceptionUtilities.goSilent(ex);
 		}
 	}
 
@@ -270,8 +274,9 @@ public class SessionManager {
 	}
 
 	public String getAttribute(Element ele, String name, String defaultValue) {
-		if (ele == null)
+		if (ele == null) {
 			return "";
+		}
 
 		_lastAttributeSecure = false;
 		if (!ele.hasAttribute(name)) {
@@ -291,16 +296,18 @@ public class SessionManager {
 		if (_lastAttributeSecure && (value != null) && value.startsWith(ENCRYPTED_PREFIX)) {
 			// Need to decrypt this value if it is encrypted.
 			if (_encryptionKey == null) {
-				throw new RuntimeException("No encryption key defined in settings file.");
+				throw new PieException("No encryption key defined in settings file.");
 			}
 			value = Encryption.decryptToString(value.substring(10), _encryptionKey);
 		}
 
-		if (StringUtilities.isNullOrEmpty(value))
+		if (StringUtilities.isNullOrEmpty(value)) {
 			return defaultValue;
+		}
 
-		if ((value.indexOf(_tokenPrefix) == -1) || (value.indexOf(_tokenSuffix) == -1))
+		if ((value.indexOf(_tokenPrefix) == -1) || (value.indexOf(_tokenSuffix) == -1)) {
 			return value;
+		}
 
 		int tokenSplit = 0;
 		int tokenEnd = 0;
@@ -309,10 +316,12 @@ public class SessionManager {
 		for (int i = 0; i < aTokens.length; i++) {
 			tokenSplit = aTokens[i].indexOf('.');
 			tokenEnd = aTokens[i].indexOf(_tokenSuffix);
-			if ((tokenSplit == -1) || (tokenEnd == -1))
+			if ((tokenSplit == -1) || (tokenEnd == -1)) {
 				continue;
-			if (tokenSplit > tokenEnd)
+			}
+			if (tokenSplit > tokenEnd) {
 				continue;
+			}
 
 			String fullToken = _tokenPrefix + aTokens[i].substring(0, tokenEnd + 1);
 			String tokenGroup = aTokens[i].substring(0, tokenSplit);
@@ -323,7 +332,7 @@ public class SessionManager {
 			if (!"DataSet".equals(tokenGroup)) {
 				continue;
 			} else if (!_dataSets.containsKey(tokenKey)) {
-				throw new RuntimeException(String.format("Could not find any DataSet object named %s", tokenKey));
+				throw new PieException(String.format("Could not find any DataSet object named %s", tokenKey));
 			} else {
 				String dataFilename = _dataSets.get(tokenKey).getFilename();
 				if (StringUtilities.isNullOrEmpty(dataFilename)) {
@@ -357,12 +366,13 @@ public class SessionManager {
 	}
 
 	public Element getConnection(String connectionName) {
-		if (StringUtilities.isNullOrEmpty(connectionName))
+		if (StringUtilities.isNullOrEmpty(connectionName)) {
 			return null;
+		}
 
 		Node nodeConnection = XmlUtilities.selectSingleNode(_settings, String.format("..//Connections/Connection[@Name='%s']", connectionName));
 		if (nodeConnection == null) {
-			throw new RuntimeException(String.format("Requested connection %s was not found in the settings file.", connectionName));
+			throw new PieException(String.format("Requested connection %s was not found in the settings file.", connectionName));
 		}
 		return (Element) nodeConnection;
 	}
@@ -374,7 +384,7 @@ public class SessionManager {
 	public String getRequiredTokenValue(String tokenType, String tokenKey) {
 		String value = getTokenValue(tokenType, tokenKey);
 		if (StringUtilities.isNullOrEmpty(value)) {
-			throw new RuntimeException(String.format("No value is defined for the %s%s.%s%s token.", _tokenPrefix, tokenType, tokenKey, _tokenSuffix));
+			throw new PieException(String.format("No value is defined for the %s%s.%s%s token.", _tokenPrefix, tokenType, tokenKey, _tokenSuffix));
 		}
 		return value;
 	}
@@ -417,8 +427,9 @@ public class SessionManager {
 
 	public List<String> getDataStreamList() {
 		List<String> dataSets = new ArrayList<String>();
-		if ((_dataSets == null) || (_dataSets.size() == 0))
+		if ((_dataSets == null) || (_dataSets.size() == 0)) {
 			return dataSets;
+		}
 
 		for (Map.Entry<String, DataStream> kvp : _dataSets.entrySet()) {
 			dataSets.add(kvp.getKey());
@@ -431,12 +442,13 @@ public class SessionManager {
 	}
 
 	public DataStream getDataStream(String name, boolean silent) {
-		if (StringUtilities.isNullOrEmpty(name))
-			throw new RuntimeException("Missing required DataSetName value.");
-		// addLogMessage("", "DataSetName", name);
+		if (StringUtilities.isNullOrEmpty(name)) {
+			throw new PieException("Missing required DataSetName value.");
+		}
 
-		if (!_dataSets.containsKey(name))
-			throw new RuntimeException(String.format("DataSetName %s was not found in the list of available data sets.", name));
+		if (!_dataSets.containsKey(name)) {
+			throw new PieException(String.format("DataSetName %s was not found in the list of available data sets.", name));
+		}
 
 		DataStream dataStream = _dataSets.get(name);
 		if (!silent) {
@@ -509,7 +521,7 @@ public class SessionManager {
 	public String requiredAttribute(Element element, String attributeName, String errorMessage) {
 		String value = getAttribute(element, attributeName);
 		if (StringUtilities.isNullOrEmpty(value)) {
-			throw new RuntimeException(errorMessage);
+			throw new PieException(errorMessage);
 		} else if (_lastAttributeSecure || "UserID".equals(attributeName) || "Password".equals(attributeName)) {
 			addLogMessage("", attributeName, getHiddenMessage());
 		} else {
@@ -531,7 +543,7 @@ public class SessionManager {
 			File fi = new File(SessionManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 			return fi.getAbsolutePath();
 		} catch (URISyntaxException e) {
-			throw new RuntimeException("Could not read the jar location.", e);
+			throw new PieException("Could not read the jar location.", e);
 		}
 	}
 }

@@ -22,7 +22,9 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.Encryption;
+import com.fanniemae.ezpie.common.ExceptionUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
 /**
@@ -66,7 +68,7 @@ public class DefinitionManager {
 		if (nlSecuredAttributes != null) {
 			int length = nlSecuredAttributes.getLength();
 			if ((length > 0) && (_encryptionKey == null)) {
-				throw new RuntimeException(String.format("File %s contains secured attribute values, missing encryption key in settings file.", _currentDefinitionFilename));
+				throw new PieException(String.format("File %s contains secured attribute values, missing encryption key in settings file.", _currentDefinitionFilename));
 			}
 			for (int i = 0; i < length; i++) {
 				String name = nlSecuredAttributes.item(i).getNodeName();
@@ -125,7 +127,7 @@ public class DefinitionManager {
 						definitionFilename = definitionName;
 					}
 					if (elementID.isEmpty()) {
-						throw new RuntimeException("The ImportSharedElement is missing a value in the required SharedElementID");
+						throw new PieException("The ImportSharedElement is missing a value in the required SharedElementID");
 					}
 					if (!definitionFilename.toLowerCase().endsWith(".xml")) {
 						definitionFilename += ".xml";
@@ -137,12 +139,12 @@ public class DefinitionManager {
 						definitionFilename = definitionPath + definitionFilename;
 					}
 					if (!exists(definitionFilename)) {
-						throw new RuntimeException(String.format("ImportSharedElement could not find the %s referenced definition", definitionName));
+						throw new PieException(String.format("ImportSharedElement could not find the %s referenced definition", definitionName));
 					}
 
 					String crumb = String.format("%s|%s", definitionFilename, elementID);
 					if (loopCrumbs.indexOf(crumb) > -1) {
-						throw new RuntimeException(String.format("Circular ImportSharedElement reference detected. SharedElementID %s in definition %s triggered the error.", elementID, definitionName));
+						throw new PieException(String.format("Circular ImportSharedElement reference detected. SharedElementID %s in definition %s triggered the error.", elementID, definitionName));
 					}
 					loopCrumbs.add(crumb);
 
@@ -151,7 +153,7 @@ public class DefinitionManager {
 					// Look for the shared element
 					Node sharedNode = XmlUtilities.selectSingleNode(innerDocument, String.format("//SharedElement[@ID='%s']", elementID));
 					if (sharedNode == null) {
-						throw new RuntimeException(String.format("Could not find a SharedElement with ID=%s referenced in %s", elementID, definitionName));
+						throw new PieException(String.format("Could not find a SharedElement with ID=%s referenced in %s", elementID, definitionName));
 					}
 					NodeList sharedSteps = XmlUtilities.selectNodes(sharedNode, "*");
 					int sharedStepsLength = sharedSteps.getLength();
@@ -164,7 +166,7 @@ public class DefinitionManager {
 						}
 					}
 				}
-				if (elementsToInsert.size() > 0) {
+				if (!elementsToInsert.isEmpty()) {
 					// Insert referenced elements
 					int insertsToDo = elementsToInsert.size();
 					for (int i = 0; i < insertsToDo; i++) {
@@ -187,6 +189,7 @@ public class DefinitionManager {
 		try {
 			XmlUtilities.saveXmlFile(_currentDefinitionFilename, doc);
 		} catch (Exception ex) {
+			ExceptionUtilities.goSilent(ex);
 			if (_session != null) {
 				File file = new File(_currentDefinitionFilename);
 				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Save File", String.format("Could not save the %s definition with secured attribute values.", file.getName()));

@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -57,7 +58,7 @@ public class VerifyJavaFiles extends Delete {
 				sourceFile.delete();
 			}
 		} catch (Exception e) {
-			RuntimeException ex = new RuntimeException(String.format("Error while trying to delete %s. Message is %s", source, e.getMessage()), e);
+			RuntimeException ex = new PieException(String.format("Error while trying to delete %s. Message is %s", source, e.getMessage()), e);
 			throw ex;
 		}
 	}
@@ -124,7 +125,7 @@ public class VerifyJavaFiles extends Delete {
 			}
 
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error while trying to verify %s JAVA file has uncommented code lines.", filename), e);
+			throw new PieException(String.format("Error while trying to verify %s JAVA file has uncommented code lines.", filename), e);
 		}
 
 		return new String(buffer);

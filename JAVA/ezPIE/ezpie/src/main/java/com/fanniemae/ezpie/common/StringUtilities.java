@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -94,6 +93,9 @@ public final class StringUtilities {
 
 	public static boolean isDate(String value) {
 		try {
+			if (value == null) {
+				return false;
+			}
 			DateUtils.parseDateStrictly(value, SUPPORTED_DATE_FORMATS);
 			return true;
 		} catch (ParseException ex) {
@@ -181,7 +183,7 @@ public final class StringUtilities {
 			return Integer.parseInt(value.trim());
 		} catch (NumberFormatException ex) {
 			if (isNotNullOrEmpty(errorMessage)) {
-				throw new RuntimeException(errorMessage);
+				throw new PieException(errorMessage);
 			}
 			return defaultValue;
 		}
@@ -235,6 +237,9 @@ public final class StringUtilities {
 
 	public static Date toDate(String value, Date defaultValue) {
 		try {
+			if (value == null) {
+				return defaultValue;
+			}
 			return DateUtils.parseDateStrictly(value, SUPPORTED_DATE_FORMATS);
 		} catch (ParseException ex) {
 			return defaultValue;
@@ -248,7 +253,8 @@ public final class StringUtilities {
 		try {
 			DateTimeFormatter fmt = DateTimeFormatter.ISO_DATE_TIME;
 			return LocalDateTime.parse(s, fmt);
-		} catch (DateTimeParseException ex) {
+		} catch (Exception ex) {
+			ExceptionUtilities.goSilent(ex);
 			return defaultValue;
 		}
 	}

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.data.connectors.DataConnector;
 import com.fanniemae.ezpie.data.connectors.SqlConnector;
@@ -64,7 +65,7 @@ public class ExecuteSql extends Action {
 			}
 			sqlConnection.close();
 		} catch (Exception ex) {
-			throw new RuntimeException("Error running ExecuteSql command. " + ex.getMessage(), ex);
+			throw new PieException("Error running ExecuteSql command. " + ex.getMessage(), ex);
 		}
 		_session.clearDataTokens();
 		return null;

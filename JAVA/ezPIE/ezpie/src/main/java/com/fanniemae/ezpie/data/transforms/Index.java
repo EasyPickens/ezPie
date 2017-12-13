@@ -23,6 +23,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.DataWriter;
@@ -71,7 +72,7 @@ public class Index extends DataTransform {
 		String indexDirectionList = _session.getAttribute(transform, "SortDirections");
 
 		if (StringUtilities.isNullOrEmpty(dataColumnList)) {
-			throw new RuntimeException(String.format("%s transform requires at least one column name in DataColumns.",transform.getNodeName()));
+			throw new PieException(String.format("%s transform requires at least one column name in DataColumns.",transform.getNodeName()));
 		}
 
 		String[] columnNames = dataColumnList.split(",");
@@ -82,7 +83,7 @@ public class Index extends DataTransform {
 
 	@Override
 	public Object[] processDataRow(Object[] dataRow) {
-		throw new RuntimeException(String.format("%s requires access to the entire data set.  It cannot be combined with other data transformations.",_transform.getNodeName()));
+		throw new PieException(String.format("%s requires access to the entire data set.  It cannot be combined with other data transformations.",_transform.getNodeName()));
 	}
 
 	@Override
@@ -120,7 +121,7 @@ public class Index extends DataTransform {
 			}
 			dr.close();
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _transformElementName), ex);
+			throw new PieException(String.format("Error while running %s data stream transformation.", _transformElementName), ex);
 		}
 
 		if (_indexDataList.size() > 0) {

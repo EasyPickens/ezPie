@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -40,7 +41,7 @@ public class LogManager {
 
 	protected enum LogFormat {
 		HTML, TEXT
-	};
+	}
 
 	protected LogLevel _logLevel = LogLevel.FULL_LOG;
 	protected LogFormat _logFormat = LogFormat.HTML;
@@ -65,9 +66,10 @@ public class LogManager {
 	protected static final String _textNewLine = _systemNewLine;
 	protected static final String _textNewLineTab = _systemNewLine + "\t\t\t\t";
 	protected static final String _textFooter = "";
-	protected static final String _textBasicLine = "%4$s - %1$s %2$s %3$s" + _textNewLine;
-	protected static final String _textLongTextLine = "%4$s - %1$s %2$s %3$s" + _textNewLine;
-	protected static final String _textExceptionRow = "%4$s - %1$s %2$s %3$s" + _textNewLine;
+	protected static final String TEXT_CORE_LOG_LINE = "%4$s - %1$s %2$s %3$s";
+	protected static final String _textBasicLine = TEXT_CORE_LOG_LINE + _textNewLine;
+	protected static final String _textLongTextLine = TEXT_CORE_LOG_LINE + _textNewLine;
+	protected static final String _textExceptionRow = TEXT_CORE_LOG_LINE + _textNewLine;
 
 	protected byte[] _footerByteArray;
 
@@ -92,7 +94,7 @@ public class LogManager {
 				_logLevel = LogLevel.ERROR_ONLY;
 				break;
 			default:
-				throw new RuntimeException(String.format("%s is not a recognized log level. Only Full, Full_Log_Only, and Error_Only are currently supported.", logLevel));
+				throw new PieException(String.format("%s is not a recognized log level. Only Full, Full_Log_Only, and Error_Only are currently supported.", logLevel));
 			}
 		}
 
@@ -120,8 +122,9 @@ public class LogManager {
 			return;
 		}
 
-		if (!FileUtilities.isValidFile(_logFilename))
+		if (!FileUtilities.isValidFile(_logFilename)) {
 			return;
+		}
 
 		File fi = new File(filename);
 		long lastModified = fi.lastModified();
@@ -131,13 +134,13 @@ public class LogManager {
 			raf.seek(raf.length() - _footerLength);
 			raf.write(String.format(_basicLine, logGroup, "File Name", fi.getName(), elapsedTime()).getBytes());
 			// Turning off the full path on log, could be security concern.
-			// raf.write(String.format(_basicLine, "", "Full Path", filename, elapsedTime()).getBytes());
+			// raf.write(String.format(_basicLine, "", "Full Path", filename, elapsedTime()).getBytes())
 			raf.write(String.format(_basicLine, groupString(""), "Last Modified Date", dtModified.toString(), elapsedTime()).getBytes());
 			raf.write(String.format(_basicLine, groupString(""), "Size", String.format("%,d bytes", fi.length()), elapsedTime()).getBytes());
 			raf.write(_footerByteArray);
 			raf.close();
 		} catch (IOException e) {
-			throw new RuntimeException("Error trying to add message to debug page.", e);
+			throw new PieException("Error trying to add message to debug page.", e);
 		}
 	}
 
@@ -170,11 +173,14 @@ public class LogManager {
 		}
 
 		String message = ex.getMessage();
-		if (StringUtilities.isNullOrEmpty(message))
+		if (StringUtilities.isNullOrEmpty(message)) {
 			message = "See stack trace for error details.";
+		}
 		updateLog(true, logGroup, inner + "Message", message);
-		if (!"java.lang.RuntimeException".equals(ex.getClass().getName()))
-			updateLog(true, "", inner + "Exception Type", ex.getClass().getName().toString());
+		String exceptionName = ex.getClass().getName();
+		if (!"java.lang.RuntimeException".equals(exceptionName) && !exceptionName.contains("PieException")) {
+			updateLog(true, "", inner + "Exception Type", exceptionName);
+		}
 
 		StringBuilder sbStack = new StringBuilder();
 		boolean addLinebreak = false;
@@ -187,13 +193,15 @@ public class LogManager {
 		}
 		updateLog(true, "", inner + "Details", sbStack.toString());
 		Throwable innerException = ex.getCause();
-		if (innerException != null)
+		if (innerException != null) {
 			addErrorMessage(innerException, true);
+		}
 	}
 
 	public String getNewLineTab() {
-		if (_logFormat == LogFormat.TEXT)
+		if (_logFormat == LogFormat.TEXT) {
 			return _newLineTab;
+		}
 
 		return _systemNewLine;
 	}
@@ -229,31 +237,27 @@ public class LogManager {
 			fos.write(_footerByteArray);
 			fos.close();
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error trying to create log file. %s", _logFilename), e);
+			throw new PieException(String.format("Error trying to create log file. %s", _logFilename), e);
 		}
 	}
 
 	protected String readTemplateFile(String filename) {
-		if (!FileUtilities.isValidFile(filename))
-			throw new RuntimeException(String.format("%s template file not found.", filename));
+		if (!FileUtilities.isValidFile(filename)) {
+			throw new PieException(String.format("%s template file not found.", filename));
+		}
 
 		try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
 			StringBuilder sb = new StringBuilder();
 			String line = br.readLine();
 			while (line != null) {
 				sb.append(line);
-				// sb.append("\n");
 				line = br.readLine();
 			}
 			return sb.toString();
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error while trying to read %s text file.", filename), e);
+			throw new PieException(String.format("Error while trying to read %s text file.", filename), e);
 		}
 	}
-
-	// protected double elapsedTime() {
-	// return (System.currentTimeMillis() - _startTime) / 1000.0;
-	// }
 
 	protected String elapsedTime() {
 		if (_logFormat == LogFormat.TEXT) {
@@ -273,10 +277,12 @@ public class LogManager {
 		}
 
 		// Skip blank description messages
-		if (description == null)
+		if (description == null) {
 			return;
-		if (!FileUtilities.isValidFile(_logFilename))
+		}
+		if (!FileUtilities.isValidFile(_logFilename)) {
 			initializeLog();
+		}
 
 		// Encode the description line and preserve any CRLFs.
 		if (isHTML) {
@@ -299,17 +305,18 @@ public class LogManager {
 
 		try (RandomAccessFile raf = new RandomAccessFile(_logFilename, "rw")) {
 			raf.seek(raf.length() - _footerLength);
-			if (isError)
+			if (isError) {
 				raf.write(String.format(_exceptionRow, groupString(logGroup), event, description, elapsedTime()).getBytes());
-			else if ((description != null) && (description.length() > 300))
+			} else if ((description != null) && (description.length() > 300)) {
 				raf.write(String.format(_longTextLine, groupString(logGroup), event, description, elapsedTime()).getBytes());
-			else
+			} else {
 				raf.write(String.format(_basicLine, groupString(logGroup), event, description, elapsedTime()).getBytes());
+			}
 
 			// raf.write("\n".getBytes());
 			raf.write(_footerByteArray);
 		} catch (IOException e) {
-			throw new RuntimeException("Error trying to add message to debug page.", e);
+			throw new PieException("Error trying to add message to debug page.", e);
 		}
 	}
 

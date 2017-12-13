@@ -23,6 +23,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -79,11 +80,11 @@ public class Copy extends FileSystemAction {
 			Files.copy(sourcePath, destinationPath, _copyOptions);
 			_filesProcessed++;
 		} catch (IOException e) {
-			RuntimeException ex = new RuntimeException(String.format("Error while trying to copy %s to %s. Message is: %s", source, destFilename, e.getMessage()), e);
+			RuntimeException ex = new PieException(String.format("Error while trying to copy %s to %s. Message is: %s", source, destFilename, e.getMessage()), e);
 			if (FileUtilities.isValidFile(destFilename)) {
 				File f = new File(destFilename);
 				if (!f.canWrite()) {
-					ex = new RuntimeException(String.format("Copied failed because existing destination file %s is marked as read-only.", destFilename));
+					ex = new PieException(String.format("Copied failed because existing destination file %s is marked as read-only.", destFilename));
 				}
 			}
 			throw ex;

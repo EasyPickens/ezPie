@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.fanniemae.opensource</groupId>
 	<artifactId>ezpie</artifactId>
-	<version>1.1.10</version>
+	<version>1.1.11</version>
 	<packaging>jar</packaging>
 
 	<name>ezpie</name>
@@ -37,16 +37,16 @@
 							<mainClass>cli/RunPie</mainClass>
 							<addClasspath>true</addClasspath>
 						</manifest>
-                <manifestEntries>
-                    <Build-Time>${maven.build.timestamp}</Build-Time>
-                    <Build-Host>${agent.name}</Build-Host>
-                    <Build-User>${user.name}</Build-User>
-                    <Build-Maven>Maven ${maven.version}</Build-Maven>
-                    <Build-Java>${java.version}</Build-Java>
-                    <Build-OS>${os.name}</Build-OS>
-                    <Build-Label>${project.version}</Build-Label>
-                    <Build-Path>${basedir}</Build-Path>
-                </manifestEntries>
+						<manifestEntries>
+							<Build-Time>${maven.build.timestamp}</Build-Time>
+							<Build-Host>${agent.name}</Build-Host>
+							<Build-User>${user.name}</Build-User>
+							<Build-Maven>Maven ${maven.version}</Build-Maven>
+							<Build-Java>${java.version}</Build-Java>
+							<Build-OS>${os.name}</Build-OS>
+							<Build-Label>${project.version}</Build-Label>
+							<Build-Path>${basedir}</Build-Path>
+						</manifestEntries>
 					</archive>
 					<appendAssemblyId>false</appendAssemblyId>
 					<attach>false</attach>
@@ -94,7 +94,7 @@
 		<dependency>
 			<groupId>net.sourceforge.htmlunit</groupId>
 			<artifactId>htmlunit</artifactId>
-			<version>2.21</version>
+			<version>2.27</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -129,12 +129,12 @@
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<version>4.9.0.201710071750-r</version>
+			<version>4.6.0.201612231935-r</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tensorflow</groupId>
 			<artifactId>tensorflow</artifactId>
-			<version>1.2.1</version>
+			<version>1.4.0</version>
 		</dependency>
 	</dependencies>
 </project>

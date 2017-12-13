@@ -17,6 +17,7 @@ import java.io.FilenameFilter;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -64,7 +65,7 @@ public abstract class JdbcProvider {
 		FilenameFilter filter = new RegexFileFilter(_urlRegex);
 		File[] files = dir.listFiles(filter);
 		if ((files == null) || (files.length == 0)) {
-			throw new RuntimeException(String.format("No matching JDBC driver found in %s.", dir.getAbsolutePath()));
+			throw new PieException(String.format("No matching JDBC driver found in %s.", dir.getAbsolutePath()));
 		}
 		
 		File latestDriver = files[0];

@@ -27,6 +27,7 @@ import org.w3c.dom.NodeList;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
@@ -54,7 +55,7 @@ public class TensorFlow extends Action {
 	public String executeAction(HashMap<String, String> dataTokens) {
 		String modelBundlePath = requiredAttribute("ModelBundlePath");
 		if (FileUtilities.isInvalidDirectory(modelBundlePath)) {
-			throw new RuntimeException(String.format("ModelBundlePath (%s) does not exist.", modelBundlePath));
+			throw new PieException(String.format("ModelBundlePath (%s) does not exist.", modelBundlePath));
 		}
 
 		String modelBundleTags = requiredAttribute("ModelBundleTags");
@@ -75,18 +76,18 @@ public class TensorFlow extends Action {
 			}
 			break;
 		default:
-			throw new RuntimeException(String.format("%s is not a currently supported type.", inputDataSetType));
+			throw new PieException(String.format("%s is not a currently supported type.", inputDataSetType));
 		}
 		
 		if ((data == null) || (data.length == 0) || (data[0].length == 0)) {
-			throw new RuntimeException(String.format("Input dataset %s is empty.",inputDataSetName));
+			throw new PieException(String.format("Input dataset %s is empty.",inputDataSetName));
 		}
 
 		try (SavedModelBundle b = SavedModelBundle.load(modelBundlePath, modelBundleTags)) {
 			Session sess = b.session();
-			Tensor inputTensor = Tensor.create(data);
+			Tensor<?> inputTensor = Tensor.create(data);
 
-			Tensor result = sess.runner().feed(feedOperationName, inputTensor)
+			Tensor<?> result = sess.runner().feed(feedOperationName, inputTensor)
 					.fetch(fetchOperationName)
 					.run().get(0);
 
@@ -140,7 +141,7 @@ public class TensorFlow extends Action {
 				_session.addDataSet(_name, dataStream);
 				_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, dataStream.getSize(), dataStream.IsMemory() ? "memorystream" : "filestream"));
 			} catch (IOException e) {
-				throw new RuntimeException(String.format("Error while saving model results. %s", e.getMessage()), e);
+				throw new PieException(String.format("Error while saving model results. %s", e.getMessage()), e);
 			}
 		}
 
@@ -180,9 +181,9 @@ public class TensorFlow extends Action {
 				rowNumber++;
 			}
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error reading input data. %s", e.getMessage()), e);
+			throw new PieException(String.format("Error reading input data. %s", e.getMessage()), e);
 		} catch (Exception e) {
-			throw new RuntimeException(String.format("Error reading or covernt input data. %s", e.getMessage()), e);
+			throw new PieException(String.format("Error reading or covernt input data. %s", e.getMessage()), e);
 		}
 		return data;
 	}
@@ -203,7 +204,7 @@ public class TensorFlow extends Action {
 
 				_inputColumnIndexes[i] = inputColumnNames.indexOf(inputName);
 				if (_inputColumnIndexes[i] == -1) {
-					throw new RuntimeException(String.format("Column %s not found in the input data set.", inputName));
+					throw new PieException(String.format("Column %s not found in the input data set.", inputName));
 				}
 			}
 		} else {

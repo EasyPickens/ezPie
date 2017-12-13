@@ -23,6 +23,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -77,7 +78,7 @@ public class WebClient extends Action {
 			_webClient = webClient;
 			webActions(_action);
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("WebClient error %s", ex.getMessage()), ex);
+			throw new PieException(String.format("WebClient error %s", ex.getMessage()), ex);
 		}
 		_session.clearDataTokens();
 		return null;
@@ -86,7 +87,7 @@ public class WebClient extends Action {
 	protected com.gargoylesoftware.htmlunit.WebClient connect() {
 		if (_conn == null) {
 			_session.addLogMessage("", "", "Setting up web client without proxy");
-			return new com.gargoylesoftware.htmlunit.WebClient(BrowserVersion.FIREFOX_38);
+			return new com.gargoylesoftware.htmlunit.WebClient(BrowserVersion.BEST_SUPPORTED);
 		} else {
 			String proxyUsername = _session.getAttribute(_conn, "ProxyUsername");
 			String proxyPassword = _session.getAttribute(_conn, "ProxyPassword");
@@ -94,7 +95,7 @@ public class WebClient extends Action {
 			int proxyPort = StringUtilities.toInteger(_session.getAttribute(_conn, "ProxyPort"), 80);
 			_session.addLogMessage("", "Connect", String.format("Using proxy %s:%d", proxyHost, proxyPort));
 
-			com.gargoylesoftware.htmlunit.WebClient webClient = new com.gargoylesoftware.htmlunit.WebClient(BrowserVersion.FIREFOX_38, proxyHost, proxyPort);
+			com.gargoylesoftware.htmlunit.WebClient webClient = new com.gargoylesoftware.htmlunit.WebClient(BrowserVersion.BEST_SUPPORTED, proxyHost, proxyPort);
 			// set proxy username and password
 			final DefaultCredentialsProvider credentialsProvider = (DefaultCredentialsProvider) webClient.getCredentialsProvider();
 			credentialsProvider.addCredentials(proxyUsername, proxyPassword);
@@ -189,7 +190,7 @@ public class WebClient extends Action {
 			_htmlpage = _webClient.getPage(url);
 			_webClient.waitForBackgroundJavaScript(jswait * 1000);
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("WebClient navigation error for %s. %s", url, ex.getMessage()), ex);
+			throw new PieException(String.format("WebClient navigation error for %s. %s", url, ex.getMessage()), ex);
 		}
 	}
 
@@ -211,7 +212,7 @@ public class WebClient extends Action {
 
 		_htmlelement = _htmlpage.getFirstByXPath(function);
 		if (_htmlelement == null) {
-			throw new RuntimeException(String.format("WebClient SelectElement did not find an HTML element at %s", function));
+			throw new PieException(String.format("WebClient SelectElement did not find an HTML element at %s", function));
 		}
 	}
 
@@ -227,7 +228,7 @@ public class WebClient extends Action {
 
 		HtmlInput field = _htmlpage.getFirstByXPath(xpath);
 		if (field == null) {
-			throw new RuntimeException(String.format("WebClient InputText did not find a matching form field for the XPath %s", xpath));
+			throw new PieException(String.format("WebClient InputText did not find a matching form field for the XPath %s", xpath));
 		}
 		field.setValueAttribute(value);
 		_webClient.waitForBackgroundJavaScript(jswait * 1000);
@@ -249,7 +250,7 @@ public class WebClient extends Action {
 		}
 
 		if (field == null) {
-			throw new RuntimeException(String.format("WebClient InputTextFromSelected did not find a matching input field for the XPath %s", xpath));
+			throw new PieException(String.format("WebClient InputTextFromSelected did not find a matching input field for the XPath %s", xpath));
 		}
 
 		_session.addLogMessage("", "InputTextFromSelected", String.format("Locating HTML input field from selected element at %s and inputing text.", xpath));
@@ -272,7 +273,7 @@ public class WebClient extends Action {
 		}
 
 		if (element == null) {
-			throw new RuntimeException(String.format("WebClient ClickElementFromSelected did not find a matching element for the XPath %s (wait up to %,d seconds)", xpath, jswait));
+			throw new PieException(String.format("WebClient ClickElementFromSelected did not find a matching element for the XPath %s (wait up to %,d seconds)", xpath, jswait));
 		}
 
 		_session.addLogMessage("", "ClickElementFromSelected", String.format("Locating HTML element from selected element at %s and clicking.", xpath));
@@ -281,7 +282,7 @@ public class WebClient extends Action {
 			_htmlpage = element.click();
 			_webClient.waitForBackgroundJavaScript(jswait * 1000);
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("WebClient ClickElementFromSelected error while trying to submit form. %s", e.getMessage()), e);
+			throw new PieException(String.format("WebClient ClickElementFromSelected error while trying to submit form. %s", e.getMessage()), e);
 		}
 	}
 
@@ -295,13 +296,13 @@ public class WebClient extends Action {
 
 		HtmlElement element = _htmlpage.getFirstByXPath(xpath);
 		if (element == null) {
-			throw new RuntimeException(String.format("WebClient ClickElement did not find a matching element for the XPath %s (wait up to %,d seconds)", xpath, jswait));
+			throw new PieException(String.format("WebClient ClickElement did not find a matching element for the XPath %s (wait up to %,d seconds)", xpath, jswait));
 		}
 		try {
 			_htmlpage = element.click();
 			_webClient.waitForBackgroundJavaScript(jswait * 1000);
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("WebClient ClickElement error while trying to click element. %s", e.getMessage()), e);
+			throw new PieException(String.format("WebClient ClickElement error while trying to click element. %s", e.getMessage()), e);
 		}
 	}
 
@@ -319,7 +320,7 @@ public class WebClient extends Action {
 		}
 
 		if (radio == null) {
-			throw new RuntimeException(String.format("WebClient CheckRadioFromSelected did not find a matching element for the XPath %s (wait up to %,d seconds)", xpath, jswait));
+			throw new PieException(String.format("WebClient CheckRadioFromSelected did not find a matching element for the XPath %s (wait up to %,d seconds)", xpath, jswait));
 		}
 
 		_session.addLogMessage("", "CheckRadioFromSelected", String.format("Locating HTML radio from selected element at %s and clicking.", xpath));
@@ -340,12 +341,12 @@ public class WebClient extends Action {
 
 		HtmlSelect select = (HtmlSelect) _htmlpage.getFirstByXPath(xpath);
 		if (select == null) {
-			throw new RuntimeException(String.format("WebClient SelectOption did not find a matching select for the XPath %s (wait up to %,d seconds)", xpath, jswait));
+			throw new PieException(String.format("WebClient SelectOption did not find a matching select for the XPath %s (wait up to %,d seconds)", xpath, jswait));
 		}
 
 		HtmlOption option = _htmlpage.getFirstByXPath(xpath + "/option[translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '" + value.toLowerCase() + "']");
 		if (option == null) {
-			throw new RuntimeException(String.format("WebClient SelectOption did not find a matching option at %s (wait up to %,d seconds)", xpath + "/option[translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '" + value.toLowerCase() + "']", jswait));
+			throw new PieException(String.format("WebClient SelectOption did not find a matching option at %s (wait up to %,d seconds)", xpath + "/option[translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '" + value.toLowerCase() + "']", jswait));
 		}
 
 		_htmlpage = select.setSelectedAttribute(option, true);
@@ -365,7 +366,7 @@ public class WebClient extends Action {
 
 		DomElement element = _htmlpage.getFirstByXPath(xpath);
 		if (element == null) {
-			throw new RuntimeException(String.format("WebClient ReadAttribute did not find a matching element for the XPath %s", xpath));
+			throw new PieException(String.format("WebClient ReadAttribute did not find a matching element for the XPath %s", xpath));
 		}
 		String value = element.getAttribute(attrName);
 		_session.addToken("WebClient", tokenName, value);
@@ -396,13 +397,13 @@ public class WebClient extends Action {
 				os.flush();
 				os.close();
 			} catch (IOException e) {
-				throw new RuntimeException(String.format("WebClient DownloadFile error for %s. %s", filename, e.getMessage()), e);
+				throw new PieException(String.format("WebClient DownloadFile error for %s. %s", filename, e.getMessage()), e);
 			} finally {
 				if (is != null)
 					is.close();
 			}
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("WebClient navigation error for %s. %s", url, ex.getMessage()), ex);
+			throw new PieException(String.format("WebClient navigation error for %s. %s", url, ex.getMessage()), ex);
 		}
 	}
 
@@ -419,12 +420,12 @@ public class WebClient extends Action {
 		File file = new File(filePath);
 
 		if (!file.exists()) {
-			throw new RuntimeException(String.format("No file/folder exists at the path %s.", filePath));
+			throw new PieException(String.format("No file/folder exists at the path %s.", filePath));
 		}
 
 		HtmlFileInput input = _htmlpage.getFirstByXPath(xpath);
 		if (input == null) {
-			throw new RuntimeException(String.format("WebClient UploadFile did not find a matching element for the XPath %s", xpath));
+			throw new PieException(String.format("WebClient UploadFile did not find a matching element for the XPath %s", xpath));
 		}
 
 		if (file.isDirectory()) {
@@ -450,11 +451,11 @@ public class WebClient extends Action {
 
 	protected void validateWebState(String xpath, String webStep, boolean requiresElement) {
 		if (StringUtilities.isNullOrEmpty(xpath)) {
-			throw new RuntimeException(String.format("%s element missing the required XPath value.", webStep));
+			throw new PieException(String.format("%s element missing the required XPath value.", webStep));
 		} else if (_htmlpage == null) {
-			throw new RuntimeException(String.format("No HTML page defined.  A Navigate element must precede the %s element.", webStep));
+			throw new PieException(String.format("No HTML page defined.  A Navigate element must precede the %s element.", webStep));
 		} else if (requiresElement && (_htmlelement == null)) {
-			throw new RuntimeException(String.format("No HTML ELEMENT defined.  A Navigate element and SelectElement must precede the %s element.", webStep));
+			throw new PieException(String.format("No HTML ELEMENT defined.  A Navigate element and SelectElement must precede the %s element.", webStep));
 		}
 	}
 }

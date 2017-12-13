@@ -136,8 +136,24 @@ abstract public class DataFormat implements AutoCloseable {
     }
 
     public class IndexEntry {
-        public long RowNumber;
-        public long OffSet;
+    	protected long _rowNumber;
+    	protected long _offset;
+    	
+        public long getRowNumber() {
+        	return _rowNumber;
+        }
+        
+        public void setRowNumber(long value) {
+        	_rowNumber = value;
+        }
+        
+        public long getOffSet() {
+        	return _offset;
+        }
+        
+        public void setOffSet(long value) {
+        	_offset = value;
+        }
     }
 
 }

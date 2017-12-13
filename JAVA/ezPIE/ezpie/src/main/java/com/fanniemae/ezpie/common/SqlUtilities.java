@@ -84,7 +84,7 @@ public final class SqlUtilities {
 					}
 				}
 			}
-			throw new RuntimeException(String.format("Error running SQL Scalar command (%s).\n%s\n %s", sqlCommand, sb.toString(), e.getMessage()), e);
+			throw new PieException(String.format("Error running SQL Scalar command (%s).\n%s\n %s", sqlCommand, sb.toString(), e.getMessage()), e);
 		}
 		return result;
 	}
@@ -94,7 +94,7 @@ public final class SqlUtilities {
 		DataTable dt = null;
 		String sqlCommand = _session.getAttribute(element, "Command");
 		if (StringUtilities.isNullOrEmpty(sqlCommand)) {
-			throw new RuntimeException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
+			throw new PieException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
 		}
 		element.setAttribute("Name", "TempName");
 

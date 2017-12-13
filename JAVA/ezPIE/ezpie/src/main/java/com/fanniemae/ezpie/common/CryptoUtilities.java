@@ -40,7 +40,7 @@ public final class CryptoUtilities {
 			digest.update(value.getBytes("UTF-8"));
 			return digest.digest();
 		} catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
-			throw new RuntimeException("Error running SHA-1 hash.", ex);
+			throw new PieException("Error running SHA-1 hash.", ex);
 		}
 	}
 

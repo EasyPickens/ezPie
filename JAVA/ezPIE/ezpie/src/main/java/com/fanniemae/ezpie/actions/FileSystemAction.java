@@ -24,6 +24,7 @@ import org.w3c.dom.NodeList;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.connectors.SqlConnector;
@@ -110,7 +111,7 @@ public abstract class FileSystemAction extends Action {
 				case "IncludeDirectory":
 				case "ExcludeFile":
 				case "IncludeFile":
-					throw new RuntimeException(String.format("%s child element no longer supported. Use Include or Exclude.", name));
+					throw new PieException(String.format("%s child element no longer supported. Use Include or Exclude.", name));
 				default:
 					_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, name, "Operation not currently supported.");
 				}
@@ -149,7 +150,7 @@ public abstract class FileSystemAction extends Action {
 	protected List<Pattern> executeCommand(Element element) {
 		String command = _session.getAttribute(element, "Command");
 		if (StringUtilities.isNullOrEmpty(command))
-			throw new RuntimeException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
+			throw new PieException(String.format("Missing a value for Command on the %s element.", element.getNodeName()));
 
 		String name = _session.getAttribute(element, "Name");
 		if (StringUtilities.isNullOrEmpty(name))
@@ -194,7 +195,7 @@ public abstract class FileSystemAction extends Action {
 		File sourceLocation = new File(source);
 		if (!sourceLocation.exists()) {
 			if (_required) {
-				throw new RuntimeException(String.format("%s does not exist.  To make this action optional, set the attribute Required to False.", source));
+				throw new PieException(String.format("%s does not exist.  To make this action optional, set the attribute Required to False.", source));
 			}
 			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "File System", String.format(" Nothing found to %s. %s does not exist.", _actionName, source));
 			return;

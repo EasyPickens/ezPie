@@ -74,7 +74,7 @@ public class ProcessActions {
 				Element actionElement = (Element) actionList.item(i);
 				switch (actionElement.getNodeName()) {
 				case "IncludeSharedElement":
-					throw new RuntimeException("Please rename IncludeSharedElement to ImportSharedElement");
+					throw new PieException("Please rename IncludeSharedElement to ImportSharedElement");
 				case "SharedElement":
 				case "Note":
 					continue;

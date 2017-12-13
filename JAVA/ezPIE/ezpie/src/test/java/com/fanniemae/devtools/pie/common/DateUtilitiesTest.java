@@ -25,7 +25,6 @@ public class DateUtilitiesTest extends TestCase {
 			return SIMPLE_DATE_FORMAT.parse(value);
 			}
 		} catch (ParseException e) {
-			e.printStackTrace();
 		}
 		return null;
 	}
@@ -40,7 +39,6 @@ public class DateUtilitiesTest extends TestCase {
 			}
 			return calendar;
 		} catch (ParseException e) {
-			e.printStackTrace();
 		}
 		return null;
 	}

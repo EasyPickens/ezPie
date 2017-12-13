@@ -115,7 +115,8 @@ public class RunPie {
 		// String job ="_RenameColumn";
 		// String job = "TokenTests";
 		// String job = "FULL_ETL_TEST";
-		String job="Nexus_RESTxx";
+		// String job="Nexus_RESTxx";
+		String job = "GitCloneTest";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
@@ -139,7 +140,7 @@ public class RunPie {
 		try {
 			Runtime.getRuntime().exec(new String[] { "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe", logFilename });
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 

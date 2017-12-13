@@ -33,6 +33,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.utilities.ExcelRange;
@@ -135,9 +136,9 @@ public class ExcelConnector extends DataConnector {
 			}
 			_session.addLogMessage("", "Data Schema", schemaReport.toString());
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException(String.format("%s file not found.", _filename), e);
+			throw new PieException(String.format("%s file not found.", _filename), e);
 		} catch (Exception e) {
-			throw new RuntimeException(String.format("Problem reading the workbook or sheet. %s", e.getMessage()), e);
+			throw new PieException(String.format("Problem reading the workbook or sheet. %s", e.getMessage()), e);
 		}
 		return null;
 	}
@@ -368,7 +369,7 @@ public class ExcelConnector extends DataConnector {
 				columnIndex++;
 			}
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while reading Excel cell %s for its data type (%s). %s", cellAddress, currentCellDataType, ex.getMessage()), ex);
+			throw new PieException(String.format("Error while reading Excel cell %s for its data type (%s). %s", cellAddress, currentCellDataType, ex.getMessage()), ex);
 		}
 	}
 
@@ -407,7 +408,7 @@ public class ExcelConnector extends DataConnector {
 			if (_addFilename)
 				data[data.length - 1] = _filenameOnly;
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while reading Excel data from cell %s. %s", cellAddress, ex.getMessage()), ex);
+			throw new PieException(String.format("Error while reading Excel data from cell %s. %s", cellAddress, ex.getMessage()), ex);
 		}
 
 		return data;

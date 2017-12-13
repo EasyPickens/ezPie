@@ -21,6 +21,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -122,7 +123,7 @@ public abstract class DataTransform {
 			br.close();
 			outputStream = bw.getDataStream();
 		} catch (Exception ex) {
-			throw new RuntimeException(String.format("Error while running %s data stream transformation.", _transformElementName), ex);
+			throw new PieException(String.format("Error while running %s data stream transformation.", _transformElementName), ex);
 
 		}
 		return outputStream;
@@ -249,7 +250,7 @@ public abstract class DataTransform {
 	protected String getRequiredAttribute(String attributeName) {
 		String value = _session.getAttribute(_transform, attributeName);
 		if (StringUtilities.isNullOrEmpty(value))
-			throw new RuntimeException(String.format("No value defined for the %s attrbute of the %s transform elment.", attributeName, _transformElementName));
+			throw new PieException(String.format("No value defined for the %s attrbute of the %s transform elment.", attributeName, _transformElementName));
 
 		_transformInfo.appendFormatLine("%s = %s", attributeName, value);
 		return value;

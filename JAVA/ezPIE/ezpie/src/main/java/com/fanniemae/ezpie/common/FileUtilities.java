@@ -108,7 +108,7 @@ public final class FileUtilities {
 		if (StringUtilities.isNullOrEmpty(path))
 			path = defaultPath;
 		else if (FileUtilities.isInvalidDirectory(path))
-			throw new RuntimeException(String.format("The directory value assigned to %s does not exist.", attributeName));
+			throw new PieException(String.format("The directory value assigned to %s does not exist.", attributeName));
 
 		if (!path.endsWith(File.separator))
 			path = path + File.separator;
@@ -159,7 +159,7 @@ public final class FileUtilities {
 
 	public static String loadFile(String filename) {
 		if (!FileUtilities.isValidFile(filename))
-			throw new RuntimeException(String.format("%s file not found.", filename));
+			throw new PieException(String.format("%s file not found.", filename));
 
 		try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
 			StringBuilder sb = new StringBuilder();
@@ -174,7 +174,7 @@ public final class FileUtilities {
 			}
 			return sb.toString();
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error while trying to read %s text file.", filename), e);
+			throw new PieException(String.format("Error while trying to read %s text file.", filename), e);
 		}
 	}
 
@@ -205,14 +205,14 @@ public final class FileUtilities {
 
 	public static String writeFile(String filename, String contents) {
 		if (StringUtilities.isNullOrEmpty(contents)) {
-			throw new RuntimeException("Contents of request file are null or empty.");
+			throw new PieException("Contents of request file are null or empty.");
 		}
 		try (FileWriter fw = new FileWriter(filename); BufferedWriter bw = new BufferedWriter(fw);) {
 			bw.write(contents);
 			bw.close();
 			fw.close();
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error while trying to write file to %s", filename), e);
+			throw new PieException(String.format("Error while trying to write file to %s", filename), e);
 		}
 		return filename;
 	}
@@ -226,16 +226,16 @@ public final class FileUtilities {
 			fos.close();
 			return new DataStream(filename, data.getHeader(), data.getSchema());
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error while trying to write file to %s", filename), e);
+			throw new PieException(String.format("Error while trying to write file to %s", filename), e);
 		}
 	}
 
 	public static String combine(String path, String filename) {
 		if (StringUtilities.isNullOrEmpty(path)) {
-			throw new RuntimeException("No path value defined.");
+			throw new PieException("No path value defined.");
 		}
 		if (StringUtilities.isNullOrEmpty(filename)) {
-			throw new RuntimeException("No filename value defined.");
+			throw new PieException("No filename value defined.");
 		}
 		if (!path.endsWith(File.separator)) {
 			return path + File.separator + filename;

@@ -14,6 +14,7 @@ package com.fanniemae.ezpie.data.transforms;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 //@formatter:off
@@ -70,7 +71,7 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 			_dataRowKeys[index] = new IndexDataPoint((Date) value, isAscending);
 			break;
 		default:
-			throw new RuntimeException("IndexKey does not contain a conversion for the defined type.");
+			throw new PieException("IndexKey does not contain a conversion for the defined type.");
 		}
 	}
 
@@ -130,6 +131,11 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 	@Override
 	public boolean equals(Object o) {
 		return compareTo((IndexDataRow) o) == 0;
+	}
+	
+	@Override
+	public int hashCode() {
+		return super.hashCode();
 	}
 
 	public int compareValues(IndexDataRow o) {

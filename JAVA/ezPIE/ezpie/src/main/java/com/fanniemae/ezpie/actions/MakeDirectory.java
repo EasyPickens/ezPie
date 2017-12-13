@@ -17,6 +17,7 @@ import java.util.HashMap;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -45,7 +46,7 @@ public class MakeDirectory extends Action {
 		} else if (fi.isDirectory()) {
 			_session.addLogMessage("", "", "Directory already exists, nothing to do.");
 		} else if (fi.isFile()) {
-			throw new RuntimeException(String.format("%s is the name of an existing file.", _path));
+			throw new PieException(String.format("%s is the name of an existing file.", _path));
 		}
 		_session.clearDataTokens();
 		return "";

@@ -85,7 +85,7 @@ public final class XmlUtilities {
 			builder = factory.newDocumentBuilder();
 			return builder.parse(new InputSource(new StringReader(xmlString)));
 		} catch (ParserConfigurationException | SAXException | IOException ex) {
-			throw new RuntimeException("Could not create XML Document object.", ex);
+			throw new PieException("Could not create XML Document object.", ex);
 		}
 	}
 
@@ -128,13 +128,13 @@ public final class XmlUtilities {
 			transformer.transform(new DOMSource(node), new StreamResult(writer));
 			return writer.toString();
 		} catch (IllegalArgumentException | TransformerException ex) {
-			throw new RuntimeException("Error converting XML node to string. " + ex.getMessage(), ex);
+			throw new PieException("Error converting XML node to string. " + ex.getMessage(), ex);
 		}
 	}
 
 	public static Document loadXmlFile(String filename) {
 		if (FileUtilities.isInvalidFile(filename)) {
-			throw new RuntimeException(filename + " not found.");
+			throw new PieException(filename + " not found.");
 		}
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -143,7 +143,7 @@ public final class XmlUtilities {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			return builder.parse(filename);
 		} catch (ParserConfigurationException | SAXException | IOException ex) {
-			throw new RuntimeException(String.format("Could not load %s XML file.  %s", filename, ex.getMessage()), ex);
+			throw new PieException(String.format("Could not load %s XML file.  %s", filename, ex.getMessage()), ex);
 		}
 	}
 
@@ -182,9 +182,9 @@ public final class XmlUtilities {
 			transform.setOutputProperty(XML_SET_INDENT_PROPERTY, "3");
 			transform.transform(src, result);
 		} catch (IllegalArgumentException | TransformerException | XPathExpressionException ex) {
-			throw new RuntimeException("Error saving XML document. " + ex.getMessage(), ex);
+			throw new PieException("Error saving XML document. " + ex.getMessage(), ex);
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException("Error saving XML document. " + e.getMessage(), e);
+			throw new PieException("Error saving XML document. " + e.getMessage(), e);
 		}
 	}
 
@@ -218,7 +218,7 @@ public final class XmlUtilities {
 			transformer.transform(new DOMSource(doc), new StreamResult(sw));
 			return sw.toString();
 		} catch (IllegalArgumentException | TransformerException ex) {
-			throw new RuntimeException("Error converting XML document to string. " + ex.getMessage(), ex);
+			throw new PieException("Error converting XML document to string. " + ex.getMessage(), ex);
 		}
 	}
 
@@ -229,7 +229,7 @@ public final class XmlUtilities {
 			XPathExpression expr = xp.compile(sXPath);
 			return expr.evaluate(node, mode);
 		} catch (XPathExpressionException ex) {
-			throw new RuntimeException("Could not evaluate XPath.", ex);
+			throw new PieException("Could not evaluate XPath.", ex);
 		}
 	}
 

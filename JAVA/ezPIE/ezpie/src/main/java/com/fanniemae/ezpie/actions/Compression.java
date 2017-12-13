@@ -25,6 +25,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.common.ZipUtilities;
 
@@ -57,20 +58,20 @@ public class Compression extends Action {
 			_zipFilename += ".zip";
 		} 
 		if (!_zip && FileUtilities.isInvalidFile(_zipFilename)) {
-			throw new RuntimeException(String.format("%s file not found.", _zipFilename));
+			throw new PieException(String.format("%s file not found.", _zipFilename));
 		}
 
 		if (_zip) {
 			_source = requiredAttribute("Source");
 			if (FileUtilities.isInvalidDirectory(_source)) {
-				throw new RuntimeException("Zip error: Source does not exist.");
+				throw new PieException("Zip error: Source does not exist.");
 			}
 		} else {
 			_destination = requiredAttribute("Destination");
 			if (FileUtilities.isInvalidDirectory(_destination)) {
 				File fi = new File(_destination);
 				fi.mkdir();
-				//throw new RuntimeException("UnZip error: Destination does not exist.");
+				//throw new PieException("UnZip error: Destination does not exist.");
 			}
 		}
 		
@@ -96,7 +97,7 @@ public class Compression extends Action {
 				case "IncludeDirectory":
 				case "ExcludeFile":
 				case "IncludeFile":
-					throw new RuntimeException(String.format("%s child element no longer supported. Use Include or Exclude.", name));
+					throw new PieException(String.format("%s child element no longer supported. Use Include or Exclude.", name));
 				default:
 					_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, name, "Operation not currently supported.");
 				}
@@ -106,7 +107,7 @@ public class Compression extends Action {
 			_includeRegex = new Pattern[include.size()];
 			_includeRegex = include.toArray(_includeRegex);
 			if(_excludeRegex.length > 0 && _includeRegex.length > 0){
-				throw new RuntimeException("Cannot have both Exclude and Include child elements. Create a seperate element.");
+				throw new PieException("Cannot have both Exclude and Include child elements. Create a seperate element.");
 			}
 		}
 	}

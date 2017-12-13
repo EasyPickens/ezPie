@@ -20,6 +20,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
@@ -61,7 +62,7 @@ public class AppendChild extends XmlTransform {
 		} else {
 			targetNodes = XmlUtilities.selectNodes(xmlDocument, _xPath);
 			if (_required && (targetNodes.getLength() == 0)) {
-				throw new RuntimeException(String.format("%s did not return any matching nodes.", _xPath));
+				throw new PieException(String.format("%s did not return any matching nodes.", _xPath));
 			}
 			int targetLength = targetNodes.getLength();
 			for (int x = 0; x < targetLength; x++) {

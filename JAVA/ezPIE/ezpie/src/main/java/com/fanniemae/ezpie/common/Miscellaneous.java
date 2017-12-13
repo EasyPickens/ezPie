@@ -45,6 +45,7 @@ public class Miscellaneous {
 			File fi = new File(decodedPath);
 			return fi.getParentFile().getPath();
 		} catch (UnsupportedEncodingException e) {
+			ExceptionUtilities.goSilent(e);
 			return null;
 		}
 	}
@@ -53,7 +54,7 @@ public class Miscellaneous {
 		try {
 			Thread.sleep(seconds * 1000);
 		} catch (Exception ex) {
-			throw new RuntimeException("Thread sleep interval interrupted. "+ex.getMessage(), ex);
+			throw new PieException("Thread sleep interval interrupted. "+ex.getMessage(), ex);
 		}
 	}
 }

@@ -22,6 +22,8 @@ import org.w3c.dom.Element;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DateUtilities;
+import com.fanniemae.ezpie.common.ExceptionUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -85,10 +87,10 @@ public class TimespanColumn extends DataTransform {
 		String sCulture = _session.getAttribute(_transform, "TimePeriodCulture");
 
 		if (StringUtilities.isNullOrEmpty(_dataColumn)) {
-			throw new RuntimeException("Missing a value in DataColumn for the TimePeriodColumn.");
+			throw new PieException("Missing a value in DataColumn for the TimePeriodColumn.");
 		}
 		if (StringUtilities.isNullOrEmpty(sTimePeriod)) {
-			throw new RuntimeException("Missing a value in TimePeriod for the TimePeriodColumn.");
+			throw new PieException("Missing a value in TimePeriod for the TimePeriodColumn.");
 		}
 		_transformInfo.appendFormatLine("DataColumn = %s", _dataColumn);
 		if (StringUtilities.isNotNullOrEmpty(sCulture)) {
@@ -125,10 +127,12 @@ public class TimespanColumn extends DataTransform {
 		try {
 			nameLocale = new Locale(userCulture);
 		} catch (NullPointerException ex) {
+			ExceptionUtilities.goSilent(ex);
 			try {
 				nameLocale = new Locale(userCulture.substring(0, userCulture.indexOf('-')));
 			} catch (NullPointerException ee) {
 				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Dates", "Could not initialize date names based on locale.  Defaulting to English.");
+				ExceptionUtilities.goSilent(ee);
 				return;
 			}
 		}
@@ -269,7 +273,7 @@ public class TimespanColumn extends DataTransform {
 			_columnType = "java.lang.String";
 			return new CustomDateFormat(getOptionalAttribute("Format","yyyy-MM-dd HH:mm:ss"));
 		default:
-			throw new RuntimeException("Invalid TimePeriod attribute for a TimePeriodColumn: " + timePeriod);
+			throw new PieException("Invalid TimePeriod attribute for a TimePeriodColumn: " + timePeriod);
 		}
 	}
 

@@ -18,6 +18,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -69,7 +70,7 @@ public class Svn extends RunCommand {
 				} else if (FileUtilities.isSvnRepository(localPath)) {
 					sbCommands.appendFormatLine("svn update %s", localPath);
 				} else if (FileUtilities.isNotEmptyDirectory(localPath)) {
-					throw new RuntimeException(String.format("Svn Checkout requires an empty destination directory. %s is not an empty directory.", localPath));
+					throw new PieException(String.format("Svn Checkout requires an empty destination directory. %s is not an empty directory.", localPath));
 				} else {
 					sbCommands.appendFormatLine("svn checkout %s %s", repoURL, StringUtilities.wrapValue(localPath));
 				}

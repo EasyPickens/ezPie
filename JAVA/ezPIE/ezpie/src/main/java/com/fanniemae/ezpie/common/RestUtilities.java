@@ -89,43 +89,43 @@ public final class RestUtilities {
 
 	public static String sendRequest(boolean post, String urlStr, String body, String proxyHost, int proxyPort, String proxyUsername, String proxyPassword, String username, String password) {
 
-	    TrustManager[] trustAllCerts = new TrustManager[] {
-	    	       new X509TrustManager() {
-	    	          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-	    	            return null;
-	    	          }
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
 
-	    	          public void checkClientTrusted(X509Certificate[] certs, String authType) {  }
+			public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				// Trust all certificates -- for self signed certs.
+			}
 
-	    	          public void checkServerTrusted(X509Certificate[] certs, String authType) {  }
+			public void checkServerTrusted(X509Certificate[] certs, String authType) {
+				// Trust all certificates -- for self signed certs.
+			}
 
-	    	       }
-	    	    };
-	    
-	    SSLContext sc = null;
+		} };
+
+		SSLContext sc = null;
 		try {
 			sc = SSLContext.getInstance("SSL");
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new PieException(e);
 		}
-	    try {
+		try {
 			sc.init(null, trustAllCerts, new java.security.SecureRandom());
 		} catch (KeyManagementException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new PieException(e);
 		}
-	    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 
-	    // Create all-trusting host name verifier
-	    HostnameVerifier allHostsValid = new HostnameVerifier() {
-	        public boolean verify(String hostname, SSLSession session) {
-	          return true;
-	        }
-	    };
-	    // Install the all-trusting host verifier
-	    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-		
+		// Create all-trusting host name verifier
+		HostnameVerifier allHostsValid = new HostnameVerifier() {
+			public boolean verify(String hostname, SSLSession session) {
+				return true;
+			}
+		};
+		// Install the all-trusting host verifier
+		HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
 		try {
 			URL url = new URL(urlStr);
 
@@ -167,7 +167,7 @@ public final class RestUtilities {
 
 			return responseStr;
 		} catch (JSONException | IOException ex) {
-			throw new RuntimeException("Error while trying to make REST request: " + ex.getMessage(), ex);
+			throw new PieException("Error while trying to make REST request: " + ex.getMessage(), ex);
 		}
 	}
 
@@ -185,7 +185,7 @@ public final class RestUtilities {
 			writer.write(jsonString);
 		} catch (IOException ex) {
 			// TODO Auto-generated catch block
-			throw new RuntimeException("Error while trying to write REST response to file: " + ex.getMessage(), ex);
+			throw new PieException("Error while trying to write REST response to file: " + ex.getMessage(), ex);
 		}
 
 		return filename;

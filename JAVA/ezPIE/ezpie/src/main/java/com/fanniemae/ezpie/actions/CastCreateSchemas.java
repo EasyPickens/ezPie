@@ -21,6 +21,7 @@ import org.w3c.dom.NodeList;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.SqlUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -55,7 +56,7 @@ public class CastCreateSchemas extends CastAction {
 		int length = castActions.getLength();
 		String sqlCommand = _session.getTokenValue("SelfServiceScan", "UpdateStatus");
 		if (_session.updateScanManager() && StringUtilities.isNullOrEmpty(sqlCommand)) {
-			throw new RuntimeException(String.format("No value for %sSelfServiceScan.UpdateStatus%s token.",_session.getTokenPrefix(), _session.getTokenSuffix()));
+			throw new PieException(String.format("No value for %sSelfServiceScan.UpdateStatus%s token.",_session.getTokenPrefix(), _session.getTokenSuffix()));
 		}
 		for (int i = 0; i < length; i++) {
 			Element castAction = (Element) (castActions.item(i));
@@ -112,9 +113,9 @@ public class CastCreateSchemas extends CastAction {
 		String tempXml = FileUtilities.getRandomFilename(_session.getStagingPath(), "xml");
 
 		if (FileUtilities.isInvalidFile(schemaTemplate)) {
-			throw new RuntimeException(String.format("Template file %s not found.", schemaTemplate));
+			throw new PieException(String.format("Template file %s not found.", schemaTemplate));
 		} else if (StringUtilities.isNullOrEmpty(dbprefix)) {
-			throw new RuntimeException("No database schema prefix defined.");
+			throw new PieException("No database schema prefix defined.");
 		} else if ("".equals(_session.getTokenValue("LocalData", "dbprefix"))) {
 			_session.addToken("LocalData", "dbprefix", dbprefix);
 		}

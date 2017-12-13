@@ -17,6 +17,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -33,7 +34,7 @@ public class Maven extends RunCommand {
 
 		_workDirectory = requiredAttribute(action, "LocalPath").trim();
 		if (FileUtilities.isInvalidDirectory(_workDirectory)) {
-			throw new RuntimeException(String.format("LocalPath %s does not exist.", _workDirectory));
+			throw new PieException(String.format("LocalPath %s does not exist.", _workDirectory));
 		}
 
 		String pomFile = _workDirectory + "POM.xml";
@@ -41,7 +42,7 @@ public class Maven extends RunCommand {
 			pomFile = _workDirectory + File.separator + "POM.xml";
 		}
 		if (FileUtilities.isInvalidFile(pomFile)) {
-			throw new RuntimeException(String.format("No POM.xml file found in %s", pomFile));
+			throw new PieException(String.format("No POM.xml file found in %s", pomFile));
 		}
 
 		StringBuilder sb = new StringBuilder();

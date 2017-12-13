@@ -17,6 +17,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
 
@@ -40,7 +41,7 @@ public class DataSetConnector extends DataConnector {
 		
 		_dataSetName = _session.getAttribute(dataSource, "DataSetName");
 		if (StringUtilities.isNullOrEmpty(_dataSetName)) {
-			throw new RuntimeException("DataSource.DataSet is missing the required DataSetName.");
+			throw new PieException("DataSource.DataSet is missing the required DataSetName.");
 		}
 		_dataStream = _session.getDataStream(_dataSetName);
 	}
@@ -56,7 +57,7 @@ public class DataSetConnector extends DataConnector {
 			_dr = new DataReader(_dataStream);
 			_dataSchema = _dr.getSchema();
 		} catch (IOException ex) {
-			throw new RuntimeException("Could not open requested data stream.", ex);
+			throw new PieException("Could not open requested data stream.", ex);
 		}
 		return null;
 	}
@@ -66,7 +67,7 @@ public class DataSetConnector extends DataConnector {
 		try {
 			return _dr.eof();
 		} catch (IOException ex) {
-			throw new RuntimeException("Error while deteriming value of End-Of-File flag.", ex);
+			throw new PieException("Error while deteriming value of End-Of-File flag.", ex);
 		}
 	}
 
@@ -75,7 +76,7 @@ public class DataSetConnector extends DataConnector {
 		try {
 			return _dr.getDataRow();
 		} catch (IOException ex) {
-			throw new RuntimeException("Error while reading the data stream.", ex);
+			throw new PieException("Error while reading the data stream.", ex);
 		}
 	}
 
@@ -85,7 +86,7 @@ public class DataSetConnector extends DataConnector {
 			try {
 				_dr.close();
 			} catch (Exception ex) {
-				throw new RuntimeException("Error while trying to close the data stream.", ex);
+				throw new PieException("Error while trying to close the data stream.", ex);
 			}
 		}
 	}

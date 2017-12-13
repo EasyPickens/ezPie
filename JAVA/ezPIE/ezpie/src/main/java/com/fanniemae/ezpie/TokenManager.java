@@ -24,6 +24,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.Encryption;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
@@ -43,12 +44,16 @@ public class TokenManager {
 
 	protected String _tokenPrefix = "[";
 	protected String _tokenSuffix = "]";
+	
+	protected static final String TOKEN_ADDED = "Token Added";
+	protected static final String TOKENS_ADDED = "Tokens Added";
+	protected static final String TOKEN_ADDED_FORMAT_STRING = "%1$s%2$s.%3$s%4$s = %5$s";
 
 	protected byte[][] _encryptionKey = null;
 
 	protected enum LogVisibility {
 		NONE, TOKEN_NAME, FULL
-	};
+	}
 
 	public TokenManager(Element eleSettings, LogManager logger, byte[][] encryptionKey, String tokenPrefix, String tokenSuffix) {
 		_logger = logger;
@@ -82,10 +87,10 @@ public class TokenManager {
 		aTokenValues.put(key, value);
 		_tokens.put(tokenType, aTokenValues);
 		if (hideIt(key)) {
-			_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, Constants.VALUE_HIDDEN_MESSAGE));
+			_logger.addMessage("", TOKEN_ADDED, String.format(TOKEN_ADDED_FORMAT_STRING, _tokenPrefix, tokenType, key, _tokenSuffix, Constants.VALUE_HIDDEN_MESSAGE));
 			return;
 		}
-		_logger.addMessage("", "Token Added", String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, value));
+		_logger.addMessage("", TOKEN_ADDED, String.format(TOKEN_ADDED_FORMAT_STRING, _tokenPrefix, tokenType, key, _tokenSuffix, value));
 	}
 
 	public void addTokens(Node tokenNode) {
@@ -111,11 +116,11 @@ public class TokenManager {
 			String key = entry.getKey();
 			String value = entry.getValue();
 			domainTokens.put(key, value);
-			sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, key, _tokenSuffix, value));
+			sb.append(String.format(TOKEN_ADDED_FORMAT_STRING, _tokenPrefix, tokenType, key, _tokenSuffix, value));
 			added++;
 		}
 		_tokens.put(tokenType, domainTokens);
-		_logger.addMessage("", added == 1 ? "Token Added" : "Tokens Added", sb.toString());
+		_logger.addMessage("", added == 1 ? TOKEN_ADDED : TOKENS_ADDED, sb.toString());
 	}
 
 	public void addTokens(String tokenType, String[][] kvps) {
@@ -219,7 +224,8 @@ public class TokenManager {
 					sdf = new SimpleDateFormat("dd");
 					value = value.replace(fullToken, sdf.format(_startDateTime));
 					break;
-				case "ElapsedTime": // returns minutes.
+				case "ElapsedTime": 
+					// returns minutes.
 					Date dtCurrent = new Date();
 					double minutes = (dtCurrent.getTime() - _startDateTime.getTime()) / 60000.0;
 					value = value.replace(fullToken, String.format("%f", minutes));
@@ -258,11 +264,11 @@ public class TokenManager {
 			if (hideIt(name)) {
 				sb.append(String.format("%1$s%2$s.%3$s%4$s", _tokenPrefix, tokenType, name, _tokenSuffix));
 			} else {
-				sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, value));
+				sb.append(String.format(TOKEN_ADDED_FORMAT_STRING, _tokenPrefix, tokenType, name, _tokenSuffix, value));
 			}
 		}
 		_tokens.put(tokenType, tokenKeyValues);
-		_logger.addMessage("", length == 1 ? "Token Added" : "Tokens Added", sb.toString());
+		_logger.addMessage("", length == 1 ? TOKEN_ADDED : TOKENS_ADDED, sb.toString());
 
 	}
 
@@ -283,7 +289,7 @@ public class TokenManager {
 			return;
 		}
 
-		LogVisibility defaultVisibility = HideStatus(((Element) tokenNode).getAttribute("Hide"), LogVisibility.FULL);
+		LogVisibility defaultVisibility = hideStatus(((Element) tokenNode).getAttribute("Hide"), LogVisibility.FULL);
 		int linesAdded = 0;
 		int tokensAdded = 0;
 		Boolean addNewLine = false;
@@ -295,9 +301,9 @@ public class TokenManager {
 				continue;
 			}
 			if (isTokenNode && (Constants.TOKEN_TYPES_RESERVED.indexOf(tokenType.toLowerCase()) != -1)) {
-				throw new RuntimeException(String.format("%s is one of the reserved token types.  Please rename your token type.", tokenType));
+				throw new PieException(String.format("%s is one of the reserved token types.  Please rename your token type.", tokenType));
 			}
-			LogVisibility showLevel = HideStatus(((Element) nl.item(i)).getAttribute("Hide"), defaultVisibility);
+			LogVisibility showLevel = hideStatus(((Element) nl.item(i)).getAttribute("Hide"), defaultVisibility);
 			NamedNodeMap attributes = nl.item(i).getAttributes();
 			int attrCount = attributes.getLength();
 			if (attrCount == 0) {
@@ -337,9 +343,9 @@ public class TokenManager {
 				}
 
 				if (hideValue || hideIt(name) || (showLevel == LogVisibility.TOKEN_NAME)) {
-					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, Constants.VALUE_HIDDEN_MESSAGE));
+					sb.append(String.format(TOKEN_ADDED_FORMAT_STRING, _tokenPrefix, tokenType, name, _tokenSuffix, Constants.VALUE_HIDDEN_MESSAGE));
 				} else {
-					sb.append(String.format("%1$s%2$s.%3$s%4$s = %5$s", _tokenPrefix, tokenType, name, _tokenSuffix, value));
+					sb.append(String.format(TOKEN_ADDED_FORMAT_STRING, _tokenPrefix, tokenType, name, _tokenSuffix, value));
 				}
 				linesAdded++;
 				addNewLine = true;
@@ -349,9 +355,9 @@ public class TokenManager {
 		if ((tokensAdded == 0) && (linesAdded == 0)) {
 			// Nothing added, no log message needed.
 		} else if ((tokensAdded > 0) && (linesAdded == 0)) {
-			_logger.addMessage("", tokensAdded == 1 ? "Token Added" : "Tokens Added", String.format("%,d tokens added", tokensAdded));
+			_logger.addMessage("", tokensAdded == 1 ? TOKEN_ADDED : TOKENS_ADDED, String.format("%,d tokens added", tokensAdded));
 		} else {
-			_logger.addMessage("", linesAdded == 1 ? "Token Added" : "Tokens Added", sb.toString());
+			_logger.addMessage("", linesAdded == 1 ? TOKEN_ADDED : TOKENS_ADDED, sb.toString());
 		}
 	}
 
@@ -361,17 +367,17 @@ public class TokenManager {
 		}
 
 		value = value.toLowerCase();
-		if (value.startsWith("password") || value.endsWith("password") || value.contains("password")) {
+		if (value.contains("password")) {
 			return true;
-		} else if (value.startsWith("user") || value.endsWith("user") || value.contains("user")) {
+		} else if (value.contains("user")) {
 			return true;
-		} else if (value.startsWith("encryptionkey") || value.endsWith("encryptionkey") || value.contains("encryptionkey")) {
+		} else if (value.contains("encryptionkey")) {
 			return true;
 		}
 		return false;
 	}
 
-	protected LogVisibility HideStatus(String value, LogVisibility defaultVisibility) {
+	protected LogVisibility hideStatus(String value, LogVisibility defaultVisibility) {
 		if (StringUtilities.isNullOrEmpty(value)) {
 			return defaultVisibility;
 		}

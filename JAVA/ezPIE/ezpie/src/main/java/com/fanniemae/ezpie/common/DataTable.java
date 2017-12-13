@@ -42,7 +42,7 @@ public class DataTable {
 
 	public void setSchema(String[][] schema) {
 		if (_columnCount > 0) {
-			throw new RuntimeException("Datatable schema already defined.");
+			throw new PieException("Datatable schema already defined.");
 		} else if ((schema != null) && (schema.length > 0)) {
 			_columnNames = new String[schema.length];
 			_columnTypes = new Class<?>[schema.length];
@@ -68,7 +68,7 @@ public class DataTable {
 
 	public void addRow(Object[] data) {
 		if (_columnCount == 0) {
-			throw new RuntimeException("No datatable schema defined.");
+			throw new PieException("No datatable schema defined.");
 		} else if ((data != null) && (data.length > 0)) {
 			Object[] row = new Object[_columnCount];
 			System.arraycopy(data, 0, row, 0, Math.min(_columnCount, data.length));
@@ -210,14 +210,14 @@ public class DataTable {
 
 	public Object getValue(String name) {
 		if ((name == null) || ArrayUtilities.notContains(_columnNames, name)) {
-			throw new RuntimeException(String.format("%s column not found in the datatable.", name));
+			throw new PieException(String.format("%s column not found in the datatable.", name));
 		}
 		return getValue(ArrayUtilities.indexOf(_columnNames, name));
 	}
 
 	public Object getValue(int index) {
 		if ((index < 0) || (index >= _dataRows.get(_currentRow).length)) {
-			throw new RuntimeException(String.format("Column %d not found in datatable.", index));
+			throw new PieException(String.format("Column %d not found in datatable.", index));
 		}
 		return _dataRows.get(_currentRow)[index];
 	}
@@ -235,7 +235,7 @@ public class DataTable {
 	
 	public void setValue(String name, Object value) {
 		if ((name == null) || ArrayUtilities.notContains(_columnNames, name)) {
-			throw new RuntimeException(String.format("%s column not found in the datatable.", name));
+			throw new PieException(String.format("%s column not found in the datatable.", name));
 		}
 		setValue(ArrayUtilities.indexOf(_columnNames, name), value);
 	}
@@ -246,7 +246,7 @@ public class DataTable {
 	
 	public void addColumn(String columnName, String javaDataType) {
 		if (ArrayUtilities.contains(_columnNames, columnName)) {
-			throw new RuntimeException(String.format("The data table already contains a column named %s", columnName));
+			throw new PieException(String.format("The data table already contains a column named %s", columnName));
 		}
 		
 		// Resize the arrays and copy the existing contents

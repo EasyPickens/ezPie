@@ -15,6 +15,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
 
@@ -51,7 +52,7 @@ public class RenameColumn extends DataTransform {
 		for(int i=0;i<inputColumnNames.length;i++) {
 			int position = ArrayUtilities.indexOf(schema, inputColumnNames[i], true);
 			if (position == -1) {
-				throw new RuntimeException(String.format("Did not find column \"%s\" in the input dataset.", inputColumnNames[i]));
+				throw new PieException(String.format("Did not find column \"%s\" in the input dataset.", inputColumnNames[i]));
 			}
 			schema[position][0] = newColumnNames[i];
 			_transformInfo.appendFormatLine("%s ==> %s", inputColumnNames[i], newColumnNames[i]);

@@ -24,6 +24,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DateUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
@@ -117,8 +118,7 @@ public class ExportDelimited extends Action {
 			_session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
 			_session.addLogMessage("", "Completed", String.format("Data saved to %s", _outputFilename));
 		} catch (Exception e) {
-			RuntimeException ex = new RuntimeException("Error while trying to export the data into a delimited file.", e);
-			throw ex;
+			throw new PieException("Error while trying to export the data into a delimited file.", e);
 		}
 		_session.clearDataTokens();
 		return _outputFilename;

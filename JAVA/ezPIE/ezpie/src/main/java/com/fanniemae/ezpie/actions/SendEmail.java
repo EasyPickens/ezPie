@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -102,7 +103,7 @@ public class SendEmail extends Action {
             _session.addLogMessage("", "SendEmail", String.format("Sent email to %s", _recieverEmail));
 
         } catch (MessagingException e) {
-            throw new RuntimeException(String.format("Error while trying to send email. Message is %s", e.getMessage()), e);
+            throw new PieException(String.format("Error while trying to send email. Message is %s", e.getMessage()), e);
         }
         _session.clearDataTokens();
 		return null;

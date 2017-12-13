@@ -18,6 +18,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -54,7 +55,7 @@ public class Rename extends Copy {
 			_session.addLogMessage("", "Rename Complete", String.format("%s to %s", originalName, newName));
 		} else {
 			if (_required) {
-				throw new RuntimeException(String.format("%s does not exist.  To make this action optional, set the attribute Required to False.", source));
+				throw new PieException(String.format("%s does not exist.  To make this action optional, set the attribute Required to False.", source));
 			}
 			_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "File", String.format(" Nothing found to %s. %s does not exist.", _actionName, source));
 		}

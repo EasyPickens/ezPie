@@ -14,6 +14,7 @@ package com.fanniemae.ezpie.data.transforms;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -41,7 +42,7 @@ public class CompareFilter extends DataTransform {
 		_compareValue = _session.getAttribute(transform, "CompareValue");
 
 		if (StringUtilities.isNullOrEmpty(_dataColumn)) {
-			throw new RuntimeException(String.format("%s transform requires a column name in DataColumn.", transform.getNodeName()));
+			throw new PieException(String.format("%s transform requires a column name in DataColumn.", transform.getNodeName()));
 		}
 
 	}
@@ -81,7 +82,7 @@ public class CompareFilter extends DataTransform {
 		case ">=":
 			return CompareType.GREATER_THAN_EQUAL_TO;
 		default:
-			throw new RuntimeException(String.format("%s is not a supported compare type.  Please use <, >, =, <=, or >=.", value));
+			throw new PieException(String.format("%s is not a supported compare type.  Please use <, >, =, <=, or >=.", value));
 		}
 	}
 }

@@ -17,6 +17,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -66,7 +67,7 @@ public abstract class XmlTransform {
 	protected String requiredAttribute(String attributeName, String errorMessage) {
 		String value = _session.getAttribute(_action, attributeName);
 		if (StringUtilities.isNullOrEmpty(value)) {
-			throw new RuntimeException(errorMessage);
+			throw new PieException(errorMessage);
 		}
 		_session.addLogMessage("", attributeName, value);
 		return value;

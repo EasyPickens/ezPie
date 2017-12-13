@@ -110,13 +110,13 @@ public class GitOperations {
 			writer.flush();
 			return writer.toString();
 		} catch (IOException e) {
-			throw new RuntimeException("Error while trying to clone the git repository. " + e.getMessage(), e);
+			throw new PieException("Error while trying to clone the git repository. " + e.getMessage(), e);
 		}
 	}
 
 	public String cloneSSH(String repo_url, String destination, String privateKey, String password, String branch) {
 		if (_useProxy) {
-			throw new RuntimeException("Network proxies do not support SSH, please use an http url to clone this repository.");
+			throw new PieException("Network proxies do not support SSH, please use an http url to clone this repository.");
 		}
 
 		final SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
@@ -158,7 +158,7 @@ public class GitOperations {
 			writer.flush();
 			return writer.toString();
 		} catch (IOException | GitAPIException e) {
-			throw new RuntimeException("Error while trying to clone the git repository. " + e.getMessage(), e);
+			throw new PieException("Error while trying to clone the git repository. " + e.getMessage(), e);
 		}
 	}
 

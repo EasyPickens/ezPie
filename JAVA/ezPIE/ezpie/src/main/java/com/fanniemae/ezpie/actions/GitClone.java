@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.GitOperations;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -64,7 +65,7 @@ public class GitClone extends Action {
 		}
 
 		if (StringUtilities.isNotNullOrEmpty(privateKey) && FileUtilities.isInvalidFile(privateKey)) {
-			throw new RuntimeException(String.format("Private key file %s was not found.", privateKey));
+			throw new PieException(String.format("Private key file %s was not found.", privateKey));
 		}
 		
 		if (FileUtilities.isInvalidDirectory(localPath)) {
@@ -83,9 +84,9 @@ public class GitClone extends Action {
 			String filename = FileUtilities.writeRandomTextFile(_session.getLogPath(), log);
 			_session.addLogMessage("", "Clone Output", "View Clone Log", "file://" + filename);
 		} catch (GitAPIException e) {
-			throw new RuntimeException(String.format("Error while trying to clone %s repository . %s",repo_uri, e.getMessage()),e);
+			throw new PieException(String.format("Error while trying to clone %s repository . %s",repo_uri, e.getMessage()),e);
 		} catch (URISyntaxException e) {
-			throw new RuntimeException(String.format("Error while trying to clone %s repository. %s",repo_uri, e.getMessage()),e);
+			throw new PieException(String.format("Error while trying to clone %s repository. %s",repo_uri, e.getMessage()),e);
 		}
 		
 		return null;

@@ -32,7 +32,9 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DateUtilities;
+import com.fanniemae.ezpie.common.ExceptionUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -149,7 +151,7 @@ public class RunCommand extends Action {
 								                   + "NOTE: When the command times out the console output could be empty or incomplete due to internal buffering.");
 						// @formatter:on
 					} else if (!_ignoreErrorCode && ArrayUtilities.indexOf(_exitCodes, p.exitValue()) == -1) {
-						throw new RuntimeException(String.format("External command returned an error code of %d.  View console output for error details.", p.exitValue()));
+						throw new PieException(String.format("External command returned an error code of %d.  View console output for error details.", p.exitValue()));
 					}
 				} catch (InterruptedException ex) {
 					_session.addErrorMessage(ex);
@@ -166,6 +168,7 @@ public class RunCommand extends Action {
 					FileUtilities.deleteFile(_batchFilename);
 				} catch (Exception e) {
 					_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Delete Batch", "Could not delete batch file. " + e.getMessage());
+					ExceptionUtilities.goSilent(e);
 				}
 			}
 		}

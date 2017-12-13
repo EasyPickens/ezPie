@@ -18,6 +18,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.ScriptUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 
@@ -43,7 +44,7 @@ public class IfElement extends Action {
 				if (FileUtilities.isValidFile(resourceDir)) {
 					jsFile = resourceDir;
 				} else {
-					throw new RuntimeException(String.format("JavaScript file %s was not found.", jsFile));
+					throw new PieException(String.format("JavaScript file %s was not found.", jsFile));
 				}
 			}
 			_expression = FileUtilities.loadFile(jsFile) + "\n";

@@ -14,6 +14,7 @@ package com.fanniemae.ezpie.data.transforms;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -50,7 +51,7 @@ public class TransformFactory {
 		case "Column":
 			return null;
 		default:
-			throw new RuntimeException(String.format("%s data transformation is not currently supported.", transform.getNodeName()));
+			throw new PieException(String.format("%s data transformation is not currently supported.", transform.getNodeName()));
 		}
 	}
 

@@ -20,6 +20,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 
@@ -53,7 +54,7 @@ public class InsertBefore extends XmlTransform {
 
 		Node targetNode = XmlUtilities.selectSingleNode(xmlDocument, _xPath);
 		if (_required && (targetNode == null)) {
-			throw new RuntimeException(String.format("%s did not return a matching node.", _xPath));
+			throw new PieException(String.format("%s did not return a matching node.", _xPath));
 		}
 		for (int i = 0; i < length; i++) {
 			targetNode.getParentNode().insertBefore(xmlDocument.adoptNode(nlNew.item(i).cloneNode(true)),targetNode);

@@ -23,6 +23,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
@@ -56,7 +57,7 @@ public class Move extends Copy {
 			Files.move(sourcePath, destinationPath, _copyOptions);
 			_filesProcessed++;
 		} catch (IOException e) {
-			RuntimeException ex = new RuntimeException(String.format("Error while trying to move %s to %s. %s", source, destFilename, e.getMessage()), e);
+			RuntimeException ex = new PieException(String.format("Error while trying to move %s to %s. %s", source, destFilename, e.getMessage()), e);
 			_session.addErrorMessage(ex);
 			throw ex;
 		}
@@ -70,7 +71,7 @@ public class Move extends Copy {
 				File dir = new File(source);
 				dir.delete();
 			} catch (Exception e) {
-				RuntimeException ex = new RuntimeException(String.format("Could not remove empty directory (%s) during move operation. %s", source, e.getMessage()), e);
+				RuntimeException ex = new PieException(String.format("Could not remove empty directory (%s) during move operation. %s", source, e.getMessage()), e);
 				throw ex;
 			}
 		}

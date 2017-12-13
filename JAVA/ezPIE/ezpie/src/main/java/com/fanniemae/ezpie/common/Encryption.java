@@ -65,7 +65,7 @@ final public class Encryption {
 			}
 			keyGenerator = KeyGenerator.getInstance(method);
 		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("No provider found for " + method, e);
+			throw new PieException("No provider found for " + method, e);
 		}
 		return keyGenerator.generateKey().getEncoded().length;
 	}
@@ -85,9 +85,9 @@ final public class Encryption {
 	
 	public static byte[][] setupKey(String encryptionKey) {
 		if (encryptionKey == null) {
-			throw new RuntimeException("Encryption key is not defined.");
+			throw new PieException("Encryption key is not defined.");
 		} else if (encryptionKey.length() < 32) {
-			throw new RuntimeException("Encryption key must be at least 32 characters.");
+			throw new PieException("Encryption key must be at least 32 characters.");
 		}
 		byte[][] key = new byte[2][];
 		key[1] = encryptionKey.substring(17).getBytes();
@@ -101,7 +101,7 @@ final public class Encryption {
 
 		// Added for WebLogic servers
 		if ((byteArray == null) || (byteArray.length == 0)) {
-			throw new RuntimeException("Cannot convert a null byte array to a hex string.");
+			throw new PieException("Cannot convert a null byte array to a hex string.");
 		}
 		char[] hexChars = new char[byteArray.length * 2];
 		for (int j = 0; j < byteArray.length; j++) {
@@ -114,7 +114,7 @@ final public class Encryption {
 	
 	private static byte[] computeHash(String hashAlgorithm, String value) {
 		if (value == null) {
-			throw new RuntimeException("Cannot compute the hash of a null value.");
+			throw new PieException("Cannot compute the hash of a null value.");
 		}
 		try {
 			MessageDigest digest = MessageDigest.getInstance(hashAlgorithm);
@@ -122,9 +122,9 @@ final public class Encryption {
 			digest.update(value.getBytes("UTF-8"));
 			return digest.digest();
 		} catch (NoSuchAlgorithmException ex) {
-			throw new RuntimeException(String.format("Error running %s hash. No such algorithm.", hashAlgorithm), ex);
+			throw new PieException(String.format("Error running %s hash. No such algorithm.", hashAlgorithm), ex);
 		} catch (UnsupportedEncodingException ex) {
-			throw new RuntimeException(String.format("Error running %s hash. Unsupported encoding exception.", hashAlgorithm), ex);
+			throw new PieException(String.format("Error running %s hash. Unsupported encoding exception.", hashAlgorithm), ex);
 		}
 	}
 
@@ -181,20 +181,20 @@ final public class Encryption {
 
 		} catch (InvalidKeyException exKey) {
 			String direction = (mode == Cipher.ENCRYPT_MODE) ? "encryption" : "decryption";
-			throw new RuntimeException(String.format("Invalid key. Error while trying to do %s %s of data.", method, direction), exKey);
+			throw new PieException(String.format("Invalid key. Error while trying to do %s %s of data.", method, direction), exKey);
 		} catch (Exception ex) {
 			String direction = (mode == Cipher.ENCRYPT_MODE) ? "encryption" : "decryption";
-			throw new RuntimeException(String.format("Error while trying to do %s %s of data.", method, direction), ex);
+			throw new PieException(String.format("Error while trying to do %s %s of data.", method, direction), ex);
 		}
 	}
 	
 	private static byte[] toggleSalt(byte[] value, byte[] salt) {
 		if ((value == null) || (value.length == 0)) {
-			throw new RuntimeException("Value is null or empty.");
+			throw new PieException("Value is null or empty.");
 		}
 
 		if ((salt == null) || (salt.length == 0)) {
-			throw new RuntimeException("Salt is null or empty.");
+			throw new PieException("Salt is null or empty.");
 		}
 
 		byte[] workValue = value;

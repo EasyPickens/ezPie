@@ -31,6 +31,7 @@ import com.fanniemae.ezpie.actions.xmltransforms.SetAttribute;
 import com.fanniemae.ezpie.actions.xmltransforms.XmlTransform;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -76,7 +77,7 @@ public class XmlEdit extends Action {
 			// Working on all the XML Files within a folder - built for Informatica and CAST version issue.
 			_isFolder = true;
 		} else {
-			throw new RuntimeException("XmlEdit requires either a value in XmlString or a Filename to an XML file.");
+			throw new RuntimeException("XmlEdit requires either a value in the attribute XmlString, Folder, or Filename.");
 		}
 	}
 
@@ -170,7 +171,7 @@ public class XmlEdit extends Action {
 		NodeList nl = XmlUtilities.selectNodes(_xmlDoc, xPath);
 		int length = nl.getLength();
 		if (required && (length == 0)) {
-			throw new RuntimeException(String.format("No matching nodes found for the XPath %s", xPath));
+			throw new PieException(String.format("No matching nodes found for the XPath %s", xPath));
 		} else if (!required && (length == 0)) {
 			return;
 		}
@@ -206,7 +207,7 @@ public class XmlEdit extends Action {
 		} else {
 			targetNodes = XmlUtilities.selectNodes(_xmlDoc, xPath);
 			if (required && (targetNodes.getLength() == 0)) {
-				throw new RuntimeException(String.format("%s did not return any matching nodes.", xPath));
+				throw new PieException(String.format("%s did not return any matching nodes.", xPath));
 			}
 			int targetLength = targetNodes.getLength();
 			for (int x = 0; x < targetLength; x++) {
@@ -235,7 +236,7 @@ public class XmlEdit extends Action {
 
 		Node targetNode = XmlUtilities.selectSingleNode(_xmlDoc, xPath);
 		if (required && (targetNode == null)) {
-			throw new RuntimeException(String.format("%s did not return a matching node.", xPath));
+			throw new PieException(String.format("%s did not return a matching node.", xPath));
 		}
 		for (int i = 0; i < length; i++) {
 			targetNode.getParentNode().insertBefore(_xmlDoc.adoptNode(nlNew.item(i).cloneNode(true)), targetNode);
@@ -259,7 +260,7 @@ public class XmlEdit extends Action {
 
 		Node targetNode = XmlUtilities.selectSingleNode(_xmlDoc, xPath);
 		if (required && (targetNode == null)) {
-			throw new RuntimeException(String.format("%s did not return a matching node.", xPath));
+			throw new PieException(String.format("%s did not return a matching node.", xPath));
 		}
 		Node insertPoint = targetNode.getNextSibling();
 		for (int i = 0; i < length; i++) {

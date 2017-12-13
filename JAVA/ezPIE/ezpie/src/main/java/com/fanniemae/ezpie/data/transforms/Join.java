@@ -25,6 +25,7 @@ import org.w3c.dom.Node;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.DataEngine;
@@ -94,7 +95,7 @@ public class Join extends DataTransform {
 		_rightJoinColumns = StringUtilities.split(rightColumnList);
 
 		if (_leftJoinColumns.length != _rightJoinColumns.length) {
-			throw new RuntimeException(String.format("The number of columns for the left and right data sets must be equal (%d left columns != %d right columns)", _leftJoinColumns.length, _rightJoinColumns.length));
+			throw new PieException(String.format("The number of columns for the left and right data sets must be equal (%d left columns != %d right columns)", _leftJoinColumns.length, _rightJoinColumns.length));
 		}
 
 		String joinType = _session.getAttribute(operation, "JoinType");
@@ -158,7 +159,7 @@ public class Join extends DataTransform {
 			_joinText = "Cross Join";
 			return JoinType.CROSSJOIN;
 		default:
-			throw new RuntimeException(String.format("%s join type is not currently supported.", join));
+			throw new PieException(String.format("%s join type is not currently supported.", join));
 		}
 	}
 

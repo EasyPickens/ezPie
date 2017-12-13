@@ -34,7 +34,7 @@ public class FieldUUID extends FieldReadWrite {
     @Override
     public Object Read() throws IOException {
         String sUUID = _bis.readUTF();
-        if (sUUID.equals("")) {
+        if ("".equals(sUUID)) {
             return null;
         }
         return UUID.fromString(sUUID);

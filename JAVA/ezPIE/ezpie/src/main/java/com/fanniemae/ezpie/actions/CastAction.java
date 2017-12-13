@@ -20,6 +20,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -43,7 +44,7 @@ public abstract class CastAction extends RunCommand {
 		_castFolder = optionalAttribute("CastFolder", _session.getTokenValue("CAST", "ProgramFolder"));
 
 		if (FileUtilities.isInvalidDirectory(_castFolder)) {
-			throw new RuntimeException(String.format("CastFolder %s does not exist", _castFolder));
+			throw new PieException(String.format("CastFolder %s does not exist", _castFolder));
 		}
 
 		initialize();
@@ -51,11 +52,11 @@ public abstract class CastAction extends RunCommand {
 		if (_session.updateScanManager()) {
 			_connection = _session.getConnection("JavaScanManager");
 			if (_connection == null) {
-				throw new RuntimeException("Missing JavaScanManager connection element.");
+				throw new PieException("Missing JavaScanManager connection element.");
 			}
 			String key = _session.getTokenValue("Local", "JobKey");
 			if (StringUtilities.isNullOrEmpty(key))
-				throw new RuntimeException("Missing job primary key required to update ScanManager status.");
+				throw new PieException("Missing job primary key required to update ScanManager status.");
 			_jobKey = StringUtilities.toInteger(key, -1);
 		}
 	}

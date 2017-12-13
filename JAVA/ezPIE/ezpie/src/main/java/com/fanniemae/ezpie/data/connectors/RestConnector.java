@@ -24,6 +24,7 @@ import org.w3c.dom.NodeList;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.RestUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -203,7 +204,7 @@ public class RestConnector extends DataConnector {
 		case BooleanData:
 			return StringUtilities.toBoolean(value);
 		default:
-			throw new RuntimeException(String.format("%s string conversion not currently available.", DataType.values()[i]));
+			throw new PieException(String.format("%s string conversion not currently available.", DataType.values()[i]));
 		}
 	}
 

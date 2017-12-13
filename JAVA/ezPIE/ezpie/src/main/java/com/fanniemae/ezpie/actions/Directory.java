@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
 
@@ -72,7 +73,7 @@ public class Directory extends Action {
 		_newName = _session.getAttribute(_action, "NewName");
 
 		if (StringUtilities.isNullOrEmpty(_path)) {
-			throw new RuntimeException(String.format("%s is missing a value for Path.", _actionName));
+			throw new PieException(String.format("%s is missing a value for Path.", _actionName));
 		}
 		_session.addLogMessage("", "Path", _path);
 	}
@@ -98,7 +99,7 @@ public class Directory extends Action {
 				throw new IOException(String.format("%s is not currently supported.", _actionType));
 			}
 		} catch (IOException ex) {
-			throw new RuntimeException(String.format("%s could not %s %s.", _actionName, _actionType.toLowerCase(), _path), ex);
+			throw new PieException(String.format("%s could not %s %s.", _actionName, _actionType.toLowerCase(), _path), ex);
 		}
 	}
 
@@ -112,7 +113,7 @@ public class Directory extends Action {
 	protected String deleteDirectory() throws IOException {
 		int iLevels = _path.length() - _path.replace(File.separator, "").length();
 		if (iLevels == 0) {
-			throw new RuntimeException(String.format("%s requires at least one directory level (%s).", _actionName, _path));
+			throw new PieException(String.format("%s requires at least one directory level (%s).", _actionName, _path));
 		}
 		File fi = new File(_path);
 		if (!fi.exists()) {
@@ -144,23 +145,23 @@ public class Directory extends Action {
 	protected String renameDirectory() throws IOException {
 		File fi = new File(_path);
 		if (!fi.exists()) {
-			throw new RuntimeException(String.format("Directory %s not found, nothing to rename.", _path));
+			throw new PieException(String.format("Directory %s not found, nothing to rename.", _path));
 		} else if (fi.isDirectory()) {
 			_session.addLogMessage("", "Process", String.format("Renaming %s to %s.", _path, _newName));
 			fi.renameTo(new File(_newName));
 			_session.addLogMessage("", "", "Completed");
 		} else if (fi.isFile()) {
-			throw new RuntimeException(String.format("%s is a file.  Use the File.Rename operations to work with files.", _path));
+			throw new PieException(String.format("%s is a file.  Use the File.Rename operations to work with files.", _path));
 		}
 		return "";
 	}
 
 	protected String moveDirectory() throws IOException {
 		if (StringUtilities.isNullOrEmpty(_destinationPath)) {
-			throw new RuntimeException(String.format("%s is missing a value for DestinationPath.", _actionName));
+			throw new PieException(String.format("%s is missing a value for DestinationPath.", _actionName));
 		}
 		if (FileUtilities.isValidDirectory(_destinationPath)) {
-			throw new RuntimeException(String.format("Destination directory (%s) already exists.", _destinationPath));
+			throw new PieException(String.format("Destination directory (%s) already exists.", _destinationPath));
 		}
 		_session.addLogMessage("", "Destination Path", _destinationPath);
 		_session.addLogMessage("", "Process", "Moving directory");
@@ -170,10 +171,10 @@ public class Directory extends Action {
 
 	protected String copyDirectory() throws IOException {
 		if (StringUtilities.isNullOrEmpty(_destinationPath)) {
-			throw new RuntimeException(String.format("%s is missing a value for DestinationPath.", _actionName));
+			throw new PieException(String.format("%s is missing a value for DestinationPath.", _actionName));
 		}
 		if (FileUtilities.isValidDirectory(_destinationPath)) {
-			throw new RuntimeException(String.format("Destination directory (%s) already exists.", _destinationPath));
+			throw new PieException(String.format("Destination directory (%s) already exists.", _destinationPath));
 		}
 		_session.addLogMessage("", "Destination Path", _destinationPath);
 		_session.addLogMessage("", "Process", "Copy directory");
@@ -353,6 +354,11 @@ public class Directory extends Action {
 		@Override
 		public boolean equals(Object o) {
 			return compareTo((FileExtensionCount) o) == 0;
+		}
+		
+		@Override
+		public int hashCode() {
+			return super.hashCode();
 		}
 	}
 

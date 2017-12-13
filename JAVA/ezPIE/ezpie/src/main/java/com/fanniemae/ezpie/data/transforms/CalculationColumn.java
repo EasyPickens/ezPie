@@ -23,6 +23,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -54,7 +55,7 @@ public class CalculationColumn extends DataTransform {
 				if (FileUtilities.isValidFile(resourceDir)) {
 					jsFile = resourceDir;
 				} else {
-					throw new RuntimeException(String.format("JavaScript file %s was not found.", jsFile));
+					throw new PieException(String.format("JavaScript file %s was not found.", jsFile));
 				}
 			}
 			_jsFunctionFile = FileUtilities.loadFile(jsFile) + "\n";
@@ -96,7 +97,7 @@ public class CalculationColumn extends DataTransform {
 			_errors++;
 			_session.addLogMessage(String.format(Constants.LOG_WARNING_MESSAGE,_errors),"Evaluation", String.format("Could not evaluate JavaScript formula \"%s\". Reason: %s", expression, e.getMessage()));
 			if (_errors >= _errorLimit)
-			   throw new RuntimeException(String.format("Calculation formula evaluation error limit of %d reached. The ErrorLimit attribute of the Calculation transform controls this behavior.", _errorLimit), e);
+			   throw new PieException(String.format("Calculation formula evaluation error limit of %d reached. The ErrorLimit attribute of the Calculation transform controls this behavior.", _errorLimit), e);
 		}
 		return null;
 	}

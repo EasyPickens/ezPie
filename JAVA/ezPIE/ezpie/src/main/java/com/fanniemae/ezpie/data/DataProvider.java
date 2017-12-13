@@ -30,6 +30,8 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.ExceptionUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.data.jdbcproviders.JdbcProvider;
 import com.fanniemae.ezpie.data.jdbcproviders.JdbcProviderFactory;
@@ -58,7 +60,7 @@ public class DataProvider {
 
 	public DataProvider(SessionManager session, Element eleConnection) {
 		if (eleConnection == null) {
-			throw new RuntimeException("No connection element provided.");
+			throw new PieException("No connection element provided.");
 		}
 		_connection = eleConnection;
 
@@ -81,10 +83,10 @@ public class DataProvider {
 		}
 
 		if (StringUtilities.isNullOrEmpty(_className)) {
-			throw new RuntimeException("Missing class name for JDBC provider.");
+			throw new PieException("Missing class name for JDBC provider.");
 		}
 		if (StringUtilities.isNullOrEmpty(_connectionString)) {
-			throw new RuntimeException("Missing connection string to database.");
+			throw new PieException("Missing connection string to database.");
 		}
 
 	}
@@ -99,15 +101,15 @@ public class DataProvider {
 			DriverManager.registerDriver(new DriverShim(d));
 			con = DriverManager.getConnection(_connectionString);
 		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(String.format("Specified database driver class (%s) was not found in %s.", _className, _url), e);
+			throw new PieException(String.format("Specified database driver class (%s) was not found in %s.", _className, _url), e);
 		} catch (SQLException e) {
-			throw new RuntimeException(String.format("SQL exception while preparing connection. %s", e.getMessage()), e);
+			throw new PieException(String.format("SQL exception while preparing connection. %s", e.getMessage()), e);
 		} catch (InstantiationException e) {
-			throw new RuntimeException(String.format("Instantiation exception while preparing connection. %s", e.getMessage()), e);
+			throw new PieException(String.format("Instantiation exception while preparing connection. %s", e.getMessage()), e);
 		} catch (IllegalAccessException e) {
-			throw new RuntimeException(String.format("Illegal access exception while preparing connection. %s", e.getMessage()), e);
+			throw new PieException(String.format("Illegal access exception while preparing connection. %s", e.getMessage()), e);
 		} catch (MalformedURLException e) {
-			throw new RuntimeException(String.format("Malformed URL exception while preparing connection. %s", e.getMessage()), e);
+			throw new PieException(String.format("Malformed URL exception while preparing connection. %s", e.getMessage()), e);
 		}
 		return con;
 	}
@@ -130,13 +132,13 @@ public class DataProvider {
 			}
 		} catch (SQLException ex) {
 			results = null;
-			throw new RuntimeException("Could not read schema information from SQL command.", ex);
+			throw new PieException("Could not read schema information from SQL command.", ex);
 		} finally {
 			if (rs != null) {
 				try {
 					rs.close();
 				} catch (SQLException e) {
-					throw new RuntimeException("Could not close SQL result set.", e);
+					ExceptionUtilities.goSilent(e);
 				}
 			}
 		}
@@ -205,7 +207,7 @@ public class DataProvider {
 
 			}
 		} catch (SQLException e) {
-			throw new RuntimeException("Could not derive stored procedure parameters.", e);
+			throw new PieException("Could not derive stored procedure parameters.", e);
 		}
 		return cstmt;
 	}

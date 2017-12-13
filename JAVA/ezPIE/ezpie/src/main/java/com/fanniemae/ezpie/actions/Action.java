@@ -20,6 +20,7 @@ import org.w3c.dom.Node;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DateUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 
 /**
@@ -59,7 +60,7 @@ public abstract class Action {
 		_actionName = StringUtilities.isNullOrEmpty(_actionType) ? _action.getNodeName() : _action.getNodeName() + "." + _actionType;
 
 		if (_idRequired && StringUtilities.isNullOrEmpty(_name)) {
-			throw new RuntimeException(String.format("The %s action requires a Name value in order to use token generated.", _action.getNodeName()));
+			throw new PieException(String.format("The %s action requires a Name value in order to use token generated.", _action.getNodeName()));
 		}
 
 		if (!"Log".equals(_actionName) && !"LogComment".equals(_actionName)) {

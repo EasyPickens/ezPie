@@ -18,6 +18,7 @@ import org.w3c.dom.Element;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.DataWriter;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
@@ -68,7 +69,7 @@ public class Sort extends Index {
 			_indexData = null;
 			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
 		} catch (Exception ex) {
-			throw new RuntimeException("Error while trying to write final sorted file.", ex);
+			throw new PieException("Error while trying to write final sorted file.", ex);
 		}
 		return outputStream;
 	}

@@ -16,6 +16,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 /**
@@ -134,7 +135,7 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 		case DateData:
 			return _dt;
 		default:
-			throw new RuntimeException("IndexKey does not contain a value of the defined types.");
+			throw new PieException("IndexKey does not contain a value of the defined types.");
 		}
 	}
 
@@ -156,7 +157,7 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			return (_dt == null) ? "" : df.format(_dt);
 		default:
-			throw new RuntimeException("IndexKey does not contain a value of the defined types.");
+			throw new PieException("IndexKey does not contain a value of the defined types.");
 		}
 	}
 
@@ -204,5 +205,10 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 	@Override
 	public boolean equals(Object o) {
 		return compareTo((IndexDataPoint) o) == 0;
+	}
+	
+	@Override
+	public int hashCode() {
+		return super.hashCode();
 	}
 }

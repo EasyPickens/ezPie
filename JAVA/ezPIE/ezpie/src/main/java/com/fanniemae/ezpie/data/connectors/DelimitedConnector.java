@@ -23,6 +23,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
@@ -58,7 +59,7 @@ public class DelimitedConnector extends DataConnector {
 		if (StringUtilities.isNullOrEmpty(_filename)) {
 			throw new RuntimeException("DataSource.Delimited requires a Filename.");
 		} else if (FileUtilities.isInvalidFile(_filename)) {
-			throw new RuntimeException(String.format("%s file not found.", _filename));
+			throw new PieException(String.format("%s file not found.", _filename));
 		}
 		_session.addLogMessage("", "Filename", _filename);
 
@@ -180,9 +181,9 @@ public class DelimitedConnector extends DataConnector {
 			_session.addLogMessage("", "Columns", sb.toString());
 
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException(String.format("%s file not found.", _filename), e);
+			throw new PieException(String.format("%s file not found.", _filename), e);
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Could not read schema for delimited file %s", _filename), e);
+			throw new PieException(String.format("Could not read schema for delimited file %s", _filename), e);
 		}
 	}
 
@@ -207,7 +208,7 @@ public class DelimitedConnector extends DataConnector {
 		case BooleanData:
 			return StringUtilities.toBoolean(value);
 		default:
-			throw new RuntimeException(String.format("%s string conversion not currently available.", DataType.values()[i]));
+			throw new PieException(String.format("%s string conversion not currently available.", DataType.values()[i]));
 		}
 	}
 

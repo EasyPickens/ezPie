@@ -175,7 +175,7 @@ public final class DataUtilities {
 		case "ObjectData":
 			return DataType.ObjectData;
 		default:
-			throw new RuntimeException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", sTypeName));
+			throw new PieException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", sTypeName));
 		}
 	}
 
@@ -239,10 +239,10 @@ public final class DataUtilities {
 			case "object":
 				return Class.forName("java.lang.Object");
 			default:
-				throw new RuntimeException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", typeName));
+				throw new PieException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", typeName));
 			}
 		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(String.format("Could not convert %s into a java type name. %s", typeName, e.getMessage()), e);
+			throw new PieException(String.format("Could not convert %s into a java type name. %s", typeName, e.getMessage()), e);
 		}
 	}
 }

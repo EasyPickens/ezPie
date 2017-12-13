@@ -21,6 +21,7 @@ import org.w3c.dom.NodeList;
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.DateUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
@@ -54,11 +55,11 @@ public class Tokens extends Action {
 
 	protected void readData(Element child, HashMap<String, String> dataTokens) {
 		String dataSetName = requiredAttribute(child,"DataSetName");
-		DataStream _dataStream = _session.getDataStream(dataSetName);
+		DataStream dataStream = _session.getDataStream(dataSetName);
 		
-		try (DataReader dr = new DataReader(_dataStream)) {
+		try (DataReader dr = new DataReader(dataStream)) {
 			String[] columnNames = dr.getColumnNames();
-			DataType[] _outputColumnDataTypes = dr.getDataTypes();
+			DataType[] outputColumnDataTypes = dr.getDataTypes();
 			
 			if (!dr.eof()) {
 				Map<String,String> newTokens = new HashMap<String,String>();
@@ -67,7 +68,7 @@ public class Tokens extends Action {
 					String value = "";
 					if (dataRow[i] == null) {
 						value = "";
-					} else if (_outputColumnDataTypes[i] == DataType.DateData) {
+					} else if (outputColumnDataTypes[i] == DataType.DateData) {
 						value = DateUtilities.toIsoString((Date) dataRow[i]);
 					} else {
 						value = dataRow[i].toString();
@@ -78,10 +79,8 @@ public class Tokens extends Action {
 			}
 
 			dr.close();
-			//_session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
-			//_session.addLogMessage("", "Completed", String.format("Data saved to %s", _outputFilename));
 		} catch (Exception e) {
-			throw new RuntimeException("Error while trying to convert the data into tokens. "+e.getMessage() , e);
+			throw new PieException("Error while trying to convert the data into tokens. "+e.getMessage() , e);
 		}
 		_session.clearDataTokens();
 	}

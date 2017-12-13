@@ -25,6 +25,7 @@ import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.Miscellaneous;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.SqlUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -62,7 +63,7 @@ public class CastScan extends CastAction {
 		int length = castActions.getLength();
 		String sqlCommand = _session.getTokenValue("SelfServiceScan", "UpdateStatus");
 		if (_session.updateScanManager() && StringUtilities.isNullOrEmpty(sqlCommand)) {
-			throw new RuntimeException(String.format("No value for %sSelfServiceScan.UpdateStatus%s token.", _session.getTokenPrefix(), _session.getTokenSuffix()));
+			throw new PieException(String.format("No value for %sSelfServiceScan.UpdateStatus%s token.", _session.getTokenPrefix(), _session.getTokenSuffix()));
 		}
 
 		for (int i = 0; i < length; i++) {
@@ -176,9 +177,9 @@ public class CastScan extends CastAction {
 			Miscellaneous.sleep(15); // sleep for 15 seconds.
 		}
 		if (backupError) {
-			throw new RuntimeException("Database backup failed. Check the error log on the CAST database server for details.");
+			throw new PieException("Database backup failed. Check the error log on the CAST database server for details.");
 		} else if (!completed) {
-			throw new RuntimeException("Database backup did not complete within 2 hours. Check the backup log on the CAST database server for details.");
+			throw new PieException("Database backup did not complete within 2 hours. Check the backup log on the CAST database server for details.");
 		}
 		_session.addLogMessage("", "Completed", String.format("Time to backup data was %s", DateUtilities.elapsedTime(start)));
 	}

@@ -19,6 +19,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.FileUtilities;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.ReportBuilder;
 import com.fanniemae.ezpie.common.StringUtilities;
 
@@ -66,7 +67,7 @@ public class CreateJavaProjectFiles extends Action {
 		_session.setDataTokens(dataTokens);
 		// Check to make sure path is available
 		if (FileUtilities.isInvalidDirectory(_source)) {
-			throw new RuntimeException(String.format("%s directory was not found.", _source));
+			throw new PieException(String.format("%s directory was not found.", _source));
 		}
 		processDirectory(_source);
 		if (_filecreationLog.hasText()) {
@@ -82,9 +83,9 @@ public class CreateJavaProjectFiles extends Action {
 		// 1 Check for src directory
 		File filePath = new File(path);
 		if (!filePath.exists()) {
-			throw new RuntimeException(String.format("%s does not exist.", path));
+			throw new PieException(String.format("%s does not exist.", path));
 		} else if (!filePath.isDirectory()) {
-			throw new RuntimeException(String.format("%s is not a directory.", path));
+			throw new PieException(String.format("%s is not a directory.", path));
 		}
 		File[] contents = filePath.listFiles();
 		boolean isCodeDirectory = false;
@@ -159,7 +160,7 @@ public class CreateJavaProjectFiles extends Action {
 
 		String analysisUnitName = "";
 		if (StringUtilities.isNullOrEmpty(currentPath) || StringUtilities.isNullOrEmpty(_source)) {
-			throw new RuntimeException(String.format("Null path exception.  Current Path = %s, Source = %s", currentPath, _source));
+			throw new PieException(String.format("Null path exception.  Current Path = %s, Source = %s", currentPath, _source));
 		} else if (currentPath.length() == _source.length()) {
 			analysisUnitName = currentPath.substring(currentPath.lastIndexOf(File.separatorChar) + 1);
 		} else {
@@ -179,7 +180,7 @@ public class CreateJavaProjectFiles extends Action {
 				}
 			}
 			if (duplicateDetected) {
-				throw new RuntimeException(String.format("Duplicate Analysis Unit name detected (%s)", analysisUnitName));
+				throw new PieException(String.format("Duplicate Analysis Unit name detected (%s)", analysisUnitName));
 			}
 		}
 		return analysisUnitName;
