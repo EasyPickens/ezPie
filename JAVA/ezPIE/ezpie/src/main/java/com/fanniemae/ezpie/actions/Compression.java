@@ -50,7 +50,7 @@ public class Compression extends Action {
 	public Compression(SessionManager session, Element action) {
 		super(session, action, false);
 
-		_zip = action.getNodeName().equals("Zip");
+		_zip = "Zip".equals(action.getNodeName());
 
 		_zipFilename = requiredAttribute("ZipFilename");
 		if(!_zipFilename.endsWith(".zip")){
@@ -74,7 +74,7 @@ public class Compression extends Action {
 			}
 		}
 		
-		_deep = optionalAttribute("Deep", "true").toLowerCase().equals("false") ? false : true;
+		_deep = "false".equalsIgnoreCase(optionalAttribute("Deep", "true")) ? false : true;
 		
 		
 		NodeList nlChildren = XmlUtilities.selectNodes(_action, "*");

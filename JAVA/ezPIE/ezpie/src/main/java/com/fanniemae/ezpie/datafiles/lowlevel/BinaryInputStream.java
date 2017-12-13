@@ -18,6 +18,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import com.fanniemae.ezpie.common.ExceptionUtilities;
+
 /**
  * 
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
@@ -86,30 +88,35 @@ public class BinaryInputStream implements AutoCloseable {
 				_dis.close();
 			}
 		} catch (IOException ex) {
+			ExceptionUtilities.goSilent(ex);
 		}
 		try {
 			if (_bis != null) {
 				_bis.close();
 			}
 		} catch (IOException ex) {
+			ExceptionUtilities.goSilent(ex);
 		}
 		try {
 			if (_fis != null) {
 				_fis.close();
 			}
 		} catch (IOException ex) {
+			ExceptionUtilities.goSilent(ex);
 		}
 		try {
 			if (_raf != null) {
 				_raf.close();
 			}
 		} catch (IOException ex) {
+			ExceptionUtilities.goSilent(ex);
 		}
 		try {
 			if (_bais != null) {
 				_bais.close();
 			}
 		} catch (IOException ex) {
+			ExceptionUtilities.goSilent(ex);
 		}
 	}
 
@@ -172,5 +179,4 @@ public class BinaryInputStream implements AutoCloseable {
 	public String readUTF() throws IOException {
 		return _dis.readUTF();
 	}
-
 }

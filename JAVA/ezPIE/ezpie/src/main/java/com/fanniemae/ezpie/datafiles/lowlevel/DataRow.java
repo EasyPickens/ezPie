@@ -36,7 +36,7 @@ public class DataRow {
 	}
 
 	public void DefineColumn(int nColumnIndex, String sColumnName, String sDataType) {
-		DefineColumn(nColumnIndex, sColumnName, ColumnTypes.DataValue, DataUtilities.DataTypeToEnum(sDataType), null);
+		DefineColumn(nColumnIndex, sColumnName, ColumnTypes.DataValue, DataUtilities.dataTypeToEnum(sDataType), null);
 	}
 
 	public void DefineColumn(int nColumnIndex, String sColumnName, DataType DataType) {
@@ -44,7 +44,7 @@ public class DataRow {
 	}
 
 	public void DefineColumn(int nColumnIndex, String sColumnName, ColumnTypes ColumnType, String sDataType, Object oGlobalValue) {
-		DefineColumn(nColumnIndex, sColumnName, ColumnType, DataUtilities.DataTypeToEnum(sDataType), oGlobalValue);
+		DefineColumn(nColumnIndex, sColumnName, ColumnType, DataUtilities.dataTypeToEnum(sDataType), oGlobalValue);
 	}
 
 	public void DefineColumn(int nColumnIndex, String sColumnName, ColumnTypes ColumnType, DataType DataType, Object oGlobalValue) {

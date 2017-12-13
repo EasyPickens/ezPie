@@ -94,15 +94,15 @@ public class DataEngine {
 
 	public DataStream getData(Element dataSource) {
 		String finalDataFilename = FileUtilities.getDataFilename(_stagingPath, dataSource, _connection);
-		
-		boolean dataSourceCacheable = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "DataCacheEnabled"),_session.cachingEnabled()); 
+
+		boolean dataSourceCacheable = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "DataCacheEnabled"), _session.cachingEnabled());
 		DataStream dataStream = dataSourceCacheable ? checkCache(finalDataFilename) : null;
 		if (dataStream != null) {
 			Object expires = dataStream.getHeader().get(BinaryFileInfo.DateExpires);
-			_session.addLogMessage("", "Cached Data", String.format("Using valid data cache file. The cache is set to expire %s",DateUtilities.toPrettyString((Date)expires)));
+			_session.addLogMessage("", "Cached Data", String.format("Using valid data cache file. The cache is set to expire %s", DateUtilities.toPrettyString((Date) expires)));
 			return dataStream;
 		}
-		
+
 		_dataSource = dataSource;
 		defineProcessingGroups();
 		List<String> tempFiles = new ArrayList<String>();
@@ -222,28 +222,28 @@ public class DataEngine {
 		_processingGroups = planner.getExecutionPlan(nlTransforms);
 		_processingGroupsCount = _processingGroups.size();
 	}
-	
+
 	protected DataStream checkCache(String filename) {
 		Boolean expired = false;
 		String[][] schema = null;
-		Map<BinaryFileInfo,Object> header = null;
+		Map<BinaryFileInfo, Object> header = null;
 		if (FileUtilities.isInvalidFile(filename))
 			return null;
-		
+
 		try (DataReader dr = new DataReader(filename)) {
 			schema = dr.getSchema();
 			header = dr.getHeader();
 			Date expires = dr.getBufferExpires();
 			Date current = new Date();
-			
-			expired =expires.before(current); 
+
+			expired = expires.before(current);
 			dr.close();
 		} catch (Exception ex) {
-			
-		}
-		if (expired) 
 			return null;
-		
+		}
+		if (expired)
+			return null;
+
 		return new DataStream(filename, header, schema);
 	}
 

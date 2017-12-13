@@ -138,7 +138,7 @@ public class ComponentScan extends RunCommand{
 	protected String searchOrganizations(JSONArray orgs){
 		for(int i = 0; i < orgs.length(); i++){
 			JSONObject org = (JSONObject) orgs.get(i);
-			if(((String) org.get("name")).toLowerCase().equals(_orgName.toLowerCase())){
+			if(((String) org.get("name")).equalsIgnoreCase(_orgName.toLowerCase())){
 				return (String) org.get("id");
 			}
 		}

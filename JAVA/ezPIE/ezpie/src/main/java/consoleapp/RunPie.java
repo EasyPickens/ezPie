@@ -84,7 +84,7 @@ public class RunPie {
 		// String job = "RemoveStarRisk.xml";
 		// String job = "BlankDefinition.xml";
 		// String job = "If_Test.xml";
-		String job = "Xml_Test.xml";
+		// String job = "Xml_Test.xml";
 		// String job = "Snapshot_Date.xml";
 		// String job = "RemoveStarRiskRating.xml";
 		// String job = "DeleteEmpty.xml";
@@ -115,6 +115,7 @@ public class RunPie {
 		// String job ="_RenameColumn";
 		// String job = "TokenTests";
 		// String job = "FULL_ETL_TEST";
+		String job="Nexus_RESTxx";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
@@ -127,7 +128,7 @@ public class RunPie {
 			System.out.println(dataSets);
 			System.out.println("Job defintion processing completed.");
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			throw new RuntimeException(ex);
 		}
 		// viewlog(logFilename);
 	}

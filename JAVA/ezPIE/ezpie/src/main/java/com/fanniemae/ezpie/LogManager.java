@@ -62,8 +62,8 @@ public class LogManager {
 	protected static final String _htmlLongTextLine = "<tr><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td><div class=\"longtexttoggle\"><div class=\"togglelink\"><span>View Text</span></div><div class=\"togglecontent\">%3$s&nbsp;</div></div></td><td>%4$s</td></tr>\n";
 	protected static final String _htmlExceptionRow = "<tr class=\"exceptionRow\"><td>%1$s&nbsp;</td><td>%2$s&nbsp;</td><td>%3$s&nbsp;</td><td>%4$s</td></tr>\n";
 
-	protected static final String _textNewLine = System.getProperty("line.separator");
-	protected static final String _textNewLineTab = System.getProperty("line.separator") + "\t\t\t\t";
+	protected static final String _textNewLine = _systemNewLine;
+	protected static final String _textNewLineTab = _systemNewLine + "\t\t\t\t";
 	protected static final String _textFooter = "";
 	protected static final String _textBasicLine = "%4$s - %1$s %2$s %3$s" + _textNewLine;
 	protected static final String _textLongTextLine = "%4$s - %1$s %2$s %3$s" + _textNewLine;
@@ -119,7 +119,7 @@ public class LogManager {
 		if (_logLevel == LogLevel.ERROR_ONLY) {
 			return;
 		}
-		
+
 		if (!FileUtilities.isValidFile(_logFilename))
 			return;
 
@@ -164,19 +164,24 @@ public class LogManager {
 	public void addErrorMessage(Throwable ex, Boolean isInner) {
 		String logGroup = isInner ? "" : "** ERROR **";
 		String inner = isInner ? "Inner " : "";
+		if (ex == null) {
+			updateLog(true, "", inner + "Exception Type", "null - no details available.");
+			return;
+		}
 
 		String message = ex.getMessage();
 		if (StringUtilities.isNullOrEmpty(message))
 			message = "See stack trace for error details.";
 		updateLog(true, logGroup, inner + "Message", message);
-		if (!ex.getClass().getName().equals("java.lang.RuntimeException"))
+		if (!"java.lang.RuntimeException".equals(ex.getClass().getName()))
 			updateLog(true, "", inner + "Exception Type", ex.getClass().getName().toString());
 
 		StringBuilder sbStack = new StringBuilder();
 		boolean addLinebreak = false;
 		for (StackTraceElement ele : ex.getStackTrace()) {
-			if (addLinebreak)
+			if (addLinebreak) {
 				sbStack.append(getNewLineTab());
+			}
 			sbStack.append(ele.toString());
 			addLinebreak = true;
 		}
@@ -196,7 +201,7 @@ public class LogManager {
 	public boolean logExternalFiles() {
 		return _logLevel == LogLevel.FULL_LOG;
 	}
-	
+
 	protected void initializeLog() {
 		// Read JVM runtime settings
 		Runtime runtime = Runtime.getRuntime();
@@ -224,7 +229,7 @@ public class LogManager {
 			fos.write(_footerByteArray);
 			fos.close();
 		} catch (IOException e) {
-			throw new RuntimeException(String.format("Error trying to create log file. %s", _logFilename));
+			throw new RuntimeException(String.format("Error trying to create log file. %s", _logFilename), e);
 		}
 	}
 
@@ -266,7 +271,7 @@ public class LogManager {
 		if (!isError && (_logLevel == LogLevel.ERROR_ONLY)) {
 			return;
 		}
-		
+
 		// Skip blank description messages
 		if (description == null)
 			return;

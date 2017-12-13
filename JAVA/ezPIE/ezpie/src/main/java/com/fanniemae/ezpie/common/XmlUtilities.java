@@ -85,7 +85,7 @@ public final class XmlUtilities {
 			builder = factory.newDocumentBuilder();
 			return builder.parse(new InputSource(new StringReader(xmlString)));
 		} catch (ParserConfigurationException | SAXException | IOException ex) {
-			return null;
+			throw new RuntimeException("Could not create XML Document object.", ex);
 		}
 	}
 
@@ -229,7 +229,7 @@ public final class XmlUtilities {
 			XPathExpression expr = xp.compile(sXPath);
 			return expr.evaluate(node, mode);
 		} catch (XPathExpressionException ex) {
-			return null;
+			throw new RuntimeException("Could not evaluate XPath.", ex);
 		}
 	}
 

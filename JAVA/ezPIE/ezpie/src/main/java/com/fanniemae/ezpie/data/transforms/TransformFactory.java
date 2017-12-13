@@ -47,6 +47,8 @@ public class TransformFactory {
 		case "Rename":
 		case "RenameColumn":
 			return new RenameColumn(session, transform);
+		case "Column":
+			return null;
 		default:
 			throw new RuntimeException(String.format("%s data transformation is not currently supported.", transform.getNodeName()));
 		}

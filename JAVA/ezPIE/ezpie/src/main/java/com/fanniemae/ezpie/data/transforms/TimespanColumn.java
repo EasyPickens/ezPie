@@ -20,6 +20,7 @@ import java.util.Locale;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.Constants;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 
@@ -123,10 +124,11 @@ public class TimespanColumn extends DataTransform {
 		Locale nameLocale;
 		try {
 			nameLocale = new Locale(userCulture);
-		} catch (Exception ex) {
+		} catch (NullPointerException ex) {
 			try {
 				nameLocale = new Locale(userCulture.substring(0, userCulture.indexOf('-')));
-			} catch (Exception ee) {
+			} catch (NullPointerException ee) {
+				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Dates", "Could not initialize date names based on locale.  Defaulting to English.");
 				return;
 			}
 		}

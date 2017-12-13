@@ -48,7 +48,7 @@ public class DataTable {
 			_columnTypes = new Class<?>[schema.length];
 			for (int i = 0; i < schema.length; i++) {
 				_columnNames[i] = schema[i][0];
-				_columnTypes[i] = DataUtilities.StringNameToJavaType(schema[i][1]);
+				_columnTypes[i] = DataUtilities.stringNameToJavaType(schema[i][1]);
 			}
 			_columnCount = _columnNames.length;
 		}
@@ -259,7 +259,7 @@ public class DataTable {
 		_columnCount = updatedColumnNames.length;
 		// load the new column name and type
 		_columnNames[_columnNames.length-1] = columnName;
-		_columnTypes[_columnNames.length-1] = DataUtilities.StringNameToJavaType(javaDataType); 
+		_columnTypes[_columnNames.length-1] = DataUtilities.stringNameToJavaType(javaDataType); 
 		
 		// Update the format for each row, copy existing data, with null for new column value.
 		List<Object[]> updatedData = new ArrayList<Object[]>();

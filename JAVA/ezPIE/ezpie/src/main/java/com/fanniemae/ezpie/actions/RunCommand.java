@@ -70,7 +70,7 @@ public class RunCommand extends Action {
 	public String executeAction(HashMap<String, String> dataTokens) {
 		try {
 			_session.setDataTokens(dataTokens);
-			if (_action.getNodeName().equals("RunCommand")) {
+			if ("RunCommand".equals(_action.getNodeName())) {
 				_hideConsoleOutput = StringUtilities.toBoolean(optionalAttribute("HideConsoleOutput", null), false);
 				_workDirectory = requiredAttribute("WorkDirectory");
 				_commandLine = _session.getAttribute(_action, "CommandLine");

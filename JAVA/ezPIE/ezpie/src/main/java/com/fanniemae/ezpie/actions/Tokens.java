@@ -11,11 +11,19 @@
 
 package com.fanniemae.ezpie.actions;
 
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.DataStream;
+import com.fanniemae.ezpie.common.DateUtilities;
+import com.fanniemae.ezpie.common.XmlUtilities;
+import com.fanniemae.ezpie.datafiles.DataReader;
+import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 /**
  * 
@@ -32,8 +40,50 @@ public class Tokens extends Action {
 
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
+		NodeList nl = XmlUtilities.selectNodes(_action, "DataSource");
+		int length = nl.getLength();
+		for (int i=0;i<length;i++) {
+			Element child = (Element)nl.item(i);
+			if ((child != null) && "DataSource".equalsIgnoreCase(child.getNodeName())) {
+				readData(child, dataTokens);
+			}			
+		}
 		_session.addTokens(_action);
 		return null;
+	}
+
+	protected void readData(Element child, HashMap<String, String> dataTokens) {
+		String dataSetName = requiredAttribute(child,"DataSetName");
+		DataStream _dataStream = _session.getDataStream(dataSetName);
+		
+		try (DataReader dr = new DataReader(_dataStream)) {
+			String[] columnNames = dr.getColumnNames();
+			DataType[] _outputColumnDataTypes = dr.getDataTypes();
+			
+			if (!dr.eof()) {
+				Map<String,String> newTokens = new HashMap<String,String>();
+				Object[] dataRow = dr.getDataRow();
+				for (int i = 0; i < dataRow.length; i++) {
+					String value = "";
+					if (dataRow[i] == null) {
+						value = "";
+					} else if (_outputColumnDataTypes[i] == DataType.DateData) {
+						value = DateUtilities.toIsoString((Date) dataRow[i]);
+					} else {
+						value = dataRow[i].toString();
+					}
+					newTokens.put(columnNames[i], value);
+				}
+				_session.addTokens(dataSetName, newTokens);				
+			}
+
+			dr.close();
+			//_session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
+			//_session.addLogMessage("", "Completed", String.format("Data saved to %s", _outputFilename));
+		} catch (Exception e) {
+			throw new RuntimeException("Error while trying to convert the data into tokens. "+e.getMessage() , e);
+		}
+		_session.clearDataTokens();
 	}
 
 }

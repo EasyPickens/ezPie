@@ -44,7 +44,7 @@ public class CalculateSchedule {
 	private int[] _daysOfWeek = new int[] {};
 	private int[] _months = new int[] {};
 	private int[] _daysOfMonth = new int[] {};
-	
+
 	private String _reason = "Schedule does not apply, incorrectly configured, or is expired.";
 
 	public CalculateSchedule(SessionManager session, Element definition) {
@@ -53,33 +53,37 @@ public class CalculateSchedule {
 	}
 
 	public LocalDateTime nextScheduledRun() {
-		if (_definition == null)
+		if (_definition == null) {
 			return null;
-		else if (_definition.getNodeName().equals("Schedule"))
+		} else if ("Schedule".equals(_definition.getNodeName())) {
 			parseScheduleElement();
-		else 
-		   parseScheduleElements();
-		if (_haveSchedule)
+		} else {
+			parseScheduleElements();
+		}
+		if (_haveSchedule) {
 			return _nextRun;
+		}
 
 		return null;
 	}
-	
+
 	public String getReason() {
 		return _reason;
 	}
-	
+
 	private void parseScheduleElement() {
 		scheduleType(_definition);
 	}
-	
+
 	private void parseScheduleElements() {
-		if (_definition == null)
+		if (_definition == null) {
 			return;
+		}
 
 		Object nodeList = XmlUtilities.selectNodes(_definition, ".//Schedule");
-		if (nodeList == null)
+		if (nodeList == null) {
 			return;
+		}
 		NodeList nodes = (NodeList) nodeList;
 		int length = nodes.getLength();
 		for (int i = 0; i < length; i++) {
@@ -87,7 +91,7 @@ public class CalculateSchedule {
 			scheduleType(schedule);
 		}
 	}
-	
+
 	private void scheduleType(Element schedule) {
 		parseScheduleAttributes(schedule);
 		if ((_start == LocalDateTime.MIN) || _expire.isBefore(_currentDateTime)) {
@@ -112,16 +116,18 @@ public class CalculateSchedule {
 		case "monthly":
 			monthlySchedule(schedule);
 			break;
+		default:
+			throw new RuntimeException("Missing required Type attribute.");
 		}
 	}
 
 	private void parseScheduleAttributes(Element schedule) {
-		_start = StringUtilities.toDateTime(_session.requiredAttribute(schedule,"Start"), LocalDateTime.MIN);
-		_expire = StringUtilities.toDateTime(_session.optionalAttribute(schedule,"Expire"), LocalDateTime.MAX);
-		_interval = StringUtilities.toInteger(_session.optionalAttribute(schedule,"Interval"), -1);
-		_months = toMonthArray(_session.optionalAttribute(schedule,"Months"));
-		_daysOfWeek = toDayOfWeekArray(_session.optionalAttribute(schedule,"DaysOfWeek"));
-		_daysOfMonth = toIntegerArray(_session.optionalAttribute(schedule,"DaysOfMonth"));
+		_start = StringUtilities.toDateTime(_session.requiredAttribute(schedule, "Start"), LocalDateTime.MIN);
+		_expire = StringUtilities.toDateTime(_session.optionalAttribute(schedule, "Expire"), LocalDateTime.MAX);
+		_interval = StringUtilities.toInteger(_session.optionalAttribute(schedule, "Interval"), -1);
+		_months = toMonthArray(_session.optionalAttribute(schedule, "Months"));
+		_daysOfWeek = toDayOfWeekArray(_session.optionalAttribute(schedule, "DaysOfWeek"));
+		_daysOfMonth = toIntegerArray(_session.optionalAttribute(schedule, "DaysOfMonth"));
 
 		validateInterval();
 
@@ -137,11 +143,10 @@ public class CalculateSchedule {
 			return;
 		}
 
-		LocalDateTime nextHourRun = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(),
-				_currentDateTime.getDayOfMonth(), _currentDateTime.getHour(), _start.getMinute(), _start.getSecond())
-				.plusHours(_interval);
-		while (nextHourRun.isBefore(_currentDateTime))
+		LocalDateTime nextHourRun = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(), _currentDateTime.getDayOfMonth(), _currentDateTime.getHour(), _start.getMinute(), _start.getSecond()).plusHours(_interval);
+		while (nextHourRun.isBefore(_currentDateTime)) {
 			nextHourRun = nextHourRun.plusHours(_interval);
+		}
 
 		if (nextHourRun.isBefore(_nextRun) && nextHourRun.isBefore(_expire)) {
 			_nextRun = nextHourRun;
@@ -155,11 +160,10 @@ public class CalculateSchedule {
 			return;
 		}
 
-		LocalDateTime nextDayRun = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(),
-				_currentDateTime.getDayOfMonth(), _start.getHour(), _start.getMinute(), _start.getSecond())
-				.plusDays(_interval);
-		while (nextDayRun.isBefore(_currentDateTime))
+		LocalDateTime nextDayRun = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(), _currentDateTime.getDayOfMonth(), _start.getHour(), _start.getMinute(), _start.getSecond()).plusDays(_interval);
+		while (nextDayRun.isBefore(_currentDateTime)) {
 			nextDayRun = nextDayRun.plusDays(_interval);
+		}
 
 		if (nextDayRun.isBefore(_nextRun) && nextDayRun.isBefore(_expire)) {
 			_nextRun = nextDayRun;
@@ -185,13 +189,13 @@ public class CalculateSchedule {
 					break;
 				}
 			}
-			if ((nextDayOfWeek == -1) && (_daysOfWeek.length > 0))
+			if ((nextDayOfWeek == -1) && (_daysOfWeek.length > 0)) {
 				nextDayOfWeek = _daysOfWeek[0];
-			else if ((nextDayOfWeek == -1) && (_daysOfWeek.length == 0))
+			} else if ((nextDayOfWeek == -1) && (_daysOfWeek.length == 0)) {
 				nextDayOfWeek = (int) _currentDateTime.plusDays(1).getDayOfWeek().getValue();
+			}
 
-			LocalDateTime nextDate = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(),
-					_currentDateTime.getDayOfMonth(), _start.getHour(), _start.getMinute(), _start.getSecond());
+			LocalDateTime nextDate = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(), _currentDateTime.getDayOfMonth(), _start.getHour(), _start.getMinute(), _start.getSecond());
 
 			for (int i = 1; i < 10; i++) {
 				LocalDateTime nextDayOfWeekRun = nextDate.plusDays(i);
@@ -200,11 +204,10 @@ public class CalculateSchedule {
 					break;
 				}
 			}
-			_haveSchedule = (_nextRun.isBefore(_expire)) ? true : false;
+			_haveSchedule = _nextRun.isBefore(_expire) ? true : false;
 			return;
 		} else if (_interval > 0) {
 			int daysSinceStart = (int) java.time.temporal.ChronoUnit.DAYS.between(_start, _currentDateTime);
-			// int daysSinceStart = (_currentDateTime - _start).Days;
 			int weeksSinceStart = daysSinceStart / 7;
 			LocalDateTime weekStart = _start.plusDays(7 * weeksSinceStart);
 			LocalDateTime nextWeekRun = weekStart.plusDays(_interval * 7);
@@ -216,8 +219,9 @@ public class CalculateSchedule {
 	}
 
 	private void monthlySchedule(Element monthly) {
-		if ((_months.length == 0) && (_daysOfMonth.length == 0) && (_interval == -1))
+		if ((_months.length == 0) && (_daysOfMonth.length == 0) && (_interval == -1)) {
 			return;
+		}
 
 		int lastDayOfMonth = _currentDateTime.with(lastDayOfMonth()).getDayOfMonth();
 		int nextDayOfMonth = _start.getDayOfMonth();
@@ -232,8 +236,7 @@ public class CalculateSchedule {
 				if ((nextDayOfMonth > currentDayOfMonth) && (currentDayOfMonth != lastDayOfMonth)) {
 					// Adjust for months without that number
 					nextDayOfMonth = Math.min(nextDayOfMonth, lastDayOfMonth);
-					nextDate = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(),
-							nextDayOfMonth, _start.getHour(), _start.getMinute(), _start.getSecond());
+					nextDate = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(), nextDayOfMonth, _start.getHour(), _start.getMinute(), _start.getSecond());
 					if (nextDate.isBefore(_nextRun) && nextDate.isBefore(_expire)) {
 						_nextRun = nextDate;
 						_haveSchedule = true;
@@ -242,14 +245,11 @@ public class CalculateSchedule {
 				}
 			}
 
-			nextDate = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(), 1,
-					_start.getHour(), _start.getMinute(), _start.getSecond());
+			nextDate = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonthValue(), 1, _start.getHour(), _start.getMinute(), _start.getSecond());
 			nextDate = nextDate.plusMonths(1);
-			lastDayOfMonth = nextDate.with(lastDayOfMonth()).getDayOfMonth(); // DateTime.DaysInMonth(nextDate.Year,
-																				// nextDate.Month);
+			lastDayOfMonth = nextDate.with(lastDayOfMonth()).getDayOfMonth();
 			nextDayOfMonth = Math.min(_daysOfMonth[0], lastDayOfMonth);
-			nextDate = LocalDateTime.of(nextDate.getYear(), nextDate.getMonthValue(), nextDayOfMonth,
-					nextDate.getHour(), nextDate.getMinute(), nextDate.getSecond());
+			nextDate = LocalDateTime.of(nextDate.getYear(), nextDate.getMonthValue(), nextDayOfMonth, nextDate.getHour(), nextDate.getMinute(), nextDate.getSecond());
 			if (nextDate.isBefore(_nextRun) && nextDate.isBefore(_expire)) {
 				_nextRun = nextDate;
 				_haveSchedule = true;
@@ -261,12 +261,9 @@ public class CalculateSchedule {
 		if (_months.length > 0) {
 			for (int i = 0; i < _months.length; i++) {
 				if ((_months[i] > _currentDateTime.getMonthValue()) && (_months[i] >= 1) && (_months[i] <= 12)) {
-					lastDayOfMonth = LocalDateTime.of(_currentDateTime.getYear(), _months[i], 1, 0, 0, 0)
-							.with(lastDayOfMonth()).getDayOfMonth();
-					nextDayOfMonth = (_daysOfMonth.length > 0) ? Math.min(_daysOfMonth[0], lastDayOfMonth)
-							: _start.getDayOfMonth();
-					nextDate = LocalDateTime.of(_currentDateTime.getYear(), _months[i], nextDayOfMonth,
-							_start.getHour(), _start.getMinute(), _start.getSecond());
+					lastDayOfMonth = LocalDateTime.of(_currentDateTime.getYear(), _months[i], 1, 0, 0, 0).with(lastDayOfMonth()).getDayOfMonth();
+					nextDayOfMonth = (_daysOfMonth.length > 0) ? Math.min(_daysOfMonth[0], lastDayOfMonth) : _start.getDayOfMonth();
+					nextDate = LocalDateTime.of(_currentDateTime.getYear(), _months[i], nextDayOfMonth, _start.getHour(), _start.getMinute(), _start.getSecond());
 					if (nextDate.isBefore(_nextRun) && nextDate.isBefore(_expire)) {
 						_nextRun = nextDate;
 						_haveSchedule = true;
@@ -280,10 +277,8 @@ public class CalculateSchedule {
 			int nextYear = _currentDateTime.getYear();
 			nextYear++;
 			lastDayOfMonth = LocalDateTime.of(nextYear, _months[0], 1, 0, 0, 0).with(lastDayOfMonth()).getDayOfMonth();
-			nextDayOfMonth = (_daysOfMonth.length > 0) ? Math.min(_daysOfMonth[0], lastDayOfMonth)
-					: _start.getDayOfMonth();
-			nextDate = LocalDateTime.of(nextYear, _months[0], nextDayOfMonth, _start.getHour(), _start.getMinute(),
-					_start.getSecond());
+			nextDayOfMonth = (_daysOfMonth.length > 0) ? Math.min(_daysOfMonth[0], lastDayOfMonth) : _start.getDayOfMonth();
+			nextDate = LocalDateTime.of(nextYear, _months[0], nextDayOfMonth, _start.getHour(), _start.getMinute(), _start.getSecond());
 			if (nextDate.isBefore(_nextRun) && nextDate.isBefore(_expire)) {
 				_nextRun = nextDate;
 				_haveSchedule = true;
@@ -292,8 +287,7 @@ public class CalculateSchedule {
 		}
 
 		if (_interval > 0) {
-			nextDate = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonth(), _start.getDayOfMonth(),
-					_start.getHour(), _start.getMinute(), _start.getSecond());
+			nextDate = LocalDateTime.of(_currentDateTime.getYear(), _currentDateTime.getMonth(), _start.getDayOfMonth(), _start.getHour(), _start.getMinute(), _start.getSecond());
 			nextDate = nextDate.plusMonths(_interval);
 			if (nextDate.isBefore(_nextRun) && nextDate.isBefore(_expire)) {
 				_nextRun = nextDate;
@@ -304,8 +298,9 @@ public class CalculateSchedule {
 	}
 
 	private int[] toIntegerArray(String s) {
-		if (StringUtilities.isNullOrEmpty(s))
+		if (StringUtilities.isNullOrEmpty(s)) {
 			return new int[] {};
+		}
 
 		String[] values = s.split(",");
 		List<Integer> intArray = new ArrayList<Integer>();
@@ -319,8 +314,9 @@ public class CalculateSchedule {
 	}
 
 	private int[] toDayOfWeekArray(String s) {
-		if (StringUtilities.isNullOrEmpty(s))
+		if (StringUtilities.isNullOrEmpty(s)) {
 			return new int[] {};
+		}
 
 		String[] values = s.split(",");
 		List<Integer> daysOfWeek = new ArrayList<Integer>();
@@ -362,16 +358,18 @@ public class CalculateSchedule {
 				break;
 			}
 
-			if ((value >= 0) && (value <= 6))
+			if ((value >= 0) && (value <= 6)) {
 				daysOfWeek.add(value);
+			}
 		}
 
 		return ArrayUtilities.toIntegerArray(daysOfWeek);
 	}
 
 	private int[] toMonthArray(String s) {
-		if (StringUtilities.isNullOrEmpty(s))
+		if (StringUtilities.isNullOrEmpty(s)) {
 			return new int[] {};
+		}
 
 		String[] values = s.split(",");
 		List<Integer> monthsOfYear = new ArrayList<Integer>();
@@ -430,15 +428,17 @@ public class CalculateSchedule {
 				break;
 			}
 
-			if ((value >= 1) && (value <= 12))
+			if ((value >= 1) && (value <= 12)) {
 				monthsOfYear.add(value);
+			}
 		}
 		return ArrayUtilities.toIntegerArray(monthsOfYear);
 	}
 
 	private void validateInterval() {
 		// Only accept values positive integers
-		if (_interval < 1)
+		if (_interval < 1) {
 			_interval = -1;
+		}
 	}
 }

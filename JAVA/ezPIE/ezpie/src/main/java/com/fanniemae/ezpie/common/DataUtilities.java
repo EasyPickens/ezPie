@@ -14,6 +14,7 @@ package com.fanniemae.ezpie.common;
 import java.sql.Types;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
@@ -29,7 +30,7 @@ public final class DataUtilities {
 	private DataUtilities() {
 	}
 
-	public static HashMap<String, String> dataRowToTokenHash(String[][] schema, Object[] dataRow) {
+	public static Map<String, String> dataRowToTokenHash(String[][] schema, Object[] dataRow) {
 		HashMap<String, String> dataTokens = new HashMap<String, String>();
 
 		for (int i = 0; i < schema.length; i++) {
@@ -37,10 +38,11 @@ public final class DataUtilities {
 			dataType = (dataType == null) ? "string" : dataType.toLowerCase();
 			//@formatter:off
 			if ((dataRow[i] == null) && (dataType.contains("double") 
-					                  || dataType.contains("int") 
-					                  || dataType.contains("float") 
-					                  || dataType.contains("short") 
-					                  || dataType.contains("byte"))) {
+                                     || dataType.contains("int") 
+                                     || dataType.contains("float"))) {
+				dataTokens.put(schema[i][0], "0");
+			} else if ((dataRow[i] == null) && dataType.contains("short") 
+                                            || dataType.contains("byte")) {
 				dataTokens.put(schema[i][0], "0");
 			} else if (dataRow[i] == null) {
 				dataTokens.put(schema[i][0], "");
@@ -57,6 +59,8 @@ public final class DataUtilities {
 	public static int dbStringTypeToJavaSqlType(String dataType) {
 		switch (dataType.toLowerCase()) {
 		case "bigint":
+		case "unsignedbigint":
+		case "unsignedint":
 			return Types.BIGINT;
 		case "binary":
 			return Types.BINARY;
@@ -66,15 +70,15 @@ public final class DataUtilities {
 			return Types.BOOLEAN;
 		case "char":
 			return Types.CHAR;
-		case "currency":
-			return Types.DECIMAL;
 		case "date":
-			return Types.DATE;
 		case "dbtime":
 			return Types.DATE;
 		case "dbtimestamp":
 			return Types.TIMESTAMP;
+		case "currency":
 		case "decimal":
+		case "numeric":
+		case "varnumeric":
 			return Types.DECIMAL;
 		case "double":
 			return Types.DOUBLE;
@@ -82,6 +86,11 @@ public final class DataUtilities {
 			return Types.TIME;
 		case "int":
 		case "integer":
+		case "single":
+		case "smallint":
+		case "tinyint":
+		case "unsignedsmallint":
+		case "unsignedtinyint":
 			return Types.INTEGER;
 		case "longvarbinary":
 			return Types.LONGVARBINARY;
@@ -89,43 +98,24 @@ public final class DataUtilities {
 			return Types.LONGVARCHAR;
 		case "longvarwchar":
 			return Types.LONGNVARCHAR;
-		case "numeric":
-			return Types.DECIMAL;
-		case "single":
-			return Types.INTEGER;
-		case "smallint":
-			return Types.INTEGER;
-		case "tinyint":
-			return Types.INTEGER;
-		case "unsignedbigint":
-			return Types.BIGINT;
-		case "unsignedint":
-			return Types.BIGINT;
-		case "unsignedsmallint":
-			return Types.INTEGER;
-		case "unsignedtinyint":
-			return Types.INTEGER;
 		case "varbinary":
 			return Types.VARBINARY;
 		case "varchar":
+		case "guid":
 			return Types.VARCHAR;
 		case "variant":
 			return Types.OTHER;
-		case "varnumeric":
-			return Types.DECIMAL;
 		case "varwchar":
 			return Types.NVARCHAR;
 		case "wchar":
 			return Types.NCHAR;
-		case "guid":
-			return Types.VARCHAR;
 		default:
 			return Types.VARCHAR;
 		}
 	}
 
-	public static DataType DataTypeToEnum(String sTypeName) {
-		if (sTypeName == null) {
+	public static DataType dataTypeToEnum(String sTypeName) {
+		if ((sTypeName == null) || sTypeName.isEmpty()) {
 			return DataType.StringData;
 		}
 		switch (sTypeName) {
@@ -189,7 +179,7 @@ public final class DataUtilities {
 		}
 	}
 
-	public static Class<?> StringNameToJavaType(String typeName) {
+	public static Class<?> stringNameToJavaType(String typeName) {
 		try {
 			if (typeName == null) {
 				return Class.forName("java.lang.String");
@@ -252,7 +242,7 @@ public final class DataUtilities {
 				throw new RuntimeException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", typeName));
 			}
 		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(String.format("Could not convert %s into a java type name. %s", typeName, e.getMessage()));
+			throw new RuntimeException(String.format("Could not convert %s into a java type name. %s", typeName, e.getMessage()), e);
 		}
 	}
 }

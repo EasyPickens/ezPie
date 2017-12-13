@@ -49,7 +49,7 @@ public class DataSet extends Action {
 
 	public DataSet(SessionManager session, Element action) {
 		super(session, action);
-		_isInternal = StringUtilities.toBoolean(optionalAttribute("Internal","False"));
+		_isInternal = StringUtilities.toBoolean(optionalAttribute("Internal", "False"));
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class DataSet extends Action {
 			finalSchema[i][0] = finalColumnNames.get(i);
 			finalSchema[i][1] = finalColumnTypes.get(i);
 		}
-		
+
 		String newLine = System.getProperty("line.separator");
 		StringBuilder schemaReport = new StringBuilder();
 		for (int i = 0; i < finalSchema.length; i++) {
@@ -132,7 +132,7 @@ public class DataSet extends Action {
 			for (int streamNumber = 0; streamNumber < length; streamNumber++) {
 				DataStream dataStream = _dataStreams.get(streamNumber);
 				String[][] schema = dataStream.getSchema();
-				if ((schema == null) || (schema.length == 0)) 
+				if ((schema == null) || (schema.length == 0))
 					continue;
 				int[] columnIndexes = new int[schema.length];
 
@@ -157,7 +157,7 @@ public class DataSet extends Action {
 					dc.close();
 					_session.addLogMessage("", String.format("DataSource #%d", streamNumber + 1), String.format("%,d data rows added", rowCount));
 				} catch (Exception e) {
-					throw new RuntimeException("Error while writing the combined data file. ERROR: " + e.getMessage());
+					throw new RuntimeException("Error while writing the combined data file. ERROR: " + e.getMessage(), e);
 				}
 
 			}
@@ -177,7 +177,7 @@ public class DataSet extends Action {
 		} catch (RuntimeException ex) {
 			throw ex;
 		} catch (IOException e) {
-			throw new RuntimeException("Error while writing the combined data file. " + e.getMessage());
+			throw new RuntimeException("Error while writing the combined data file. " + e.getMessage(), e);
 		}
 	}
 

@@ -80,7 +80,7 @@ public class ExcelConnector extends DataConnector {
 	protected int _endRow = -1;
 	protected int _endColumnIndex = -1;
 	protected int _currentExcelRowIndex = -1;
-	
+
 	public ExcelConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
 	}
@@ -114,7 +114,7 @@ public class ExcelConnector extends DataConnector {
 			_session.addLogMessage("", "Worksheets Found", sb.toString());
 			_sheet = StringUtilities.isNotNullOrEmpty(_sheetName) ? _workbook.getSheet(_sheetName) : _workbook.getSheetAt(0);
 			if (_sheet == null) {
-				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE,"Worksheet", String.format("%s worksheet not found, Skipping this file.", _sheetName));
+				_session.addLogMessage(Constants.LOG_WARNING_MESSAGE, "Worksheet", String.format("%s worksheet not found, Skipping this file.", _sheetName));
 				return false;
 			}
 			readSchema();
@@ -135,9 +135,9 @@ public class ExcelConnector extends DataConnector {
 			}
 			_session.addLogMessage("", "Data Schema", schemaReport.toString());
 		} catch (FileNotFoundException e) {
-			throw new RuntimeException(String.format("%s file not found.", _filename));
+			throw new RuntimeException(String.format("%s file not found.", _filename), e);
 		} catch (Exception e) {
-			throw new RuntimeException(String.format("Problem reading the workbook or sheet. %s", e.getMessage()));
+			throw new RuntimeException(String.format("Problem reading the workbook or sheet. %s", e.getMessage()), e);
 		}
 		return null;
 	}
@@ -200,7 +200,7 @@ public class ExcelConnector extends DataConnector {
 		if (_allTypesStrings) {
 			setSchemaToStrings();
 		} else {
-		readColumnTypes();
+			readColumnTypes();
 		}
 		return;
 	}
@@ -218,7 +218,7 @@ public class ExcelConnector extends DataConnector {
 				_dataSchema[i][0] = _session.requiredAttribute(columnElement, "Name");
 				_dataSchema[i][1] = (_allTypesStrings) ? "String" : _session.requiredAttribute(columnElement, "DataType");
 				_columnAddress.add(_session.requiredAttribute(columnElement, "ColumnLetter"));
-				_dataTypes[i] = DataUtilities.DataTypeToEnum(_dataSchema[i][1]);
+				_dataTypes[i] = DataUtilities.dataTypeToEnum(_dataSchema[i][1]);
 			}
 			return true;
 		}
@@ -364,7 +364,7 @@ public class ExcelConnector extends DataConnector {
 				} else if ("Boolean".equals(schemaColumnType) && "Object|String|Double".contains(currentCellDataType)) {
 					_dataSchema[columnIndex][1] = currentCellDataType;
 				}
-				_dataTypes[columnIndex] = DataUtilities.DataTypeToEnum(_dataSchema[columnIndex][1]);
+				_dataTypes[columnIndex] = DataUtilities.dataTypeToEnum(_dataSchema[columnIndex][1]);
 				columnIndex++;
 			}
 		} catch (Exception ex) {
@@ -412,14 +412,14 @@ public class ExcelConnector extends DataConnector {
 
 		return data;
 	}
-	
+
 	protected void setSchemaToStrings() {
-		for(int i = 0; i< _dataSchema.length;i++) {
+		for (int i = 0; i < _dataSchema.length; i++) {
 			_dataSchema[i][1] = "String";
 		}
 		setupDataRange();
 	}
-	
+
 	protected void setupDataRange() {
 		_dataCellRange = null;
 		if (StringUtilities.isNotNullOrEmpty(_dataAddress)) {

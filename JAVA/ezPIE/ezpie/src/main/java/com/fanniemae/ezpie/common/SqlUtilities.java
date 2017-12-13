@@ -84,7 +84,7 @@ public final class SqlUtilities {
 					}
 				}
 			}
-			throw new RuntimeException(String.format("Error running SQL Scalar command (%s).\n%s\n %s", sqlCommand, sb.toString(), e.getMessage()));
+			throw new RuntimeException(String.format("Error running SQL Scalar command (%s).\n%s\n %s", sqlCommand, sb.toString(), e.getMessage()), e);
 		}
 		return result;
 	}

@@ -12,8 +12,10 @@
 package com.fanniemae.ezpie.common;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -82,8 +84,8 @@ public final class StringUtilities {
 	public static boolean isFormattedDate(String value) {
 		// Check for ISO 8601 Date Format (yyyy-MM-ddTHH:mm:ss)
 		if (isNotNullOrEmpty(value) && (value.length() > 14)) {
-			String sCheck = value.substring(4, 5) + value.substring(7, 8) + value.substring(10, 11) + value.substring(13, 14);
-			if (sCheck.equals("--T:") && isDate(value)) {
+			String check = value.substring(4, 5) + value.substring(7, 8) + value.substring(10, 11) + value.substring(13, 14);
+			if ("--T:".equals(check) && isDate(value)) {
 				return true;
 			}
 		}
@@ -94,7 +96,7 @@ public final class StringUtilities {
 		try {
 			DateUtils.parseDateStrictly(value, SUPPORTED_DATE_FORMATS);
 			return true;
-		} catch (Exception ex) {
+		} catch (ParseException ex) {
 			return false;
 		}
 	}
@@ -167,7 +169,7 @@ public final class StringUtilities {
 	public static int toInteger(String value, String errorMessage) {
 		return toInteger(value, 0, errorMessage);
 	}
-	
+
 	public static int toInteger(String value, int defaultValue) {
 		return toInteger(value, defaultValue, null);
 	}
@@ -234,7 +236,7 @@ public final class StringUtilities {
 	public static Date toDate(String value, Date defaultValue) {
 		try {
 			return DateUtils.parseDateStrictly(value, SUPPORTED_DATE_FORMATS);
-		} catch (Exception ex) {
+		} catch (ParseException ex) {
 			return defaultValue;
 		}
 	}
@@ -246,7 +248,7 @@ public final class StringUtilities {
 		try {
 			DateTimeFormatter fmt = DateTimeFormatter.ISO_DATE_TIME;
 			return LocalDateTime.parse(s, fmt);
-		} catch (Exception ex) {
+		} catch (DateTimeParseException ex) {
 			return defaultValue;
 		}
 	}
@@ -335,15 +337,15 @@ public final class StringUtilities {
 			} else {
 				return "StringData";
 			}
-		} else if (previousType.equals("StringData")) {
+		} else if ("StringData".equals(previousType)) {
 			return previousType;
-		} else if (previousType.equals("BooleanData")) {
+		} else if ("BooleanData".equals(previousType)) {
 			return isBoolean(value) ? "BooleanData" : "StringData";
-		} else if (previousType.equals("DateData")) {
+		} else if ("DateData".equals(previousType)) {
 			return isDate(value) ? previousType : "StringData";
-		} else if (previousType.equals("IntegerData") && isInteger(value)) {
+		} else if ("IntegerData".equals(previousType) && isInteger(value)) {
 			return previousType;
-		} else if ((previousType.equals("IntegerData") || previousType.equals("LongData")) && isLong(value)) {
+		} else if (("IntegerData".equals(previousType) || "LongData".equals(previousType)) && isLong(value)) {
 			return "LongData";
 		} else if (("|IntegerData|LongData|DoubleData|".indexOf("|" + previousType + "|") > -1) && isDouble(value)) {
 			return "DoubleData";

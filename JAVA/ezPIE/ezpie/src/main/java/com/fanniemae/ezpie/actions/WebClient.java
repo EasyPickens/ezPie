@@ -206,7 +206,7 @@ public class WebClient extends Action {
 			childXpath = childXpath.substring(1);
 		}
 
-		String function = value.equals("") ? xpath : xpath + "[" + (!childXpath.equals("") ? childXpath + "//" : "") + "text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')) = '" + value.toLowerCase() + "']]";
+		String function = "".equals(value) ? xpath : xpath + "[" + (!"".equals(childXpath) ? childXpath + "//" : "") + "text()[normalize-space(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')) = '" + value.toLowerCase() + "']]";
 		_session.addLogMessage("", "SelectElement", String.format("Locating HTML element at %s", function));
 
 		_htmlelement = _htmlpage.getFirstByXPath(function);
@@ -242,7 +242,7 @@ public class WebClient extends Action {
 		String value = requiredAttribute(nodeStep, "Value");
 
 		HtmlInput field;
-		if (StringUtilities.isNotNullOrEmpty(xpath) && !xpath.equals("//")) {
+		if (StringUtilities.isNotNullOrEmpty(xpath) && !"//".equals(xpath)) {
 			field = _htmlelement.getFirstByXPath(xpath);
 		} else {
 			field = (HtmlInput) _htmlelement;
@@ -265,7 +265,7 @@ public class WebClient extends Action {
 		validateWebState(xpath, nodeStep.getNodeName());
 		
 		HtmlElement element;
-		if (StringUtilities.isNotNullOrEmpty(xpath) && !xpath.equals("//")) {
+		if (StringUtilities.isNotNullOrEmpty(xpath) && !"//".equals(xpath)) {
 			element = _htmlelement.getFirstByXPath(xpath);
 		} else {
 			element = _htmlelement;
@@ -312,7 +312,7 @@ public class WebClient extends Action {
 		validateWebState(xpath, nodeStep.getNodeName());
 		
 		HtmlRadioButtonInput radio;
-		if (StringUtilities.isNotNullOrEmpty(xpath) && !xpath.equals("//")) {
+		if (StringUtilities.isNotNullOrEmpty(xpath) && !"//".equals(xpath)) {
 			radio = _htmlelement.getFirstByXPath(xpath);
 		} else {
 			radio = (HtmlRadioButtonInput) _htmlelement;

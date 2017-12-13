@@ -91,7 +91,7 @@ public class CreateJavaProjectFiles extends Action {
 		for (int i = 0; i < contents.length; i++) {
 			String name = contents[i].getName();
 			if (contents[i].isFile()) {
-				isCodeDirectory = (StringUtilities.isNotNullOrEmpty(name) && name.equalsIgnoreCase(".project")) ? true : isCodeDirectory;
+				isCodeDirectory = (StringUtilities.isNotNullOrEmpty(name) && ".project".equalsIgnoreCase(name)) ? true : isCodeDirectory;
 			} else if (contents[i].isDirectory() && _javaCodeDirectory.equalsIgnoreCase(name)) {
 				isCodeDirectory = true;
 			} else if (contents[i].isDirectory() && !_shallow) {
