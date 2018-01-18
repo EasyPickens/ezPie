@@ -11,11 +11,17 @@
 
 package com.fanniemae.ezpie.common;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.util.Date;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
@@ -74,5 +80,25 @@ public class JsonUtilities {
 		}
 
 		return dataSet;
+	}
+	
+	public static String writeJsonFile(String responseStr, String filename) {
+		Object responseJSON = new JSONTokener(responseStr).nextValue();
+		String jsonString = "";
+		if (responseJSON instanceof JSONObject) {
+			jsonString = ((JSONObject) responseJSON).toString(2);
+		} else if (responseJSON instanceof JSONArray) {
+			jsonString = ((JSONArray) responseJSON).toString(2);
+		}
+
+		// write returned JSON to file in logs folder
+		try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"))) {
+			writer.write(jsonString);
+		} catch (IOException ex) {
+			// TODO Auto-generated catch block
+			throw new PieException("Error while trying to write REST response to file: " + ex.getMessage(), ex);
+		}
+
+		return filename;
 	}
 }

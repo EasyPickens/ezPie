@@ -5,8 +5,19 @@
 <title>SlicedPie</title>
 </head>
 <body>
-<h1>Welcome to SlicedPie</h1>
-<p>SlicedPie is a REST service API that provides access to the ezPIE component.</p>
-<p>Supported URL and message information will be added as functionality is extended.</p>
+	<h1>Welcome to SlicedPie</h1>
+	<p>SlicedPie is a REST service API that provides access to the
+		ezPIE component.</p>
+	<p>Supported URL and message information will be added as
+		functionality is extended.</p>
+	<P>Basic call into the REST service should look like the following:</p>
+	<ul>
+		<li>URL = http://machine:port/slicedpie/api/v1/data</li>
+		<li>Method = POST</li>
+		<li>Body = { "job": "name of job file" }</li>
+		<li>One job file typically included is "ListDefinitions"</li>
+		<li>Tokens can be added to any job call as additional key-value
+			pairs.</li>
+	</ul>
 </body>
 </html>
