@@ -13,6 +13,7 @@ package com.fanniemae.ezpie.data.connectors;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -44,12 +45,15 @@ public class SqlConnector extends DataConnector {
 	protected DataProvider _provider;
 	protected Connection _con;
 	protected PreparedStatement _pstmt;
+	protected CallableStatement _cstmt;
 	protected ResultSet _rs;
 
 	protected String _sqlCommand;
+	protected String _sqlStoredProcedure;
 
 	protected String[] _fieldNames;
 
+	protected Boolean _isStoredProcedure = false;
 	protected Boolean _calledCommandCancel = false;
 	protected Boolean _usingTransactions = false;
 	protected Boolean _onlyUpdateCount = false;
@@ -61,24 +65,29 @@ public class SqlConnector extends DataConnector {
 	public SqlConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
 
-		_sqlCommand = _session.getAttribute(dataSource, "Command");
-		if (_sqlCommand.startsWith("file://")) {
-			String filename = _sqlCommand.substring(7);
-			if (FileUtilities.isInvalidFile(filename)) {
-				String resourceDir = String.format("[Configuration.ApplicationPath]%s_Resources%s%s", File.separator, File.separator, filename);
-				resourceDir = _session.resolveTokens(resourceDir);
-				if (FileUtilities.isValidFile(resourceDir)) {
-					filename = resourceDir;
-				} else {
-					throw new PieException(String.format("SQL command file %s was not found.", filename));
+		if ("SP".equals(dataSource.getAttribute("Type"))) {
+			_sqlStoredProcedure = _session.requiredAttribute(dataSource, "StoredProcedure");
+			_isStoredProcedure = true;
+		} else {
+			_sqlCommand = _session.getAttribute(dataSource, "Command");
+			if (_sqlCommand.startsWith("file://")) {
+				String filename = _sqlCommand.substring(7);
+				if (FileUtilities.isInvalidFile(filename)) {
+					String resourceDir = String.format("[Configuration.ApplicationPath]%s_Resources%s%s", File.separator, File.separator, filename);
+					resourceDir = _session.resolveTokens(resourceDir);
+					if (FileUtilities.isValidFile(resourceDir)) {
+						filename = resourceDir;
+					} else {
+						throw new PieException(String.format("SQL command file %s was not found.", filename));
+					}
 				}
+				_sqlCommand = _session.resolveTokens(FileUtilities.loadFile(filename));
 			}
-			_sqlCommand = _session.resolveTokens(FileUtilities.loadFile(filename));
-		}
-		_session.addLogMessagePreserveLayout("", "Command", _sqlCommand);
+			_session.addLogMessagePreserveLayout("", "Command", _sqlCommand);
 
-		// For ExecuteSql elements we use transactions by default
-		_usingTransactions = "ExecuteSql".equals(_dataSource.getNodeName());
+			// For ExecuteSql elements we use transactions by default
+			_usingTransactions = "ExecuteSql".equals(_dataSource.getNodeName());
+		}
 	}
 
 	@Override
@@ -88,7 +97,12 @@ public class SqlConnector extends DataConnector {
 			_con = _provider.getConnection();
 			if (_usingTransactions)
 				_con.setAutoCommit(false);
-			_pstmt = _con.prepareStatement(_sqlCommand);
+
+			if (_isStoredProcedure) {
+				_pstmt = _con.prepareCall(_sqlStoredProcedure);
+			} else {
+				_pstmt = _con.prepareStatement(_sqlCommand);
+			}
 			_connectionString = _con.getMetaData().getURL();
 
 			_session.addLogMessage("", "ConnectionName", _connection.getAttribute("Name"));

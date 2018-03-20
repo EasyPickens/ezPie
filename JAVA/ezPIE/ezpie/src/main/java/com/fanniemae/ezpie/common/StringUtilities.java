@@ -12,6 +12,7 @@
 package com.fanniemae.ezpie.common;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -420,4 +421,20 @@ public final class StringUtilities {
 		}
 		return (iSeconds < 1) ? -1 : iSeconds;
 	}
+
+	public static String formatAsNumber(double value) {
+		BigDecimal valueOf = BigDecimal.valueOf(value);
+		BigDecimal integerPart = BigDecimal.valueOf(valueOf.longValue());
+		BigDecimal fractional = valueOf.subtract(integerPart);
+		String fraction = fractional.toPlainString();
+		int indexOfDot = fraction.indexOf('.') + 1;
+		String sign = fraction.startsWith("-") ? "-" : "";
+		fraction = fraction.length() > indexOfDot ? fraction.substring(indexOfDot) : fraction;
+		if (fraction.equals("0")) {
+			return MessageFormat.format("{0}{1}", sign, integerPart.toPlainString(), fraction);
+		} else {
+			return MessageFormat.format("{0}{1}.{2}", sign, integerPart.toPlainString(), fraction);
+		}
+	}
+
 }

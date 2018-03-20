@@ -17,7 +17,10 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -100,5 +103,34 @@ public class JsonUtilities {
 		}
 
 		return filename;
+	}
+	
+	public static void jsonSchema(String s) {
+		if ((s == null) || s.isEmpty()) {
+			return;
+		}
+		
+		JSONObject jsonObject;
+		if (s.startsWith("[")) {
+			jsonObject = new JSONObject();
+			jsonObject.put("rows", new JSONArray(s));
+		} else {
+			jsonObject = new JSONObject(s);
+		}
+		
+		List<String> columnNames = new ArrayList<String>();
+		// Begin scan for resulting data columns of flattened json.
+		Iterator<?> keys = jsonObject.keys();
+//		foreach(String key : keys) {
+//			
+//		}
+		int numKeys = jsonObject.length();
+		
+		for (int i=0;i< numKeys;i++) {
+			String key = jsonObject.names().getString(i);
+			 
+			
+			
+		}
 	}
 }

@@ -139,6 +139,7 @@ public final class DataUtilities {
 			return DataType.CharData;
 		case "Date":
 		case "java.util.Date":
+		case "java.sql.Date":
 		case "DateData":
 			return DataType.DateData;
 		case "Double":
@@ -173,6 +174,8 @@ public final class DataUtilities {
 		case "Object":
 		case "java.lang.Object":
 		case "ObjectData":
+		case "oracle.jdbc.OracleClob":
+		case "OracleClob":
 			return DataType.ObjectData;
 		default:
 			throw new PieException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", sTypeName));
