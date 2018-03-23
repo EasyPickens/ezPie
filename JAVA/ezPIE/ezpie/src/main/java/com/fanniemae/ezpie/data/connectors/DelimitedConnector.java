@@ -68,6 +68,7 @@ public class DelimitedConnector extends DataConnector {
 			_delimiter = sDelimiter.charAt(0);
 			_session.addLogMessage("", "Delimiter", String.valueOf(_delimiter));
 		}
+		_includesColumnNames = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "IncludesColumnNames", null), true);
 		scanSchema(_filename);
 		selectedColumns();
 	}

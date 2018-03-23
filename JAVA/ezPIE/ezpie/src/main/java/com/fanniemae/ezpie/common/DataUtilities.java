@@ -174,9 +174,11 @@ public final class DataUtilities {
 		case "Object":
 		case "java.lang.Object":
 		case "ObjectData":
-		case "oracle.jdbc.OracleClob":
-		case "OracleClob":
 			return DataType.ObjectData;
+		case "OracleClob":
+		case "oracle.jdbc.OracleClob":
+		case "ClobData":
+			return DataType.ClobData;
 		default:
 			throw new PieException(String.format("Error during DataTypeToEnum conversion. %s type name not supported.", sTypeName));
 		}

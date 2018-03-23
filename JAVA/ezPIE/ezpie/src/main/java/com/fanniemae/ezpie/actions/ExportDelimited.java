@@ -39,6 +39,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 public class ExportDelimited extends Action {
 
+	protected String _filenameToken;
 	protected String _outputFilename;
 	protected String _delimiter = ",";
 	protected String _lineSeparator = System.lineSeparator();
@@ -70,6 +71,7 @@ public class ExportDelimited extends Action {
 		_roundDoubles = StringUtilities.toBoolean(optionalAttribute("RoundDoubles"), _roundDoubles);
 		_writeColumnNames = StringUtilities.toBoolean(optionalAttribute("IncludeColumnNames"), _writeColumnNames);
 		_removeCrLf = StringUtilities.toBoolean(optionalAttribute("FlattenFieldStrings"), _removeCrLf);
+		_filenameToken = _session.optionalAttribute(action, "Name","ExportDelimited");
 	}
 
 	@Override
@@ -122,6 +124,7 @@ public class ExportDelimited extends Action {
 			fw.close();
 			dr.close();
 			_session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
+			_session.addToken(_filenameToken,"Filename",_outputFilename);
 			_session.addLogMessage("", "Completed", String.format("Data saved to %s", _outputFilename));
 		} catch (Exception e) {
 			throw new PieException("Error while trying to export the data into a delimited file.", e);

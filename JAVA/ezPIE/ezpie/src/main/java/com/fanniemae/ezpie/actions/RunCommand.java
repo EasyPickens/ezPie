@@ -65,7 +65,6 @@ public class RunCommand extends Action {
 
 	public RunCommand(SessionManager session, Element action, boolean bIDRequired) {
 		super(session, action, bIDRequired);
-
 	}
 
 	@Override
@@ -83,6 +82,7 @@ public class RunCommand extends Action {
 				_arguments = parseCommandLine(_commandLine);
 			}
 
+			String name = _session.optionalAttribute(_action, "Name","");
 			String timeout = optionalAttribute("Timeout", "2h");
 			Boolean makeBatchFile = StringUtilities.toBoolean(optionalAttribute("MakeBatchFile", null), false);
 			if (makeBatchFile) {
@@ -91,6 +91,9 @@ public class RunCommand extends Action {
 
 			_timeout = parseTimeout(timeout);
 			String sConsoleFilename = FileUtilities.getRandomFilename(_session.getLogPath(), "txt");
+			if (!"".equals(name)) {
+			_session.addToken("RunCommand", name, sConsoleFilename);	
+			}
 			ProcessBuilder pb = new ProcessBuilder(_arguments);
 			pb.directory(new File(_workDirectory));
 			try {
@@ -172,6 +175,7 @@ public class RunCommand extends Action {
 				}
 			}
 		}
+		_session.clearDataTokens();
 		return null;
 	}
 
