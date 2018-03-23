@@ -32,7 +32,8 @@ import com.fanniemae.ezpie.data.utilities.TreeNode;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 /**
- * 
+ *
+ * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @author Tara Tritt
  * @since 2016-04-29
  * 
@@ -78,7 +79,8 @@ public class RestConnector extends DataConnector {
 		try {
 			String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password);
 			int length = (response == null) ? 0 : response.length();
-			_session.addLogMessage("", "RestConnector", String.format("View Response (%,d bytes)", length), "file://" + RestUtilities.writeResponseToFile(response, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
+			//_session.addLogMessage("", "RestConnector", String.format("View Response (%,d bytes)", length), "file://" + RestUtilities.writeResponseToFile(response, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
+			_session.addLogMessage("", "RestConnector", String.format("View Raw Response (%,d bytes)", length), "file://" + FileUtilities.writeRandomTextFile(_session.getLogPath(), response));
 
 			int numColumns = _columns.getLength();
 			_session.addLogMessage("", "RestConnector", String.format("%,d columns found", numColumns));

@@ -116,7 +116,12 @@ public class RunPie {
 		// String job = "TokenTests";
 		// String job = "FULL_ETL_TEST";
 		// String job="Nexus_RESTxx";
-		String job = "GitCloneTest";
+		// String job = "GitCloneTest";
+		// String job = "SSL_Test";
+		// String job = "EncryptionTest";
+		// String job = "iCart";
+		// String job = "StoredProcedure";
+		String job = "PythonTest";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

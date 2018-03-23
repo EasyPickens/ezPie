@@ -202,6 +202,7 @@ public class DataEngine {
 		switch (connectorType) {
 		case "":
 			throw new PieException("DataSource Type attribute not defined.");
+		case "sp":
 		case "sql":
 			return new SqlConnector(_session, _dataSource, false);
 		case "directory":

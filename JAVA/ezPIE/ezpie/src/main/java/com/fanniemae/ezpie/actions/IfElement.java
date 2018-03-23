@@ -56,14 +56,16 @@ public class IfElement extends Action {
 		}
 	}
 
-	public boolean evalToBoolean() {
+	public boolean evalToBoolean(HashMap<String, String> dataTokens) {
 		Boolean result = false;
-		if (StringUtilities.isBoolean(_expression)) {
+		_session.setDataTokens(dataTokens);
+		if (StringUtilities.isBoolean(_session.resolveTokens(_expression))) {
 			result = StringUtilities.toBoolean(_expression);
 		} else {
 			result = ScriptUtilities.evalToBoolean(_session.resolveTokens(_expression));
 		}
 		_session.addLogMessage("", "Result", result.toString());
+		_session.clearDataTokens();
 		return result;
 	}
 

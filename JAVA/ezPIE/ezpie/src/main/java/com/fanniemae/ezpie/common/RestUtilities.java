@@ -28,6 +28,7 @@ import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -191,10 +192,106 @@ public final class RestUtilities {
 		return filename;
 	}
 
+	public static String sendRequest(RestRequestConfiguration rrc) {
+
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+
+			public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				// Trust all certificates -- for self signed certs.
+			}
+
+			public void checkServerTrusted(X509Certificate[] certs, String authType) {
+				// Trust all certificates -- for self signed certs.
+			}
+
+		} };
+
+		SSLContext sc = null;
+		try {
+			sc = SSLContext.getInstance("SSL");
+		} catch (NoSuchAlgorithmException e) {
+			throw new PieException(e);
+		}
+		try {
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+		} catch (KeyManagementException e) {
+			throw new PieException(e);
+		}
+		HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+		// Create all-trusting host name verifier
+		HostnameVerifier allHostsValid = new HostnameVerifier() {
+			public boolean verify(String hostname, SSLSession session) {
+				return true;
+			}
+		};
+		// Install the all-trusting host verifier
+		HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+		try {
+			URL url = new URL(rrc.getUrl());
+
+			HttpURLConnection connection;
+			if (StringUtilities.isNotNullOrEmpty(rrc.getProxyHost())) {
+				Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(rrc.getProxyHost(), rrc.getProxyPort()));
+				connection = (HttpURLConnection) url.openConnection(proxy);
+				setProxyAuthentication(rrc.getProxyUsername(), rrc.getProxyPassword());
+			} else {
+				connection = (HttpURLConnection) url.openConnection();
+			}
+
+			Map<String, String> properties = rrc.getRequestProperties();
+			if ((properties != null) && !properties.isEmpty()) {
+				for (Map.Entry<String, String> entry : properties.entrySet()) {
+					connection.setRequestProperty(entry.getKey(), entry.getValue());
+				}
+			}
+
+			if ("POST".equals(rrc.getRequestMethod())) {
+				connection.setRequestMethod(rrc.getRequestMethod());
+				connection.setDoOutput(true);
+				DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+				wr.writeBytes(rrc.getMessageBody());
+				wr.flush();
+				wr.close();
+			} else if ("GET".equals(rrc.getRequestMethod())) {
+				connection.setRequestMethod("GET");
+			} else {
+				throw new RuntimeException(String.format("The REST connector does not currently support the %s request method.", rrc.getRequestMethod()));
+			}
+
+			String responseStr;
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+				String inputLine;
+				StringBuffer responseBuffer = new StringBuffer();
+				while ((inputLine = br.readLine()) != null) {
+					responseBuffer.append(inputLine);
+				}
+				responseStr = responseBuffer.toString();
+			}
+
+			return responseStr;
+		} catch (JSONException | IOException ex) {
+			throw new PieException("Error while trying to make REST request: " + ex.getMessage(), ex);
+		}
+	}
+
 	protected static void setProxyAuthentication(final String proxyUsername, final String proxyPassword) {
 		Authenticator authenticator = new Authenticator() {
 			public PasswordAuthentication getPasswordAuthentication() {
 				return (new PasswordAuthentication(proxyUsername, proxyPassword.toCharArray()));
+			}
+		};
+		Authenticator.setDefault(authenticator);
+	}
+	
+	protected static void clearProxyAuthentication() {
+		Authenticator authenticator = new Authenticator() {
+			public PasswordAuthentication getPasswordAuthentication() {
+				return (new PasswordAuthentication("", "".toCharArray()));
 			}
 		};
 		Authenticator.setDefault(authenticator);

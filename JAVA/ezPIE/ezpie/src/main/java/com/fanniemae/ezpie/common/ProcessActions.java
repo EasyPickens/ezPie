@@ -167,7 +167,7 @@ public class ProcessActions {
 				case "If":
 					action = new IfElement(session, actionElement);
 					IfElement condition = (IfElement) action;
-					if (condition.evalToBoolean()) {
+					if (condition.evalToBoolean(dataTokens)) {
 						NodeList childActions = XmlUtilities.selectNodes(actionElement, "*");
 						run(session, childActions, dataTokens);
 					}

@@ -37,6 +37,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataRow;
 import com.fanniemae.ezpie.datafiles.lowlevel.FieldBoolean;
 import com.fanniemae.ezpie.datafiles.lowlevel.FieldByte;
 import com.fanniemae.ezpie.datafiles.lowlevel.FieldChar;
+import com.fanniemae.ezpie.datafiles.lowlevel.FieldClob;
 import com.fanniemae.ezpie.datafiles.lowlevel.FieldDate;
 import com.fanniemae.ezpie.datafiles.lowlevel.FieldDouble;
 import com.fanniemae.ezpie.datafiles.lowlevel.FieldInteger;
@@ -337,6 +338,8 @@ public class DataReader extends DataFormat {
 			}
 		case ObjectData:
 			return new FieldObject(_bis);
+		case ClobData:
+			return new FieldClob(_bis);
 		default:
 			throw new IOException("Data type " + columnDataType.toString() + " is not currently supported by the data engine.");
 		}

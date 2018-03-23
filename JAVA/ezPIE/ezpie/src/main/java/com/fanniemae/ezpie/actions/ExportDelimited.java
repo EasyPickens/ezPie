@@ -39,8 +39,10 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 public class ExportDelimited extends Action {
 
+	protected String _filenameToken;
 	protected String _outputFilename;
 	protected String _delimiter = ",";
+	protected String _lineSeparator = System.lineSeparator();
 	protected String _dataSetName;
 
 	protected DataStream _dataStream;
@@ -54,6 +56,7 @@ public class ExportDelimited extends Action {
 	protected boolean _roundDoubles = false;
 	protected boolean _appendData = false;
 	protected boolean _writeColumnNames = true;
+	protected boolean _removeCrLf = false;
 
 	public ExportDelimited(SessionManager session, Element action) {
 		super(session, action, false);
@@ -62,10 +65,13 @@ public class ExportDelimited extends Action {
 		_dataSetName = requiredAttribute("DataSetName");
 
 		_delimiter = optionalAttribute("Delimiter", _delimiter);
+		_lineSeparator = optionalAttribute("LineSeparator",_lineSeparator);
 		_trimSpaces = StringUtilities.toBoolean(optionalAttribute("TrimSpaces"), _trimSpaces);
 		_appendData = StringUtilities.toBoolean(optionalAttribute("Append"), _appendData);
 		_roundDoubles = StringUtilities.toBoolean(optionalAttribute("RoundDoubles"), _roundDoubles);
 		_writeColumnNames = StringUtilities.toBoolean(optionalAttribute("IncludeColumnNames"), _writeColumnNames);
+		_removeCrLf = StringUtilities.toBoolean(optionalAttribute("FlattenFieldStrings"), _removeCrLf);
+		_filenameToken = _session.optionalAttribute(action, "Name","ExportDelimited");
 	}
 
 	@Override
@@ -81,10 +87,10 @@ public class ExportDelimited extends Action {
 				// Write Column Headers
 				for (int i = 0; i < _outputLength; i++) {
 					if (i > 0)
-						fw.append(',');
+						fw.append(_delimiter);
 					fw.append(wrapString(_outputColumnNames[i]));
 				}
-				fw.append(System.lineSeparator());
+				fw.append(_lineSeparator);
 			}
 
 			int iRowCount = 0;
@@ -94,28 +100,31 @@ public class ExportDelimited extends Action {
 
 				for (int i = 0; i < _outputLength; i++) {
 					if (i > 0)
-						fw.append(',');
+						fw.append(_delimiter);
 
 					if (_outputColumnIndexes[i] == -1) {
 						fw.append("");
+					} else if (dataRow[_outputColumnIndexes[i]] == null) {
+						fw.append("");						
 					} else if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.DateData) {
 						fw.append(DateUtilities.toIsoString((Date) dataRow[_outputColumnIndexes[i]]));
 					} else if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.StringData) {
 						fw.append(wrapString(dataRow[_outputColumnIndexes[i]]));
 					} else if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.DoubleData && _roundDoubles) {
 						fw.append(doubleFormat(dataRow[_outputColumnIndexes[i]]));
-					} else if (dataRow[_outputColumnIndexes[i]] == null) {
-						fw.append("");
+					} else if (_outputColumnDataTypes[_outputColumnIndexes[i]] == DataType.DoubleData) {
+						fw.append(StringUtilities.formatAsNumber((double)dataRow[_outputColumnIndexes[i]]));						
 					} else {
 						fw.append(dataRow[_outputColumnIndexes[i]].toString());
 					}
 				}
-				fw.append(System.lineSeparator());
+				fw.append(_lineSeparator);
 				iRowCount++;
 			}
 			fw.close();
 			dr.close();
 			_session.addLogMessage("", "Data", String.format("%,d rows of data written.", iRowCount));
+			_session.addToken(_filenameToken,"Filename",_outputFilename);
 			_session.addLogMessage("", "Completed", String.format("Data saved to %s", _outputFilename));
 		} catch (Exception e) {
 			throw new PieException("Error while trying to export the data into a delimited file.", e);
@@ -163,9 +172,14 @@ public class ExportDelimited extends Action {
 		if (objectValue == null) {
 			return "";
 		}
-
+		
 		boolean wrapDoubleQuotes = false;
 		String value = objectValue.toString();
+
+		if (value.contains(System.lineSeparator())) {
+			value = value.replace(System.lineSeparator(), " ");
+		}
+		
 		if (_trimSpaces) {
 			value = value.trim();
 		}

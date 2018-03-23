@@ -35,6 +35,8 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 public class Tokens extends Action {
 
+	protected Boolean _fixedTokens = false;
+
 	public Tokens(SessionManager session, Element action) {
 		super(session, action, false);
 	}
@@ -43,26 +45,26 @@ public class Tokens extends Action {
 	public String executeAction(HashMap<String, String> dataTokens) {
 		NodeList nl = XmlUtilities.selectNodes(_action, "DataSource");
 		int length = nl.getLength();
-		for (int i=0;i<length;i++) {
-			Element child = (Element)nl.item(i);
+		for (int i = 0; i < length; i++) {
+			Element child = (Element) nl.item(i);
 			if ((child != null) && "DataSource".equalsIgnoreCase(child.getNodeName())) {
 				readData(child, dataTokens);
-			}			
+			}
 		}
 		_session.addTokens(_action);
 		return null;
 	}
 
 	protected void readData(Element child, HashMap<String, String> dataTokens) {
-		String dataSetName = requiredAttribute(child,"DataSetName");
+		String dataSetName = requiredAttribute(child, "DataSetName");
 		DataStream dataStream = _session.getDataStream(dataSetName);
-		
+
 		try (DataReader dr = new DataReader(dataStream)) {
 			String[] columnNames = dr.getColumnNames();
 			DataType[] outputColumnDataTypes = dr.getDataTypes();
-			
+
 			if (!dr.eof()) {
-				Map<String,String> newTokens = new HashMap<String,String>();
+				Map<String, String> newTokens = new HashMap<String, String>();
 				Object[] dataRow = dr.getDataRow();
 				for (int i = 0; i < dataRow.length; i++) {
 					String value = "";
@@ -75,12 +77,12 @@ public class Tokens extends Action {
 					}
 					newTokens.put(columnNames[i], value);
 				}
-				_session.addTokens(dataSetName, newTokens);				
+				_session.addTokens(dataSetName, newTokens);
 			}
 
 			dr.close();
 		} catch (Exception e) {
-			throw new PieException("Error while trying to convert the data into tokens. "+e.getMessage() , e);
+			throw new PieException("Error while trying to convert the data into tokens. " + e.getMessage(), e);
 		}
 		_session.clearDataTokens();
 	}
