@@ -79,6 +79,7 @@ public class ProcessActions {
 				case "Note":
 					continue;
 				case "Tokens":
+				case "StaticTokens":
 					action = new Tokens(session, actionElement);
 					break;
 				case "RunCommand":

@@ -297,6 +297,7 @@ public class TokenManager {
 
 		for (int i = 0; i < nodeCount; i++) {
 			String tokenType = nl.item(i).getNodeName();
+			String tokenParentName = nl.item(i).getParentNode().getNodeName();
 			if ("DataSource".equals(tokenType)) {
 				continue;
 			}
@@ -315,7 +316,7 @@ public class TokenManager {
 				boolean hideValue = false;
 				Node xA = attributes.item(x);
 				String name = xA.getNodeName();
-				String value = xA.getNodeValue();
+				String value = "StaticTokens".equals(tokenParentName) ? resolveTokens(xA.getNodeValue()) : xA.getNodeValue();
 
 				if (!Constants.SECURE_SUFFIX.equals(name) && name.endsWith(Constants.SECURE_SUFFIX)) {
 					name = name.substring(0, name.length() - Constants.SECURE_SUFFIX_LENGTH);
