@@ -19,7 +19,11 @@ public class FieldClob extends FieldReadWrite {
         if (_bis.readBoolean()) {
             return null;
         }
-        return _bis.readUTF();
+        int length = _bis.readInt();
+        byte[] logBytes = new byte[length];
+        _bis.read(logBytes);
+        return new String(logBytes);
+        // return _bis.readUTF();
 	}
 
 	@Override
@@ -29,15 +33,24 @@ public class FieldClob extends FieldReadWrite {
             return;
         }
         _bos.writeBoolean(false);
+        String log = "";
+        int length = 0;
+        byte[] logBytes = null;
         if ((o != null) && (o.getClass().getName().indexOf("CLOB") >= 0) ){
             try {
             	Clob clob = (Clob)o;
-    			_bos.writeUTF(clob.getSubString(1, (int) clob.length()));
+            	log = clob.getSubString(1, (int) clob.length());
+            	logBytes = log.getBytes();
+            	length = logBytes.length;
+            	_bos.writeInt(length);
+            	_bos.write(logBytes);
+    			//_bos.writeUTF(clob.getSubString(1, (int) clob.length()));
     		} catch (SQLException e) {
     			e.printStackTrace();
     		}
         } else {
-			_bos.writeUTF((String)o);
+			//_bos.writeUTF((String)o);
+        	_bos.writeBoolean(true);
 	}
 	}
 }

@@ -50,7 +50,7 @@ public class SeekableDataInputStream extends FilterInputStream implements DataIn
     @Override
     public final int read(byte b[]) throws IOException {
         int i = in.read(b, 0, b.length);
-        _pos += 1;
+        _pos += b.length;
         return i;
     }
 
