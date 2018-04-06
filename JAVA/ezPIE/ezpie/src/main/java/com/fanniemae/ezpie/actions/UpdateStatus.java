@@ -62,7 +62,9 @@ public class UpdateStatus extends Action {
 
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		SqlUtilities.ExecuteScalar(_session, _connection, _updateCommand, _parameters, true);
+		_session.clearDataTokens();
 		return null;
 	}
 

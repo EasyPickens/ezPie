@@ -35,6 +35,7 @@ public class Schedule extends Action {
 
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		CalculateSchedule calc = new CalculateSchedule(_session,_action);
 		LocalDateTime newSchedule = calc.nextScheduledRun();
 		if (newSchedule != null) {
@@ -54,6 +55,7 @@ public class Schedule extends Action {
 		} else {
 			_session.addLogMessage("", "Result", calc.getReason());
 		}
+		_session.clearDataTokens();
 		return null;
 	}
 

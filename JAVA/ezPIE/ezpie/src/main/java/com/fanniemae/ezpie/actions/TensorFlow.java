@@ -42,17 +42,18 @@ import com.fanniemae.ezpie.datafiles.DataWriter;
 
 public class TensorFlow extends Action {
 	protected boolean _isInternal = false;
-	
+
 	protected int _inputLength = 0;
 	protected int[] _inputColumnIndexes = null;
 
 	public TensorFlow(SessionManager session, Element action) {
 		super(session, action, true);
-		_isInternal = StringUtilities.toBoolean(optionalAttribute("Internal","False"));
+		_isInternal = StringUtilities.toBoolean(optionalAttribute("Internal", "False"));
 	}
 
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		String modelBundlePath = requiredAttribute("ModelBundlePath");
 		if (FileUtilities.isInvalidDirectory(modelBundlePath)) {
 			throw new PieException(String.format("ModelBundlePath (%s) does not exist.", modelBundlePath));
@@ -78,32 +79,30 @@ public class TensorFlow extends Action {
 		default:
 			throw new PieException(String.format("%s is not a currently supported type.", inputDataSetType));
 		}
-		
+
 		if ((data == null) || (data.length == 0) || (data[0].length == 0)) {
-			throw new PieException(String.format("Input dataset %s is empty.",inputDataSetName));
+			throw new PieException(String.format("Input dataset %s is empty.", inputDataSetName));
 		}
 
 		try (SavedModelBundle b = SavedModelBundle.load(modelBundlePath, modelBundleTags)) {
 			Session sess = b.session();
 			Tensor<?> inputTensor = Tensor.create(data);
 
-			Tensor<?> result = sess.runner().feed(feedOperationName, inputTensor)
-					.fetch(fetchOperationName)
-					.run().get(0);
+			Tensor<?> result = sess.runner().feed(feedOperationName, inputTensor).fetch(fetchOperationName).run().get(0);
 
 			long[] shape = result.shape();
 			float[][] vector = null;
 			float bestPrediction = 0;
 			int bestItemNumber = -1;
 			if (shape.length == 1) {
-				vector = new float[1][(int)shape[0]];
+				vector = new float[1][(int) shape[0]];
 				vector[0] = result.copyTo(vector[0]);
 				bestPrediction = vector[0][0];
 				bestItemNumber = 0;
 			} else if (shape.length == 2) {
-				vector = new float[(int)shape[0]][(int)shape[1]];
+				vector = new float[(int) shape[0]][(int) shape[1]];
 				vector = result.copyTo(vector);
-				
+
 				int itemNumber = 0;
 				for (float val : vector[0]) {
 					if (val > bestPrediction) {
@@ -111,7 +110,7 @@ public class TensorFlow extends Action {
 						bestPrediction = val;
 					}
 					itemNumber++;
-				}				
+				}
 			}
 
 			if (bestItemNumber > -1) {
@@ -144,7 +143,7 @@ public class TensorFlow extends Action {
 				throw new PieException(String.format("Error while saving model results. %s", e.getMessage()), e);
 			}
 		}
-
+		_session.clearDataTokens();
 		return null;
 	}
 
@@ -168,11 +167,11 @@ public class TensorFlow extends Action {
 					} else if (value.getClass().getName().indexOf("Double") > -1) {
 						row[i] = (float) ((Double) dataRow[_inputColumnIndexes[i]]).doubleValue();
 					} else if (value.getClass().getName().indexOf("double") > -1) {
-						row[i] = (float) ((double) dataRow[_inputColumnIndexes[i]]);						
+						row[i] = (float) ((double) dataRow[_inputColumnIndexes[i]]);
 					} else if (value.getClass().getName().indexOf("Integer") > -1) {
 						row[i] = (float) ((Integer) dataRow[_inputColumnIndexes[i]]).doubleValue();
 					} else if (value.getClass().getName().indexOf("integer") > -1) {
-						row[i] = (float) ((int) dataRow[_inputColumnIndexes[i]]);						
+						row[i] = (float) ((int) dataRow[_inputColumnIndexes[i]]);
 					} else {
 						row[i] = (float) dataRow[_inputColumnIndexes[i]];
 					}

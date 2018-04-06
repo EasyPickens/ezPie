@@ -121,7 +121,9 @@ public class RunPie {
 		// String job = "EncryptionTest";
 		// String job = "iCart";
 		// String job = "StoredProcedure";
-		String job = "PythonTest";
+		// String job = "PythonTest";
+		// String job = "iCartTriageResults";
+		String job = "iCartTrainingData";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

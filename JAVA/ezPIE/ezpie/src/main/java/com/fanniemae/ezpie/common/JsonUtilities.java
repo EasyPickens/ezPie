@@ -52,6 +52,8 @@ public class JsonUtilities {
 			while (!dr.eof()) {
 				Object[] dataRow = dr.getDataRow();
 				JSONObject jsonDataRow = new JSONObject();
+				
+				dataSet.put("ColumnNames", columnNames);
 
 				for (int i = 0; i < columnNames.length; i++) {
 					if (dataRow[i] == null) {

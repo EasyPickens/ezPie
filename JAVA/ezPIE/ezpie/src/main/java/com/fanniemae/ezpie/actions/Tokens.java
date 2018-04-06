@@ -43,6 +43,7 @@ public class Tokens extends Action {
 
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		NodeList nl = XmlUtilities.selectNodes(_action, "DataSource");
 		int length = nl.getLength();
 		for (int i = 0; i < length; i++) {
@@ -52,6 +53,7 @@ public class Tokens extends Action {
 			}
 		}
 		_session.addTokens(_action);
+		_session.clearDataTokens();
 		return null;
 	}
 

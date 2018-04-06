@@ -39,6 +39,7 @@ public class GitClone extends Action {
 	
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
+		_session.setDataTokens(dataTokens);
 		// Repository connection information could be on the local element or stored in the settings file.
 		// Check the local element first, if nothing is found and a connection name is provided switch to the settings file.
 
@@ -88,7 +89,7 @@ public class GitClone extends Action {
 		} catch (URISyntaxException e) {
 			throw new PieException(String.format("Error while trying to clone %s repository. %s",repo_uri, e.getMessage()),e);
 		}
-		
+		_session.clearDataTokens();
 		return null;
 	}
 
