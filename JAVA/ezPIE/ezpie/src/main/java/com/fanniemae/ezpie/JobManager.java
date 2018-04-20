@@ -16,8 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
+import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.fanniemae.ezpie.actions.Action;
+import com.fanniemae.ezpie.actions.LineChart;
+import com.fanniemae.ezpie.charts.Chart;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.JsonUtilities;
 import com.fanniemae.ezpie.common.ProcessActions;
@@ -68,7 +73,7 @@ public class JobManager {
 
 		_session.addLogMessage("Format Data", "Convert", "Converting datasets to JSON." );
 		List<String> dataSets = _session.getDataStreamList();
-		Collections.sort(dataSets);
+		//Collections.sort(dataSets);
 		int length = dataSets.size();
 		JSONArray jsonDataSets = new JSONArray();
 		for (int i = 0; i < length; i++) {
@@ -80,6 +85,19 @@ public class JobManager {
 			// convert each dataset to JSON.
 			jsonDataSets.put(JsonUtilities.convert(name, _session.getDataStream(name, true)));
 		}
+
+		NodeList nlCharts = XmlUtilities.selectNodes(_session.getJobDefinition(), "LineChart");
+		if ((nlCharts != null) && (nlCharts.getLength() > 0)) {
+			_session.addLogMessage("", "Chart", "Converting datasets to chart json." );	
+			Action chart = new Chart(_session, (Element) nlCharts.item(0));
+			String chartString = chart.executeAction(null);
+			JSONObject chartJson = new JSONObject(chartString);
+			JSONObject chartData = new JSONObject();
+			chartData.put("Name", _session.getAttribute(nlCharts.item(0), "Name"));
+			chartData.put("Chart", chartJson);
+			jsonDataSets.put(chartData);
+		}
+		
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
 		return jsonDataSets.toString();
 	}

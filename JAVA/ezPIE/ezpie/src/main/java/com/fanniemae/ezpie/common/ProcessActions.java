@@ -35,6 +35,7 @@ import com.fanniemae.ezpie.actions.GetSourceCode;
 import com.fanniemae.ezpie.actions.GitClone;
 import com.fanniemae.ezpie.actions.HighlightScan;
 import com.fanniemae.ezpie.actions.IfElement;
+import com.fanniemae.ezpie.actions.LineChart;
 import com.fanniemae.ezpie.actions.LogComment;
 import com.fanniemae.ezpie.actions.MakeDirectory;
 import com.fanniemae.ezpie.actions.Maven;
@@ -196,6 +197,9 @@ public class ProcessActions {
 					break;
 				case "TensorFlow":
 					action = new TensorFlow(session, actionElement);
+					break;
+				case "LineChart":
+					action = new LineChart(session, actionElement);
 					break;
 				default:
 					session.addLogMessage("** Warning **", actionList.item(i).getNodeName(), "Operation not currently supported.");
