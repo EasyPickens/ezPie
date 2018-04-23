@@ -14,7 +14,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
-import com.fanniemae.ezpie.actions.Action;
 import com.fanniemae.ezpie.common.ArrayUtilities;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.PieException;
@@ -23,7 +22,11 @@ import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
-public class Chart extends Action {
+public class Chart {
+	
+	protected SessionManager _session;
+	protected Element _action;
+	protected String _actionName;
 
 	protected Map<String, List<Object>> _dataLayouts = new HashMap<String, List<Object>>();
 	protected Map<String, int[]> _dataColumnIndexes = new HashMap<String, int[]>();
@@ -33,13 +36,15 @@ public class Chart extends Action {
 	protected JSONArray _fullData = new JSONArray();
 
 	public Chart(SessionManager session, Element action) {
-		super(session, action, true);
+		//super(session, action, true);
+		_session = session;
+		_action = (Element)action;
+		_actionName = _session.getAttribute(_action, "Name");
 	}
 
-	@Override
-	public String executeAction(HashMap<String, String> dataTokens) {
+	public JSONObject buildChartJson(HashMap<String, String> dataTokens) {
 		_session.setDataTokens(dataTokens);
-		String dataSetName = requiredAttribute("DataSetName");
+		String dataSetName = _session.requiredAttribute(_action, "DataSetName");
 		try (DataReader dr = new DataReader(_session.getDataStream(dataSetName))) {
 			_columnNames = dr.getColumnNames();
 			_dataTypes = dr.getDataTypes();
@@ -52,8 +57,8 @@ public class Chart extends Action {
 			int length = dataLayouts.getLength();
 			String[] dataNames = new String[length];
 			for (int i = 0; i < length; i++) {
-				String name = requiredAttribute(dataLayouts.item(i), "Name");
-				String[] columnNames = StringUtilities.split(requiredAttribute(dataLayouts.item(i), "DataRow"));
+				String name = _session.requiredAttribute(dataLayouts.item(i), "Name");
+				String[] columnNames = StringUtilities.split(_session.requiredAttribute(dataLayouts.item(i), "DataRow"));
 				int[] columnIndexes = null;
 				if ((columnNames != null) && (columnNames.length > 0)) {
 					columnIndexes = new int[columnNames.length];
@@ -98,11 +103,11 @@ public class Chart extends Action {
 		// Assemble the final JSON data and write a file.
 		JSONObject chartJson = new JSONObject();
 		JSONObject chartSettings = convertToJson();
-		chartJson.put("Name", requiredAttribute("Name"));
+		chartJson.put("Name", _session.requiredAttribute(_action, "Name"));
 		chartJson.put("Chart", chartSettings);
 		chartJson.put("Data",_fullData);
 		chartJson.put("ColumnNames",_columnNames);
-		return chartJson.toString();
+		return chartJson;
 	}
 
 	protected Object getMetric(DataType dataType, Object value) {

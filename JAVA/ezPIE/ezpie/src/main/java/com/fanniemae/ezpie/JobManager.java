@@ -87,9 +87,8 @@ public class JobManager {
 		NodeList nlCharts = XmlUtilities.selectNodes(_session.getJobDefinition(), "LineChart");
 		if ((nlCharts != null) && (nlCharts.getLength() > 0)) {
 			_session.addLogMessage("", "Chart", "Converting datasets to chart json." );	
-			Action chart = new Chart(_session, (Element) nlCharts.item(0));
-			String chartString = chart.executeAction(null);
-			JSONObject chartJson = new JSONObject(chartString);
+			Chart chart = new Chart(_session, (Element) nlCharts.item(0));
+			JSONObject chartJson = chart.buildChartJson(null);
 			jsonDataSets.put(chartJson);
 		}
 		
