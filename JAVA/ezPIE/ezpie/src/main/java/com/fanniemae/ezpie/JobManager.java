@@ -11,7 +11,6 @@
 
 package com.fanniemae.ezpie;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +20,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.actions.Action;
-import com.fanniemae.ezpie.actions.LineChart;
 import com.fanniemae.ezpie.charts.Chart;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.JsonUtilities;
@@ -92,10 +90,10 @@ public class JobManager {
 			Action chart = new Chart(_session, (Element) nlCharts.item(0));
 			String chartString = chart.executeAction(null);
 			JSONObject chartJson = new JSONObject(chartString);
-			JSONObject chartData = new JSONObject();
-			chartData.put("Name", _session.getAttribute(nlCharts.item(0), "Name"));
-			chartData.put("Chart", chartJson);
-			jsonDataSets.put(chartData);
+//			JSONObject chartData = new JSONObject();
+//			chartData.put("Name", _session.getAttribute(nlCharts.item(0), "Name"));
+//			chartData.put("Chart", chartJson);
+			jsonDataSets.put(chartJson);
 		}
 		
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));

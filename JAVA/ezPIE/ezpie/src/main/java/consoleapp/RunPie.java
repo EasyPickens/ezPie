@@ -130,7 +130,7 @@ public class RunPie {
 			System.out.println("Initializing PIE JobManager");
 			JobManager jobManager = new JobManager(sSettings, job, null);
 			logFilename = jobManager.getLogFilename();
-			viewlog(logFilename);
+			//viewlog(logFilename);
 			System.out.println("Running job definition " + job);
 			//jobManager.runJob();
 			String dataSets = jobManager.getDataJson();
