@@ -28,9 +28,6 @@ public class Chart extends Action {
 	protected Map<String, List<Object>> _dataLayouts = new HashMap<String, List<Object>>();
 	protected Map<String, int[]> _dataColumnIndexes = new HashMap<String, int[]>();
 
-	// protected List<Object> _labels = new ArrayList<Object>();
-	// protected Map<Integer, List<Object>> _dataSets = new HashMap<Integer, List<Object>>();
-
 	protected String[] _columnNames;
 	protected DataType[] _dataTypes;
 	protected JSONArray _fullData = new JSONArray();
@@ -84,6 +81,8 @@ public class Chart extends Action {
 						_dataLayouts.get(dataNames[i]).add(rowValues);
 					}
 				}
+				
+				// build a full copy of the dataset to populate a supporting table if needed.
 				JSONObject jsonDataRow = new JSONObject();
 				for (int i = 0; i < dataRow.length; i++) {
 					jsonDataRow.put(_columnNames[i], getMetric(_dataTypes[i], dataRow[i]));
@@ -97,15 +96,12 @@ public class Chart extends Action {
 		_session.clearDataTokens();
 
 		// Assemble the final JSON data and write a file.
-		
 		JSONObject chartJson = new JSONObject();
 		JSONObject chartSettings = convertToJson();
 		chartJson.put("Name", requiredAttribute("Name"));
 		chartJson.put("Chart", chartSettings);
 		chartJson.put("Data",_fullData);
 		chartJson.put("ColumnNames",_columnNames);
-		
-		
 		return chartJson.toString();
 	}
 
@@ -124,128 +120,32 @@ public class Chart extends Action {
 		JSONObject chartDefinition = new JSONObject();
 		int length = nl.getLength();
 		for (int i = 0; i < length; i++) {
-			chartDefinition.put(nl.item(i).getNodeName(), readNode2(nl.item(i)));
+			String key = nl.item(i).getNodeName();
+			JSONObject json = readNodes(nl.item(i));
+			if (json.has(key)) {
+				chartDefinition.put(key, json.get(key));
+			} else {
+				chartDefinition.put(key, json);
+			}
 		}
 		return chartDefinition;
 	}
 
-	protected String convertToJsonX() {
-		JSONObject chartJson = new JSONObject();
-		JSONObject options = new JSONObject();
-		JSONArray datasets = new JSONArray();
-		JSONObject data = new JSONObject();
-
-		chartJson.put("type", "line");
-		chartJson.put("data", data);
-		chartJson.put("options", options);
-		// data.put("labels", _labels);
-		data.put("datasets", datasets);
-
-		NodeList dataNodes = XmlUtilities.selectNodes(_action, "Data");
-		int length = dataNodes.getLength();
-		for (int i = 0; i < length; i++) {
-			JSONObject metricValues = new JSONObject();
-			// metricValues.put("data", _dataSets.get(i).toArray());
-			NodeList additionalSettings = XmlUtilities.selectNodes(dataNodes.item(i), "Set");
-			int count = additionalSettings.getLength();
-			for (int x = 0; x < count; x++) {
-				Node currentNode = additionalSettings.item(x);
-				NamedNodeMap attributeList = currentNode.getAttributes();
-				int attributeCount = attributeList.getLength();
-				for (int y = 0; y < attributeCount; y++) {
-					metricValues.put(attributeList.item(y).getNodeName(), attributeList.item(y).getNodeValue());
-				}
-			}
-			datasets.put(metricValues);
-		}
-
-		// Read any defined options
-		NodeList optionNodes = XmlUtilities.selectNodes(_action, "Options");
-		length = optionNodes.getLength();
-		for (int i = 0; i < length; i++) {
-			NodeList childNodes = XmlUtilities.selectNodes(optionNodes.item(i), "*");
-			int childcount = childNodes.getLength();
-			for (int x = 0; x < childcount; x++) {
-				Node optionChild = childNodes.item(x);
-				NamedNodeMap attributeList = optionChild.getAttributes();
-				int attributeCount = attributeList.getLength();
-				JSONObject current = new JSONObject();
-				for (int y = 0; y < attributeCount; y++) {
-					current.put(attributeList.item(y).getNodeName(), attributeList.item(y).getNodeValue());
-				}
-				options.put(optionChild.getNodeName(), current);
-			}
-
-		}
-
-		// System.out.println(chartJson.toString());
-		NodeList test2 = XmlUtilities.selectNodes(_action, "dataX");
-		for (int i = 0; i < test2.getLength(); i++) {
-			JSONObject aa = readNode2(test2.item(i));
-			System.out.println(aa);
-		}
-
-		// NodeList test = XmlUtilities.selectNodes(_action, "*[self::data or self::options]");
-		// for(int i=0;i<test.getLength();i++) {
-		// JSONObject xx = readNode(test.item(i));
-		//
-		// // Node options2 = XmlUtilities.selectSingleNode(_action, "Options2");
-		// // JSONObject xx = readNode(options2);
-		//
-		// System.out.println(xx);
-		// }
-		return chartJson.toString();
-	}
-
-	protected JSONObject readNode(Node node) {
+	protected JSONObject readNodes(Node node) {
 		int length;
 		JSONObject result = new JSONObject();
 		String key = node.getNodeName();
-		NamedNodeMap attr = node.getAttributes();
-		if ((attr != null) && (attr.getLength() > 0)) {
-			length = attr.getLength();
+		NamedNodeMap attributes = node.getAttributes();
+		if ((attributes != null) && (attributes.getLength() > 0)) {
+			length = attributes.getLength();
 			for (int i = 0; i < length; i++) {
-				result.put(attr.item(i).getNodeName(), JSONObject.stringToValue(attr.item(i).getNodeValue()));
-			}
-		}
-
-		// check for child nodes
-		NodeList childNodes = XmlUtilities.selectNodes(node, "*");
-		length = childNodes.getLength();
-		for (int i = 0; i < length; i++) {
-			String childKey = childNodes.item(i).getNodeName();
-			JSONObject childJson = readNode(childNodes.item(i));
-			if ("ArrayItem".equalsIgnoreCase(childKey)) {
-				JSONArray ja = new JSONArray();
-				ja.put(childJson);
-				result.put(key, ja);
-			} else {
-				if (childJson.has(childKey)) {
-					result.put(childKey, childJson.get(childKey));
-				} else {
-					result.put(childKey, childJson);
-				}
-			}
-		}
-
-		return result;
-	}
-
-	protected JSONObject readNode2(Node node) {
-		int length;
-		JSONObject result = new JSONObject();
-		String key = node.getNodeName();
-		NamedNodeMap attr = node.getAttributes();
-		if ((attr != null) && (attr.getLength() > 0)) {
-			length = attr.getLength();
-			for (int i = 0; i < length; i++) {
-				if ("value".equalsIgnoreCase(attr.item(i).getNodeName())) {
-					String value = attr.item(i).getNodeValue();
-					if (value.contains("[DataLayout.")) {
+				if ("value".equalsIgnoreCase(attributes.item(i).getNodeName())) {
+					String value = attributes.item(i).getNodeValue();
+					if ((value != null) && value.contains("[DataLayout.")) {
 						String dataKey = value.replace("[DataLayout.", "").replace("]", "");
 						result.put(key, _dataLayouts.get(dataKey));
 					} else {
-						result.put(key, JSONObject.stringToValue(attr.item(i).getNodeValue()));
+						result.put(key, JSONObject.stringToValue(value));
 					}
 				}
 			}
@@ -257,7 +157,7 @@ public class Chart extends Action {
 			length = arrayNodes.getLength();
 			JSONArray jsonArray = new JSONArray();
 			for (int i = 0; i < length; i++) {
-				JSONObject childJson = readNode2(arrayNodes.item(i));
+				JSONObject childJson = readNodes(arrayNodes.item(i));
 				jsonArray.put(childJson);
 			}
 			result.put(key, jsonArray);
@@ -268,7 +168,7 @@ public class Chart extends Action {
 		length = childNodes.getLength();
 		for (int i = 0; i < length; i++) {
 			String childKey = childNodes.item(i).getNodeName();
-			JSONObject childJson = readNode2(childNodes.item(i));
+			JSONObject childJson = readNodes(childNodes.item(i));
 			if (childJson.has(childKey)) {
 				result.put(childKey, childJson.get(childKey));
 			} else {

@@ -90,9 +90,6 @@ public class JobManager {
 			Action chart = new Chart(_session, (Element) nlCharts.item(0));
 			String chartString = chart.executeAction(null);
 			JSONObject chartJson = new JSONObject(chartString);
-//			JSONObject chartData = new JSONObject();
-//			chartData.put("Name", _session.getAttribute(nlCharts.item(0), "Name"));
-//			chartData.put("Chart", chartJson);
 			jsonDataSets.put(chartJson);
 		}
 		
