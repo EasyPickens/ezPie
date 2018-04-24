@@ -1,4 +1,4 @@
-package com.fanniemae.ezpie.charts;
+package com.fanniemae.ezpie.layout;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,23 +22,25 @@ import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
-public class Chart {
-	
+public class JsonLayout {
+
 	protected SessionManager _session;
 	protected Element _action;
 	protected String _actionName;
 
 	protected Map<String, List<Object>> _dataLayouts = new HashMap<String, List<Object>>();
+	protected Map<String, String[]> _dataColumnNames = new HashMap<String, String[]>();
+	protected Map<String, String[]> _dataColumnTypes = new HashMap<String, String[]>();
 	protected Map<String, int[]> _dataColumnIndexes = new HashMap<String, int[]>();
 
 	protected String[] _columnNames;
 	protected DataType[] _dataTypes;
 	protected JSONArray _fullData = new JSONArray();
 
-	public Chart(SessionManager session, Element action) {
-		//super(session, action, true);
+	public JsonLayout(SessionManager session, Element action) {
+		// super(session, action, true);
 		_session = session;
-		_action = (Element)action;
+		_action = (Element) action;
 		_actionName = _session.getAttribute(_action, "Name");
 	}
 
@@ -60,14 +62,23 @@ public class Chart {
 				String name = _session.requiredAttribute(dataLayouts.item(i), "Name");
 				String[] columnNames = StringUtilities.split(_session.requiredAttribute(dataLayouts.item(i), "DataRow"));
 				int[] columnIndexes = null;
+				String[] columnJsonTypes = null;
 				if ((columnNames != null) && (columnNames.length > 0)) {
 					columnIndexes = new int[columnNames.length];
+					columnJsonTypes = new String[columnNames.length];
 					for (int x = 0; x < columnNames.length; x++) {
-						columnIndexes[x] = ArrayUtilities.indexOf(_columnNames, columnNames[x]);
+						int colIndex = ArrayUtilities.indexOf(_columnNames, columnNames[x]);
+						if (colIndex < 0) {
+							throw new PieException(String.format("%s column name not found in %s data set.", columnNames[x],dataSetName));
+						}
+						columnIndexes[x] = colIndex;
+						columnJsonTypes[x] = jsonTypes(columnIndexes[x]);
 					}
 				}
 				_dataColumnIndexes.put(name, columnIndexes);
 				_dataLayouts.put(name, new ArrayList<Object>());
+				_dataColumnNames.put(name, columnNames);
+				_dataColumnTypes.put(name, columnJsonTypes);
 				dataNames[i] = name;
 			}
 
@@ -86,13 +97,6 @@ public class Chart {
 						_dataLayouts.get(dataNames[i]).add(rowValues);
 					}
 				}
-				
-				// build a full copy of the dataset to populate a supporting table if needed.
-				JSONObject jsonDataRow = new JSONObject();
-				for (int i = 0; i < dataRow.length; i++) {
-					jsonDataRow.put(_columnNames[i], getMetric(_dataTypes[i], dataRow[i]));
-				}
-				_fullData.put(jsonDataRow);
 			}
 			dr.close();
 		} catch (Exception ex) {
@@ -104,9 +108,7 @@ public class Chart {
 		JSONObject chartJson = new JSONObject();
 		JSONObject chartSettings = convertToJson();
 		chartJson.put("Name", _session.requiredAttribute(_action, "Name"));
-		chartJson.put("Chart", chartSettings);
-		chartJson.put("Data",_fullData);
-		chartJson.put("ColumnNames",_columnNames);
+		chartJson.put("JsonData", chartSettings);
 		return chartJson;
 	}
 
@@ -149,6 +151,12 @@ public class Chart {
 					if ((value != null) && value.contains("[DataLayout.")) {
 						String dataKey = value.replace("[DataLayout.", "").replace("]", "");
 						result.put(key, _dataLayouts.get(dataKey));
+					} else if ((value != null) && value.contains("[ColumnNames.")) {
+						String dataKey = value.replace("[ColumnNames.", "").replace("]", "");
+						result.put(key, _dataColumnNames.get(dataKey));
+					} else if ((value != null) && value.contains("[ColumnTypes.")) {
+						String dataKey = value.replace("[ColumnTypes.", "").replace("]", "");
+						result.put(key, _dataColumnTypes.get(dataKey));
 					} else {
 						result.put(key, JSONObject.stringToValue(value));
 					}
@@ -182,5 +190,26 @@ public class Chart {
 		}
 
 		return result;
+	}
+
+	protected String jsonTypes(int index) {
+		if (index < 0) {
+			return "string";
+		}
+
+		switch (_dataTypes[index]) {
+		case BooleanData:
+			return "boolean";
+		case BigDecimalData:
+		case ByteData:
+		case DoubleData:
+		case FloatData:
+		case IntegerData:
+		case LongData:
+		case ShortData:
+			return "number";
+		default:
+			return "string";
+		}
 	}
 }
