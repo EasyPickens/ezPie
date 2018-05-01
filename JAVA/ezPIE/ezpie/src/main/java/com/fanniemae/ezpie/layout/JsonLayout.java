@@ -26,6 +26,7 @@ import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.ArrayUtilities;
+import com.fanniemae.ezpie.common.ColorUtilities;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -64,61 +65,63 @@ public class JsonLayout {
 
 	public JSONObject buildChartJson(HashMap<String, String> dataTokens) {
 		_session.setDataTokens(dataTokens);
-		String dataSetName = _session.requiredAttribute(_action, "DataSetName");
-		try (DataReader dr = new DataReader(_session.getDataStream(dataSetName))) {
-			_columnNames = dr.getColumnNames();
-			_dataTypes = dr.getDataTypes();
+		String dataSetName = _session.optionalAttribute(_action, "DataSetName");
+		if (StringUtilities.isNotNullOrEmpty(dataSetName)) {
+			try (DataReader dr = new DataReader(_session.getDataStream(dataSetName))) {
+				_columnNames = dr.getColumnNames();
+				_dataTypes = dr.getDataTypes();
 
-			// Setup the index arrays and initialize the data layout hash maps for all the metric columns
-			NodeList dataLayouts = XmlUtilities.selectNodes(_action, "DataLayout");
-			if ((dataLayouts == null) || (dataLayouts.getLength() < 1)) {
-				throw new PieException(String.format("%s element requires at least one child DataLayout element.", _actionName));
-			}
-			int length = dataLayouts.getLength();
-			String[] dataNames = new String[length];
-			for (int i = 0; i < length; i++) {
-				String name = _session.requiredAttribute(dataLayouts.item(i), "Name");
-				String[] columnNames = StringUtilities.split(_session.requiredAttribute(dataLayouts.item(i), "DataRow"));
-				int[] columnIndexes = null;
-				String[] columnJsonTypes = null;
-				if ((columnNames != null) && (columnNames.length > 0)) {
-					columnIndexes = new int[columnNames.length];
-					columnJsonTypes = new String[columnNames.length];
-					for (int x = 0; x < columnNames.length; x++) {
-						int colIndex = ArrayUtilities.indexOf(_columnNames, columnNames[x]);
-						if (colIndex < 0) {
-							throw new PieException(String.format("%s column name not found in %s data set.", columnNames[x],dataSetName));
+				// Setup the index arrays and initialize the data layout hash maps for all the metric columns
+				NodeList dataLayouts = XmlUtilities.selectNodes(_action, "DataLayout");
+				if ((dataLayouts == null) || (dataLayouts.getLength() < 1)) {
+					throw new PieException(String.format("%s element requires at least one child DataLayout element.", _actionName));
+				}
+				int length = dataLayouts.getLength();
+				String[] dataNames = new String[length];
+				for (int i = 0; i < length; i++) {
+					String name = _session.requiredAttribute(dataLayouts.item(i), "Name");
+					String[] columnNames = StringUtilities.split(_session.requiredAttribute(dataLayouts.item(i), "DataRow"));
+					int[] columnIndexes = null;
+					String[] columnJsonTypes = null;
+					if ((columnNames != null) && (columnNames.length > 0)) {
+						columnIndexes = new int[columnNames.length];
+						columnJsonTypes = new String[columnNames.length];
+						for (int x = 0; x < columnNames.length; x++) {
+							int colIndex = ArrayUtilities.indexOf(_columnNames, columnNames[x]);
+							if (colIndex < 0) {
+								throw new PieException(String.format("%s column name not found in %s data set.", columnNames[x], dataSetName));
+							}
+							columnIndexes[x] = colIndex;
+							columnJsonTypes[x] = jsonTypes(columnIndexes[x]);
 						}
-						columnIndexes[x] = colIndex;
-						columnJsonTypes[x] = jsonTypes(columnIndexes[x]);
+					}
+					_dataColumnIndexes.put(name, columnIndexes);
+					_dataLayouts.put(name, new ArrayList<Object>());
+					_dataColumnNames.put(name, columnNames);
+					_dataColumnTypes.put(name, columnJsonTypes);
+					dataNames[i] = name;
+				}
+
+				// Populate the data arrays with the metric values
+				while (!dr.eof()) {
+					Object[] dataRow = dr.getDataRow();
+					for (int i = 0; i < dataNames.length; i++) {
+						int[] columnIndexes = _dataColumnIndexes.get(dataNames[i]);
+						if (columnIndexes.length == 1) {
+							_dataLayouts.get(dataNames[i]).add(getMetric(_dataTypes[columnIndexes[0]], dataRow[columnIndexes[0]]));
+						} else {
+							Object[] rowValues = new Object[columnIndexes.length];
+							for (int col = 0; col < columnIndexes.length; col++) {
+								rowValues[col] = getMetric(_dataTypes[columnIndexes[col]], dataRow[columnIndexes[col]]);
+							}
+							_dataLayouts.get(dataNames[i]).add(rowValues);
+						}
 					}
 				}
-				_dataColumnIndexes.put(name, columnIndexes);
-				_dataLayouts.put(name, new ArrayList<Object>());
-				_dataColumnNames.put(name, columnNames);
-				_dataColumnTypes.put(name, columnJsonTypes);
-				dataNames[i] = name;
+				dr.close();
+			} catch (Exception ex) {
+				throw new PieException(String.format("Error while converting %s datastream into chart data. %s", dataSetName, ex.getMessage()), ex);
 			}
-
-			// Populate the data arrays with the metric values
-			while (!dr.eof()) {
-				Object[] dataRow = dr.getDataRow();
-				for (int i = 0; i < dataNames.length; i++) {
-					int[] columnIndexes = _dataColumnIndexes.get(dataNames[i]);
-					if (columnIndexes.length == 1) {
-						_dataLayouts.get(dataNames[i]).add(getMetric(_dataTypes[columnIndexes[0]], dataRow[columnIndexes[0]]));
-					} else {
-						Object[] rowValues = new Object[columnIndexes.length];
-						for (int col = 0; col < columnIndexes.length; col++) {
-							rowValues[col] = getMetric(_dataTypes[columnIndexes[col]], dataRow[columnIndexes[col]]);
-						}
-						_dataLayouts.get(dataNames[i]).add(rowValues);
-					}
-				}
-			}
-			dr.close();
-		} catch (Exception ex) {
-			throw new PieException(String.format("Error while converting %s datastream into chart data. %s", dataSetName, ex.getMessage()), ex);
 		}
 		_session.clearDataTokens();
 
@@ -166,15 +169,29 @@ public class JsonLayout {
 			for (int i = 0; i < length; i++) {
 				if ("value".equalsIgnoreCase(attributes.item(i).getNodeName())) {
 					String value = attributes.item(i).getNodeValue();
-					if ((value != null) && value.contains("[DataLayout.")) {
+					if (value == null) {
+						continue;
+					} else if (value.contains("[DataLayout.")) {
 						String dataKey = value.replace("[DataLayout.", "").replace("]", "");
 						result.put(key, _dataLayouts.get(dataKey));
-					} else if ((value != null) && value.contains("[ColumnNames.")) {
+					} else if (value.contains("[ColumnNames.")) {
 						String dataKey = value.replace("[ColumnNames.", "").replace("]", "");
 						result.put(key, _dataColumnNames.get(dataKey));
-					} else if ((value != null) && value.contains("[ColumnTypes.")) {
+					} else if (value.contains("[ColumnTypes.")) {
 						String dataKey = value.replace("[ColumnTypes.", "").replace("]", "");
 						result.put(key, _dataColumnTypes.get(dataKey));
+					} else if (value.contains("[JsonData.ColorArray]")) {
+						Element ele = (Element) node;
+						ColorUtilities cu = new ColorUtilities(ele.getAttribute("Hue"), ele.getAttribute("Saturation"), ele.getAttribute("Brightness"));
+						int arrayLength = StringUtilities.toInteger(ele.getAttribute("Length"), 1);
+						if (arrayLength == 1) {
+							result.put(key, cu.getRGBString());
+						} else {
+							result.put(key, cu.getRGBArray(arrayLength));
+						}
+					} else if (value.startsWith("[") && value.endsWith("]")) {
+						// try to convert this string into a JSON array of values
+						result.put(key, toJsonArray(value));
 					} else {
 						result.put(key, JSONObject.stringToValue(value));
 					}
@@ -229,5 +246,14 @@ public class JsonLayout {
 		default:
 			return "string";
 		}
+	}
+
+	protected JSONArray toJsonArray(String value) {
+		String[] values = StringUtilities.split(value.trim().replace("[", "").replace("]", ""));
+		JSONArray result = new JSONArray();
+		for (int i = 0; i < values.length; i++) {
+			result.put(JSONObject.stringToValue(values[i]));
+		}
+		return result;
 	}
 }

@@ -15,7 +15,7 @@ public class ColorColumn extends DataTransform {
 
 	protected double _hue;
 	protected double _saturation = 0.5;
-	protected double _value = 0.95;
+	protected double _brightness = 0.95;
 	// private double _golden_ratio_conjugate = 0.618033988749895;
 
 	public ColorColumn(SessionManager session, Element transform) {
@@ -25,8 +25,8 @@ public class ColorColumn extends DataTransform {
 		Random rand = new Random(System.nanoTime());
 		_hue = readAttribute("Hue", rand.nextDouble());
 		_saturation = readAttribute("Saturation", 0.5);
-		_value = readAttribute("Value", 0.95);
-		_cu = new ColorUtilities(_hue, _saturation, _value);
+		_brightness = readAttribute("Brightness", 0.95);
+		_cu = new ColorUtilities(_hue, _saturation, _brightness);
 	}
 
 	@Override
