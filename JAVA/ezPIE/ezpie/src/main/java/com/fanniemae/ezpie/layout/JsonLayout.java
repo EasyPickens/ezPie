@@ -55,22 +55,24 @@ public class JsonLayout {
 	protected String[] _columnNames;
 	protected DataType[] _dataTypes;
 	protected JSONArray _fullData = new JSONArray();
-	
+
 	protected String _dataLayoutToken;
 	protected String _columnNameToken;
 	protected String _columnTypeToken;
 	protected String _colorArrayToken;
-	
+	protected String _tokenSuffix;
+
 	public JsonLayout(SessionManager session, Element action) {
 		// super(session, action, true);
 		_session = session;
 		_action = (Element) action;
 		_actionName = _session.getAttribute(_action, "Name");
-		
+
 		_dataLayoutToken = String.format("%sDataLayout.", _session.getTokenPrefix());
 		_columnNameToken = String.format("%sColumnNames.", _session.getTokenPrefix());
 		_columnTypeToken = String.format("%sColumnTypes.", _session.getTokenPrefix());
-		_colorArrayToken = String.format("%sJsonData.ColorArray%s", _session.getTokenPrefix(),_session.getTokenSuffix());
+		_colorArrayToken = String.format("%sJsonData.ColorArray%s", _session.getTokenPrefix(), _session.getTokenSuffix());
+		_tokenSuffix = _session.getTokenSuffix();
 	}
 
 	public JSONObject buildChartJson(HashMap<String, String> dataTokens) {
@@ -181,19 +183,19 @@ public class JsonLayout {
 					String value = attributes.item(i).getNodeValue();
 					if (value == null) {
 						continue;
-					} else if (value.contains("[DataLayout.")) {
-						String dataKey = value.replace("[DataLayout.", "").replace("]", "");
+					} else if (value.contains(_dataLayoutToken)) {
+						String dataKey = value.replace(_dataLayoutToken, "").replace(_tokenSuffix, "");
 						result.put(key, _dataLayouts.get(dataKey));
-					} else if (value.contains("[ColumnNames.")) {
-						String dataKey = value.replace("[ColumnNames.", "").replace("]", "");
+					} else if (value.contains(_columnNameToken)) {
+						String dataKey = value.replace(_columnNameToken, "").replace(_tokenSuffix, "");
 						result.put(key, _dataColumnNames.get(dataKey));
-					} else if (value.contains("[ColumnTypes.")) {
-						String dataKey = value.replace("[ColumnTypes.", "").replace("]", "");
+					} else if (value.contains(_columnTypeToken)) {
+						String dataKey = value.replace(_columnTypeToken, "").replace(_tokenSuffix, "");
 						result.put(key, _dataColumnTypes.get(dataKey));
-					} else if (value.contains("[JsonData.ColorArray]")) {
+					} else if (value.contains(_colorArrayToken)) {
 						Element ele = (Element) node;
 						ColorUtilities cu = new ColorUtilities(ele.getAttribute("Hue"), ele.getAttribute("Saturation"), ele.getAttribute("Brightness"));
-						cu.useRandomColor(StringUtilities.toBoolean(ele.getAttribute("Random"),false));
+						cu.useRandomColor(StringUtilities.toBoolean(ele.getAttribute("Random"), false));
 						int arrayLength = StringUtilities.toInteger(ele.getAttribute("Length"), 1);
 						if (arrayLength == 1) {
 							result.put(key, cu.nextColor());
@@ -203,6 +205,9 @@ public class JsonLayout {
 					} else if (value.startsWith("[") && value.endsWith("]")) {
 						// try to convert this string into a JSON array of values
 						result.put(key, toJsonArray(value));
+					} else if (value.startsWith("{") && value.endsWith("}")) {
+						// try to convert this string into a JSON array of values
+						result.put(key, toJsonObject(value));
 					} else {
 						result.put(key, JSONObject.stringToValue(value));
 					}
@@ -266,5 +271,13 @@ public class JsonLayout {
 			result.put(JSONObject.stringToValue(values[i]));
 		}
 		return result;
+	}
+
+	protected JSONObject toJsonObject(String value) {
+		try {
+			return new JSONObject(value);
+		} catch (Exception ex) {
+			throw new PieException("Could not convert string into JSON object. " + ex.getMessage(), ex);
+		}
 	}
 }
