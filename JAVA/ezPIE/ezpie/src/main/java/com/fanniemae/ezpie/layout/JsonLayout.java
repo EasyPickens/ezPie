@@ -183,11 +183,12 @@ public class JsonLayout {
 					} else if (value.contains("[JsonData.ColorArray]")) {
 						Element ele = (Element) node;
 						ColorUtilities cu = new ColorUtilities(ele.getAttribute("Hue"), ele.getAttribute("Saturation"), ele.getAttribute("Brightness"));
+						cu.useRandomColor(StringUtilities.toBoolean(ele.getAttribute("Random"),false));
 						int arrayLength = StringUtilities.toInteger(ele.getAttribute("Length"), 1);
 						if (arrayLength == 1) {
-							result.put(key, cu.getRGBString());
+							result.put(key, cu.nextColor());
 						} else {
-							result.put(key, cu.getRGBArray(arrayLength));
+							result.put(key, cu.getColorArray(arrayLength));
 						}
 					} else if (value.startsWith("[") && value.endsWith("]")) {
 						// try to convert this string into a JSON array of values

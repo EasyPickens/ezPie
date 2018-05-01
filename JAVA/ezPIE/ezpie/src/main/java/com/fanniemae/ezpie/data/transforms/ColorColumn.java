@@ -16,7 +16,6 @@ public class ColorColumn extends DataTransform {
 	protected double _hue;
 	protected double _saturation = 0.5;
 	protected double _brightness = 0.95;
-	// private double _golden_ratio_conjugate = 0.618033988749895;
 
 	public ColorColumn(SessionManager session, Element transform) {
 		super(session, transform);
@@ -27,6 +26,7 @@ public class ColorColumn extends DataTransform {
 		_saturation = readAttribute("Saturation", 0.5);
 		_brightness = readAttribute("Brightness", 0.95);
 		_cu = new ColorUtilities(_hue, _saturation, _brightness);
+		_cu.useRandomColor(true);
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class ColorColumn extends DataTransform {
 			return dataRow;
 		}
 		dataRow = addDataColumn(dataRow);
-		dataRow[_outColumnIndex] = _cu.getRGBString();
+		dataRow[_outColumnIndex] = _cu.nextColor();
 		_rowsProcessed++;
 		return dataRow;
 	}
