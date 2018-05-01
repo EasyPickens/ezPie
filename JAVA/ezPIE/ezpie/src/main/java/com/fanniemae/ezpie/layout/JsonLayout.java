@@ -55,12 +55,22 @@ public class JsonLayout {
 	protected String[] _columnNames;
 	protected DataType[] _dataTypes;
 	protected JSONArray _fullData = new JSONArray();
-
+	
+	protected String _dataLayoutToken;
+	protected String _columnNameToken;
+	protected String _columnTypeToken;
+	protected String _colorArrayToken;
+	
 	public JsonLayout(SessionManager session, Element action) {
 		// super(session, action, true);
 		_session = session;
 		_action = (Element) action;
 		_actionName = _session.getAttribute(_action, "Name");
+		
+		_dataLayoutToken = String.format("%sDataLayout.", _session.getTokenPrefix());
+		_columnNameToken = String.format("%sColumnNames.", _session.getTokenPrefix());
+		_columnTypeToken = String.format("%sColumnTypes.", _session.getTokenPrefix());
+		_colorArrayToken = String.format("%sJsonData.ColorArray%s", _session.getTokenPrefix(),_session.getTokenSuffix());
 	}
 
 	public JSONObject buildChartJson(HashMap<String, String> dataTokens) {

@@ -16,7 +16,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.math.BigDecimal;
 import java.util.Date;
 
 import org.json.JSONArray;
@@ -54,23 +53,11 @@ public class JsonUtilities {
 
 				for (int i = 0; i < columnNames.length; i++) {
 					if (dataRow[i] == null) {
-						jsonDataRow.put(columnNames[i], "");
+						jsonDataRow.put(columnNames[i], dataRow[i]);
 					} else if (dataTypes[i] == DataType.DateData) {
 						jsonDataRow.put(columnNames[i], DateUtilities.toIsoString((Date) dataRow[i]));
-					} else if (dataTypes[i] == DataType.StringData) {
-						jsonDataRow.put(columnNames[i], dataRow[i]);
-					} else if (dataTypes[i] == DataType.DoubleData) {
-						jsonDataRow.put(columnNames[i], new BigDecimal((double) dataRow[i]).toPlainString());
-					} else if (dataTypes[i] == DataType.IntegerData) {
-						jsonDataRow.put(columnNames[i], (int) dataRow[i]);
-					} else if (dataTypes[i] == DataType.FloatData) {
-						jsonDataRow.put(columnNames[i], new BigDecimal((double) dataRow[i]).toPlainString());
-					} else if (dataTypes[i] == DataType.LongData) {
-						jsonDataRow.put(columnNames[i], (long) dataRow[i]);
-					} else if (dataTypes[i] == DataType.ShortData) {
-						jsonDataRow.put(columnNames[i], (int) dataRow[i]);
 					} else {
-						jsonDataRow.put(columnNames[i], dataRow[i].toString());
+						jsonDataRow.put(columnNames[i], dataRow[i]);
 					}
 				}
 				data.put(jsonDataRow);

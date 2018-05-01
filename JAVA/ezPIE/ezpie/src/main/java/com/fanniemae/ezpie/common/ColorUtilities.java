@@ -73,7 +73,6 @@ public class ColorUtilities {
 		if (brightness != null) {
 			double dBrightness = StringUtilities.toDouble(brightness, -1.0);
 			if ((dBrightness >= 0) && (dBrightness <= 2)) {
-				System.out.println(dBrightness);
 				_brightness = dBrightness;
 			}
 		}
