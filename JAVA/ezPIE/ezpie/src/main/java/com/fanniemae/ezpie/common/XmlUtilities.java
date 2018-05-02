@@ -5,7 +5,7 @@
  * the terms of the Fannie Mae Open Source Licensing Project available 
  * at https://github.com/FannieMaeOpenSource/ezPie/wiki/License
  * 
- * ezPIE is a trademark of Fannie Mae
+ * ezPIE® is a registered trademark of Fannie Mae
  * 
  */
 
