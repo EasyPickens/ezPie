@@ -123,13 +123,14 @@ public class RunPie {
 		// String job = "StoredProcedure";
 		// String job = "PythonTest";
 		// String job = "iCartTriageResults";
-		String job = "iCartTrainingData";
+		// String job = "iCartTrainingData";
+		String job = "ChartTest";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");
 			JobManager jobManager = new JobManager(sSettings, job, null);
 			logFilename = jobManager.getLogFilename();
-			viewlog(logFilename);
+			//viewlog(logFilename);
 			System.out.println("Running job definition " + job);
 			//jobManager.runJob();
 			String dataSets = jobManager.getDataJson();

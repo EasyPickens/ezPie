@@ -11,17 +11,19 @@
 
 package com.fanniemae.ezpie;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
+import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.JsonUtilities;
 import com.fanniemae.ezpie.common.ProcessActions;
 import com.fanniemae.ezpie.common.XmlUtilities;
+import com.fanniemae.ezpie.layout.JsonLayout;
 
 /**
  * 
@@ -66,9 +68,9 @@ public class JobManager {
 		NodeList nlActions = XmlUtilities.selectNodes(_session.getJobDefinition(), "*");
 		processActions(nlActions);
 
-		_session.addLogMessage("Format Data", "Convert", "Converting datasets to JSON." );
+		_session.addLogMessage("Format Data", "Convert", "Converting datasets to JSON.");
 		List<String> dataSets = _session.getDataStreamList();
-		Collections.sort(dataSets);
+		// Collections.sort(dataSets);
 		int length = dataSets.size();
 		JSONArray jsonDataSets = new JSONArray();
 		for (int i = 0; i < length; i++) {
@@ -76,10 +78,22 @@ public class JobManager {
 			if (_session.getDataStream(name, true).isInternal()) {
 				continue;
 			}
-			_session.addLogMessage("", "DataSet Returned", name );
+			_session.addLogMessage("", "DataSet Returned", name);
 			// convert each dataset to JSON.
 			jsonDataSets.put(JsonUtilities.convert(name, _session.getDataStream(name, true)));
 		}
+
+		NodeList nlJsonData = XmlUtilities.selectNodes(_session.getJobDefinition(), "JsonData");
+		if ((nlJsonData != null) && (nlJsonData.getLength() > 0)) {
+			_session.addLogMessage("", "JsonData", "Converting data to specified JSON layout.");
+			length = nlJsonData.getLength();
+			for (int i = 0; i < length; i++) {
+				JsonLayout chart = new JsonLayout(_session, (Element) nlJsonData.item(i));
+				JSONObject chartJson = chart.buildChartJson(null);
+				jsonDataSets.put(chartJson);
+			}
+		}
+
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
 		return jsonDataSets.toString();
 	}

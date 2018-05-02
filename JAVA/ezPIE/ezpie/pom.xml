@@ -4,7 +4,7 @@
 
 	<groupId>com.fanniemae.opensource</groupId>
 	<artifactId>ezpie</artifactId>
-	<version>1.2.2b</version>
+	<version>1.2.3</version>
 	<packaging>jar</packaging>
 
 	<name>ezpie</name>

@@ -77,6 +77,7 @@ public class ProcessActions {
 					throw new PieException("Please rename IncludeSharedElement to ImportSharedElement");
 				case "SharedElement":
 				case "Note":
+				case "LineChart":
 					continue;
 				case "Tokens":
 				case "StaticTokens":

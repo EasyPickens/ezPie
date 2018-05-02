@@ -5,7 +5,7 @@
  * the terms of the Fannie Mae Open Source Licensing Project available 
  * at https://github.com/FannieMaeOpenSource/ezPie/wiki/License
  * 
- * ezPIE is a trademark of Fannie Mae
+ * ezPIE® is a registered trademark of Fannie Mae
  * 
  */
 
@@ -16,11 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -57,23 +53,11 @@ public class JsonUtilities {
 
 				for (int i = 0; i < columnNames.length; i++) {
 					if (dataRow[i] == null) {
-						jsonDataRow.put(columnNames[i], "");
+						jsonDataRow.put(columnNames[i], dataRow[i]);
 					} else if (dataTypes[i] == DataType.DateData) {
 						jsonDataRow.put(columnNames[i], DateUtilities.toIsoString((Date) dataRow[i]));
-					} else if (dataTypes[i] == DataType.StringData) {
-						jsonDataRow.put(columnNames[i], dataRow[i]);
-					} else if (dataTypes[i] == DataType.DoubleData) {
-						jsonDataRow.put(columnNames[i], new BigDecimal((double) dataRow[i]).toPlainString());
-					} else if (dataTypes[i] == DataType.IntegerData) {
-						jsonDataRow.put(columnNames[i], (int) dataRow[i]);
-					} else if (dataTypes[i] == DataType.FloatData) {
-						jsonDataRow.put(columnNames[i], new BigDecimal((double) dataRow[i]).toPlainString());
-					} else if (dataTypes[i] == DataType.LongData) {
-						jsonDataRow.put(columnNames[i], (long) dataRow[i]);
-					} else if (dataTypes[i] == DataType.ShortData) {
-						jsonDataRow.put(columnNames[i], (int) dataRow[i]);
 					} else {
-						jsonDataRow.put(columnNames[i], dataRow[i].toString());
+						jsonDataRow.put(columnNames[i], dataRow[i]);
 					}
 				}
 				data.put(jsonDataRow);
@@ -107,32 +91,4 @@ public class JsonUtilities {
 		return filename;
 	}
 	
-	public static void jsonSchema(String s) {
-		if ((s == null) || s.isEmpty()) {
-			return;
-		}
-		
-		JSONObject jsonObject;
-		if (s.startsWith("[")) {
-			jsonObject = new JSONObject();
-			jsonObject.put("rows", new JSONArray(s));
-		} else {
-			jsonObject = new JSONObject(s);
-		}
-		
-		List<String> columnNames = new ArrayList<String>();
-		// Begin scan for resulting data columns of flattened json.
-		Iterator<?> keys = jsonObject.keys();
-//		foreach(String key : keys) {
-//			
-//		}
-		int numKeys = jsonObject.length();
-		
-		for (int i=0;i< numKeys;i++) {
-			String key = jsonObject.names().getString(i);
-			 
-			
-			
-		}
-	}
 }

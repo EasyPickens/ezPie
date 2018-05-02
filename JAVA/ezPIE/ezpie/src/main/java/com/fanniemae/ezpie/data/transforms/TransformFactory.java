@@ -37,6 +37,8 @@ public class TransformFactory {
 			return new SequenceColumn(session, transform);
 		case "Calculation":
 			return new CalculationColumn(session, transform);
+		case "Color":
+			return new ColorColumn(session, transform);
 		case "Sort":
 			return new Sort(session, transform);
 		case "Join":
