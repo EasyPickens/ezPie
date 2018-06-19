@@ -53,7 +53,7 @@ public class JsonUtilities {
 
 				for (int i = 0; i < columnNames.length; i++) {
 					if (dataRow[i] == null) {
-						jsonDataRow.put(columnNames[i], dataRow[i]);
+						jsonDataRow.put(columnNames[i], JSONObject.NULL);
 					} else if (dataTypes[i] == DataType.DateData) {
 						jsonDataRow.put(columnNames[i], DateUtilities.toIsoString((Date) dataRow[i]));
 					} else {

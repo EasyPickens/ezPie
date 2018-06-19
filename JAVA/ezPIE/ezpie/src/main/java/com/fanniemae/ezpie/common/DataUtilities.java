@@ -153,6 +153,7 @@ public final class DataUtilities {
 		case "Int":
 		case "Integer":
 		case "java.lang.Integer":
+		case "java.lang.int":
 		case "IntegerData":
 			return DataType.IntegerData;
 		case "Long":

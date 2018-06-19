@@ -265,6 +265,12 @@ public class RestConnector extends DataConnector {
 			if (parentRows.size() == 0) {
 				ArrayList<String> temp = new ArrayList<String>();
 				temp.add(j.toString());
+				if (column.getChildLength() > 1) {
+					int length = column.getChildLength()-1;
+					for(int i=0;i<length;i++) {
+						temp.add("");
+					}
+				}
 				childRows.add(temp);
 			}
 

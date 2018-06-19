@@ -31,6 +31,13 @@ public class TreeNode<T> implements Iterable<TreeNode<T>>{
         _children = new LinkedList<TreeNode<T>>();
     }
     
+    public int getChildLength() {
+    	if (_children == null) {
+    		return 0;
+    	}
+    	return _children.size();
+    }
+    
     public T getData(){
     	return _data;
     }
