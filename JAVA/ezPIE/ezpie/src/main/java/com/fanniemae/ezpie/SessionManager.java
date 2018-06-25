@@ -499,6 +499,8 @@ public class SessionManager {
 			value = resolveTokens(defaultValue);
 		} else if (_lastAttributeSecure || "UserID".equals(attributeName) || "Password".equals(attributeName)) {
 			addLogMessage("", attributeName, getHiddenMessage());
+		} else if ("DataCacheEnabled".equals(attributeName) || "DataCacheMinutes".equals(attributeName)) {
+			// Skip these -- special case, need to show even if not set.
 		} else {
 			addLogMessage("", attributeName, value);
 		}

@@ -22,6 +22,8 @@ import java.util.UUID;
 
 import org.w3c.dom.Element;
 
+import com.fanniemae.ezpie.TokenManager;
+
 /**
  * 
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
@@ -131,14 +133,14 @@ public final class FileUtilities {
 		return String.format("%s%s.%s", directory, randomGuid, extension);
 	}
 
-	public static String getDataFilename(String filepath, Element eleDataset, Element eleConnection) {
-		return getDataFilename(filepath, XmlUtilities.getOuterXml(eleDataset), XmlUtilities.getOuterXml(eleConnection));
+	public static String getDataFilename(String filepath, Element eleDataset, Element eleConnection, TokenManager tokenManager) {
+		return getDataFilename(filepath, XmlUtilities.getOuterXml(eleDataset), XmlUtilities.getOuterXml(eleConnection), tokenManager);
 	}
 
-	public static String getDataFilename(String filePath, String datasetXML, String connectionXML) {
-		String sIdentifier = datasetXML;
+	public static String getDataFilename(String filePath, String datasetXML, String connectionXML, TokenManager tokenManager) {
+		String sIdentifier = tokenManager.resolveTokens(datasetXML);
 		if (connectionXML != null) {
-			sIdentifier = sIdentifier + "|" + connectionXML;
+			sIdentifier = sIdentifier + "|" + tokenManager.resolveTokens(connectionXML);
 		}
 		return getHashFilename(filePath, sIdentifier, "dat");
 	}

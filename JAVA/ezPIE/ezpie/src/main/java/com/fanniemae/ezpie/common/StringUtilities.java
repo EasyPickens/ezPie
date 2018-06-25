@@ -381,6 +381,17 @@ public final class StringUtilities {
 		}
 		return values;
 	}
+	
+	public static int periodToMinutes(String value) {
+		if (StringUtilities.isInteger(value)) {
+			value += 'm';
+		}
+		int seconds = periodToSeconds(value);
+		if (seconds < 60) {
+			return -1;
+		}
+		return (seconds / 60);
+	}
 
 	public static int periodToSeconds(String value) {
 		if (StringUtilities.isNullOrEmpty(value))
@@ -394,7 +405,7 @@ public final class StringUtilities {
 		int iCurrentValue = 0;
 
 		value = value.toLowerCase();
-		String[] aNumbers = value.split("d|h|m|s");
+		String[] aNumbers = value.split("y|w|d|h|m|s");
 		for (int i = 0; i < aNumbers.length; i++) {
 			if (StringUtilities.isNullOrEmpty(aNumbers[i]))
 				continue;
@@ -405,6 +416,12 @@ public final class StringUtilities {
 			iCurrentValue = StringUtilities.toInteger(aNumbers[i], 0, null);
 
 			switch (cUnits) {
+			case 'y':
+				iSeconds += iCurrentValue * 31536000;
+				break;
+			case 'w':
+				iSeconds += iCurrentValue * 604800;
+				break;
 			case 'd':
 				iSeconds += iCurrentValue * 86400;
 				break;

@@ -48,6 +48,9 @@ public class DataSet extends Action {
 	protected HashMap<String, String> _dataTokens = null;
 	protected boolean _isInternal = false;
 
+	protected boolean _dataCacheEnabled = true;
+	protected int _dataCacheMinutes = -1;
+
 	public DataSet(SessionManager session, Element action) {
 		super(session, action);
 		_isInternal = StringUtilities.toBoolean(optionalAttribute("Internal", "False"));
@@ -56,7 +59,16 @@ public class DataSet extends Action {
 	@Override
 	public String executeAction(HashMap<String, String> dataTokens) {
 		_session.setDataTokens(dataTokens);
-		DataEngine de = new DataEngine(_session);
+		_dataCacheEnabled = StringUtilities.toBoolean(optionalAttribute("DataCacheEnabled"), _session.cachingEnabled());
+		_dataCacheMinutes = StringUtilities.periodToMinutes(optionalAttribute("DataCacheMinutes", String.format("%d", _session.getCacheMinutes())));
+		if (_dataCacheMinutes == -1) {
+			_dataCacheMinutes = _session.getCacheMinutes();
+		}
+		_session.addLogMessage("", "DataCacheEnabled", Boolean.toString(_dataCacheEnabled));
+		if (_dataCacheEnabled) {
+			_session.addLogMessage("", "DataCacheMinutes", Integer.toString(_dataCacheMinutes));
+		}
+		DataEngine de = new DataEngine(_session, _dataCacheEnabled, _dataCacheMinutes);
 		NodeList nl = XmlUtilities.selectNodes(_action, "DataSource");
 		Node loopNode = XmlUtilities.selectSingleNode(_action, "Loop");
 
@@ -124,7 +136,7 @@ public class DataSet extends Action {
 		_session.addLogMessage("", "Unioned Data Schema", schemaReport.toString());
 
 		// Union the data streams
-		String dataFilename = FileUtilities.getDataFilename(_session.getStagingPath(), XmlUtilities.getOuterXml(_action), "***Multiple DataSources Union Together***");
+		String dataFilename = FileUtilities.getDataFilename(_session.getStagingPath(), XmlUtilities.getOuterXml(_action), "***Multiple DataSources Union Together***",_session.getTokenizer());
 		DataStream fullDataStream = null;
 		_session.addLogMessage("", "Union Data", String.format("Union data into %s", dataFilename));
 		try (DataWriter dw = new DataWriter(dataFilename, 0, false)) {
@@ -220,7 +232,7 @@ public class DataSet extends Action {
 				NodeList nl = XmlUtilities.selectNodes(loopNode, "DataSource");
 				int length = nl.getLength();
 				// pull all the DataSource elements
-				DataEngine de = new DataEngine(_session);
+				DataEngine de = new DataEngine(_session, _dataCacheEnabled, _dataCacheMinutes);
 				for (int i = 0; i < length; i++) {
 					Element dataSource = (Element) (nl.item(i));
 					// adding a random GUID to ensure that each datasource gets a unique file name.

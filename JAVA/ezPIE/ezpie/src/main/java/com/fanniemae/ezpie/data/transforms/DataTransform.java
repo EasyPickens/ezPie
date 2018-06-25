@@ -89,7 +89,7 @@ public abstract class DataTransform {
 
 		_exceptionDataSetName = _transform.getAttribute("ExceptionDataSetName");
 		if (StringUtilities.isNotNullOrEmpty(_exceptionDataSetName)) {
-			_exceptionFilename = FileUtilities.getDataFilename(_session.getStagingPath(), XmlUtilities.getOuterXml(_transform), _exceptionDataSetName);
+			_exceptionFilename = FileUtilities.getDataFilename(_session.getStagingPath(), XmlUtilities.getOuterXml(_transform), _exceptionDataSetName, _session.getTokenizer());
 			_transformInfo.appendFormatLine("ExceptionID = %s", _exceptionDataSetName);
 			_transformInfo.appendFormatLine("Exception Filename = %s", _exceptionFilename);
 		}

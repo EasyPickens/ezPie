@@ -226,7 +226,7 @@ public class Join extends DataTransform {
 	protected DataStream joinDataStreams(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
 		// Get the right side data (create new instance of data engine)
-		DataEngine de = new DataEngine(_session);
+		DataEngine de = new DataEngine(_session, _session.cachingEnabled(), _session.getCacheMinutes());
 		DataStream rightDataStream = de.getData((Element) _rightDataSource);
 		// Index the right and left dataStreams on the join columns
 		_session.addLogMessage("", "Index Left", "Indexing the left side data.");
@@ -349,7 +349,7 @@ public class Join extends DataTransform {
 	protected DataStream unionDataStreams(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
 		// Get the right side data (create new instance of data engine)
-		DataEngine de = new DataEngine(_session);
+		DataEngine de = new DataEngine(_session, _session.cachingEnabled(), _session.getCacheMinutes());
 		DataStream rightDataStream = de.getData((Element) _rightDataSource);
 		// Union the data and write the final file.
 		String outputFilename = FileUtilities.getRandomFilename(_session.getStagingPath(), "dat");

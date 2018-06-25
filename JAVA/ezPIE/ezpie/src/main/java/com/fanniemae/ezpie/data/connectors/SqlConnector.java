@@ -269,33 +269,42 @@ public class SqlConnector extends DataConnector {
 				_pstmt.setNull(paramNumber, DataUtilities.dbStringTypeToJavaSqlType(paramType));
 			}
 
+			String typeUsed = "";
 			switch (DataUtilities.dbStringTypeToJavaSqlType(paramType)) {
 			case Types.BIGINT:
 				_pstmt.setLong(paramNumber, Long.parseLong(value));
+				typeUsed = "bigint";
 				break;
 			case Types.BOOLEAN:
 				_pstmt.setBoolean(paramNumber, Boolean.parseBoolean(value));
+				typeUsed = "boolean";
 				break;
 			case Types.DECIMAL:
 				_pstmt.setBigDecimal(paramNumber, new BigDecimal(value));
+				typeUsed = "decimal";
 				break;
 			case Types.DATE:
 				javaDate = StringUtilities.toDate(value);
 				_pstmt.setDate(paramNumber, new java.sql.Date(javaDate.getTime()));
+				typeUsed = "date";
 				break;
 			case Types.DOUBLE:
 				_pstmt.setDouble(paramNumber, Double.parseDouble(value));
+				typeUsed = "double";
 				break;
 			case Types.INTEGER:
 				_pstmt.setInt(paramNumber, Integer.parseInt(value));
+				typeUsed = "integer";
 				break;
 			case Types.TIME:
 				javaDate = StringUtilities.toDate(value);
 				_pstmt.setTime(paramNumber, new java.sql.Time(javaDate.getTime()));
+				typeUsed = "time";
 				break;
 			case Types.TIMESTAMP:
 				javaDate = StringUtilities.toDate(value);
 				_pstmt.setTimestamp(paramNumber, new java.sql.Timestamp(javaDate.getTime()));
+				typeUsed = "timestamp";
 				break;
 			case Types.CHAR:
 			case Types.LONGNVARCHAR:
@@ -303,12 +312,14 @@ public class SqlConnector extends DataConnector {
 			case Types.NVARCHAR:
 			case Types.VARCHAR:
 				_pstmt.setString(paramNumber, value);
+				typeUsed = "string";
 				break;
 			default:
 				_pstmt.setString(paramNumber, value);
+				typeUsed = "string";
 				break;
 			}
-			_session.addLogMessage("", "SQL Parameter", String.format("Parameter #%d is set to %s", paramNumber, value));
+			_session.addLogMessage("", "SQL Parameter", String.format("Parameter #%d is set to %s (%s)", paramNumber, value, typeUsed));
 		}
 	}
 

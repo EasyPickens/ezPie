@@ -30,7 +30,6 @@ import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.ExceptionUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.PieException;
-import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.connectors.DataConnector;
 import com.fanniemae.ezpie.data.connectors.DataSetConnector;
@@ -59,15 +58,20 @@ public class DataEngine {
 
 	protected int _memoryLimit; // in Megabytes
 	protected int _processingGroupsCount = 0;
+	protected int _localCacheMinutes;
+	
+	protected boolean _localCacheEnabled;
 
 	protected Element _dataSource;
 	protected Element _connection;
 
 	protected Map<Integer, Map<Integer, DataTransform>> _processingGroups = new HashMap<Integer, Map<Integer, DataTransform>>();
 
-	public DataEngine(SessionManager session) {
+	public DataEngine(SessionManager session, boolean localCacheEnabled, int localCacheMinutes) {
 		_session = session;
-		_memoryLimit = _session.getMemoryLimit();
+		_localCacheEnabled = localCacheEnabled;
+		_localCacheMinutes = localCacheMinutes;
+		_memoryLimit = _localCacheEnabled ? 0: _session.getMemoryLimit();
 		_stagingPath = _session.getStagingPath();
 	}
 
@@ -95,10 +99,10 @@ public class DataEngine {
 	}
 
 	public DataStream getData(Element dataSource) {
-		String finalDataFilename = FileUtilities.getDataFilename(_stagingPath, dataSource, _connection);
+		String finalDataFilename = FileUtilities.getDataFilename(_stagingPath, dataSource, _connection, _session.getTokenizer());
 
-		boolean dataSourceCacheable = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "DataCacheEnabled"), _session.cachingEnabled());
-		DataStream dataStream = dataSourceCacheable ? checkCache(finalDataFilename) : null;
+		//boolean dataSourceCacheable = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "DataCacheEnabled"), _session.cachingEnabled());
+		DataStream dataStream = _localCacheEnabled ? checkCache(finalDataFilename) : null;
 		if (dataStream != null) {
 			Object expires = dataStream.getHeader().get(BinaryFileInfo.DateExpires);
 			_session.addLogMessage("", "Cached Data", String.format("Using valid data cache file. The cache is set to expire %s", DateUtilities.toPrettyString((Date) expires)));
@@ -120,7 +124,7 @@ public class DataEngine {
 				if ((operationCount == 1) && dataOperations.get(0).isolated()) {
 					_session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
 					dataOperations.get(0).addTransformLogMessage();
-					dataStream = dataOperations.get(0).processDataStream(dataStream, _session.getMemoryLimit());
+					dataStream = dataOperations.get(0).processDataStream(dataStream, _memoryLimit);
 					_schema = dataStream.getSchema();
 				} else {
 					// These operations can be combined - multiple operations during one
@@ -158,8 +162,9 @@ public class DataEngine {
 							}
 						}
 						Calendar calendarExpires = Calendar.getInstance();
-						if (_session.cachingEnabled())
-							calendarExpires.add(Calendar.MINUTE, _session.getCacheMinutes());
+						if (_localCacheEnabled) { //(_session.cachingEnabled())
+							calendarExpires.add(Calendar.MINUTE, _localCacheMinutes); // _session.getCacheMinutes());
+						}
 						dw.setFullRowCount(rowCount); // dc.getFullRowCount(_lFullRowCount));
 						dw.setBufferFirstRow(1); // dc.getBufferFirstRow());
 						dw.setBufferLastRow(rowCount); // dc.getBufferLastRow());
