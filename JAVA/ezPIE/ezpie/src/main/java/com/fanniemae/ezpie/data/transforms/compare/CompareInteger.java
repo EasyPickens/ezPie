@@ -23,7 +23,7 @@ public class CompareInteger extends Compare {
 	protected Integer _compareValue;
 
 	public CompareInteger(Object compareValue) {
-		if (compareValue != null) {
+		if ((compareValue != null) && (!compareValue.toString().isEmpty())) {
 			_compareValue = (int) compareValue;
 		}
 	}
@@ -40,6 +40,5 @@ public class CompareInteger extends Compare {
 		}
 		return _compareValue.compareTo((int) value);
 	}
-
 
 }

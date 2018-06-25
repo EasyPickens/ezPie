@@ -166,6 +166,19 @@ public final class RestUtilities {
 				responseStr = responseBuffer.toString();
 			}
 
+			try {
+				// Pretty print if JSON object or array.
+				if ((responseStr != null) && (responseStr.charAt(0) == '[')) {
+					JSONArray jarray = new JSONArray(responseStr);
+					responseStr = jarray.toString(4);
+				} else if (responseStr != null) {
+					JSONObject jobject = new JSONObject(responseStr);
+					responseStr = jobject.toString(4);
+				}
+			} catch (Exception exx) {
+				ExceptionUtilities.goSilent(exx);
+			}
+
 			return responseStr;
 		} catch (JSONException | IOException ex) {
 			throw new PieException("Error while trying to make REST request: " + ex.getMessage(), ex);
@@ -287,7 +300,7 @@ public final class RestUtilities {
 		};
 		Authenticator.setDefault(authenticator);
 	}
-	
+
 	protected static void clearProxyAuthentication() {
 		Authenticator authenticator = new Authenticator() {
 			public PasswordAuthentication getPasswordAuthentication() {

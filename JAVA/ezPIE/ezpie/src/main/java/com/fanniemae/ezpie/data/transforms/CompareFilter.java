@@ -14,15 +14,18 @@ package com.fanniemae.ezpie.data.transforms;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
+import com.fanniemae.ezpie.data.transforms.compare.Compare;
+import com.fanniemae.ezpie.data.transforms.compare.CompareFactory;
 
 /**
  * 
  * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
  * @since 2016-03-02
  * 
-*/
+ */
 
 public class CompareFilter extends DataTransform {
 
@@ -31,10 +34,11 @@ public class CompareFilter extends DataTransform {
 	}
 
 	protected CompareType _compareType = CompareType.EQUALS;
-
 	protected String _compareValue;
+	protected Compare _compareMethod;
+	protected boolean _callInitializer = true;
 
-	public CompareFilter(SessionManager session, Element transform, boolean idRequired) {
+	public CompareFilter(SessionManager session, Element transform) {
 		super(session, transform, false);
 
 		_dataColumn = _session.getAttribute(transform, "DataColumn");
@@ -44,12 +48,24 @@ public class CompareFilter extends DataTransform {
 		if (StringUtilities.isNullOrEmpty(_dataColumn)) {
 			throw new PieException(String.format("%s transform requires a column name in DataColumn.", transform.getNodeName()));
 		}
-
 	}
 
 	@Override
 	public Object[] processDataRow(Object[] dataRow) {
-		return null;
+		if (_callInitializer) {
+			initializeCompare();
+			_callInitializer = false;
+		}
+		
+		if (dataRow == null) {
+			return dataRow;
+		}
+
+		if (isFiltered(dataRow[_sourceColumnIndex])) {
+			return null;
+		}
+		_rowsProcessed++;
+		return dataRow;
 	}
 
 	protected CompareType setCompareType(String value) {
@@ -84,5 +100,31 @@ public class CompareFilter extends DataTransform {
 		default:
 			throw new PieException(String.format("%s is not a supported compare type.  Please use <, >, =, <=, or >=.", value));
 		}
+	}
+
+	protected void initializeCompare() {
+		_compareMethod = CompareFactory.getCompareMethod(DataUtilities.dataTypeToEnum(_sourceColumnType), _compareValue);
+	}
+
+	protected boolean isFiltered(Object value) {
+		int result = _compareMethod.compareTo(value);
+		switch (_compareType) {
+		case EQUALS:
+			return result == 0;
+		case NOT_EQUALS:
+			return result != 0;
+		case LESS_THAN:
+			return result < 0;
+		case GREATER_THAN:
+			return result > 0;
+		case LESS_THAN_EQUAL_TO:
+			return result <= 0;
+		case GREATER_THAN_EQUAL_TO:
+			return result >= 0;
+		}
+//		if (((_compareValue == null) || _compareValue.isEmpty()) && (value == null)) {
+//			return true;
+//		}
+		return false;
 	}
 }

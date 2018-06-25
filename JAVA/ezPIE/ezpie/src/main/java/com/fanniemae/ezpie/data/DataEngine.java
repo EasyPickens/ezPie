@@ -141,16 +141,21 @@ public class DataEngine {
 						long rowCount = 0;
 						while (!dc.eof()) {
 							Object[] dataRow = dc.getDataRow();
-							if (dataRow == null)
+							if (dataRow == null) {
 								continue;
+							}
 							if (operationCount > 0) {
 								for (int i = 0; i < operationCount; i++) {
 									dataRow = dataOperations.get(i).processDataRow(dataRow);
+									if (dataRow != null) {
+										break;
+									}
 								}
 							}
-
-							dw.writeDataRow(dataRow);
-							rowCount++;
+							if (dataRow != null) {
+								dw.writeDataRow(dataRow);
+								rowCount++;
+							}
 						}
 						Calendar calendarExpires = Calendar.getInstance();
 						if (_session.cachingEnabled())

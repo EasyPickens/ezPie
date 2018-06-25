@@ -66,9 +66,9 @@ public class RestConnector extends DataConnector {
 		_proxyPort = StringUtilities.toInteger(_session.getAttribute(_conn, "ProxyPort"));
 		_proxyUsername = _session.getAttribute(_conn, "ProxyUsername");
 		_proxyPassword = _session.getAttribute(_conn, "ProxyPassword");
-		_url = _session.getAttribute(dataSource, "URL");
-		if (StringUtilities.isNullOrEmpty(_url))
-			throw new RuntimeException("Missing required URL value for the RestDataSource");
+		_url = _session.requiredAttribute(dataSource, "URL");
+		// if (StringUtilities.isNullOrEmpty(_url))
+		// throw new RuntimeException("Missing required URL value for the RestDataSource");
 
 		_columns = XmlUtilities.selectNodes(_dataSource, "*");
 
@@ -79,7 +79,6 @@ public class RestConnector extends DataConnector {
 		try {
 			String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password);
 			int length = (response == null) ? 0 : response.length();
-			//_session.addLogMessage("", "RestConnector", String.format("View Response (%,d bytes)", length), "file://" + RestUtilities.writeResponseToFile(response, FileUtilities.getRandomFilename(_session.getLogPath(), "txt")));
 			_session.addLogMessage("", "RestConnector", String.format("View Raw Response (%,d bytes)", length), "file://" + FileUtilities.writeRandomTextFile(_session.getLogPath(), response));
 
 			int numColumns = _columns.getLength();
@@ -95,9 +94,11 @@ public class RestConnector extends DataConnector {
 			for (int i = 0; i < numColumns; i++) {
 				String columnName = _session.getAttribute(_columns.item(i), "Name");
 				String path = _session.getAttribute(_columns.item(i), "JsonPath");
+				String columnType = _session.optionalAttribute(_columns.item(i), "DataType", null);
 				String[] pathParts = path.split("\\.");
 				tempPaths.add(pathParts);
 				_dataSchema[i][0] = columnName;
+				_dataSchema[i][1] = columnType;
 			}
 
 			// build tree that will contain all of the JSON attributes to return
@@ -143,11 +144,12 @@ public class RestConnector extends DataConnector {
 
 	@Override
 	public Boolean eof() {
-		if (_index < _rows.length) {
-			return false;
-		} else {
+		if ((_rowLimit != -1) && (_index >= _rowLimit)) {
 			return true;
+		} else if (_index < _rows.length) {
+			return false;
 		}
+		return true;
 	}
 
 	@Override
@@ -171,15 +173,31 @@ public class RestConnector extends DataConnector {
 				numColumns = numColumns > row.size() ? numColumns : row.size();
 			}
 		}
+		String[] typeStrings = new String[numColumns];
 		_dataTypes = new DataType[numColumns];
 		_rows = new Object[rows.size()][numColumns];
 		for (int i = 0; i < rows.size(); i++) {
-			ArrayList<String> row = rows.get(i);
-			for (int j = 0; j < row.size(); j++) {
-				String value = row.get(j);
-				String dataType = StringUtilities.getDataType(value, j > 0 ? _dataTypes[j - 1].toString() : "");
-				_dataTypes[j] = DataUtilities.dataTypeToEnum(dataType);
-				_dataSchema[j][1] = dataType;
+			ArrayList<String> columns = rows.get(i);
+			for (int j = 0; j < columns.size(); j++) {
+				String value = columns.get(j);
+				String dataType = StringUtilities.getDataType(value, typeStrings[j]);
+				typeStrings[j] = dataType;
+			}
+		}
+
+		// Update null types with the new information
+		for (int i = 0; i < _dataSchema.length; i++) {
+			if (_dataSchema[i][1] == null) {
+				_dataSchema[i][1] = typeStrings[i];
+			}
+			_dataTypes[i] = DataUtilities.dataTypeToEnum(_dataSchema[i][1]);
+		}
+		
+		// populate the data rows
+		for (int i = 0; i < rows.size(); i++) {
+			ArrayList<String> columns = rows.get(i);
+			for (int j = 0; j < columns.size(); j++) {
+				String value = columns.get(j);
 				_rows[i][j] = castValue(j, value);
 			}
 		}
@@ -266,8 +284,8 @@ public class RestConnector extends DataConnector {
 				ArrayList<String> temp = new ArrayList<String>();
 				temp.add(j.toString());
 				if (column.getChildLength() > 1) {
-					int length = column.getChildLength()-1;
-					for(int i=0;i<length;i++) {
+					int length = column.getChildLength() - 1;
+					for (int i = 0; i < length; i++) {
 						temp.add("");
 					}
 				}

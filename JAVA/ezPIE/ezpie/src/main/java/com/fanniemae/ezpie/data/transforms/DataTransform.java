@@ -46,6 +46,7 @@ public abstract class DataTransform {
 	protected String _exceptionFilename;
 	protected String _dataColumn;
 	protected String _columnType = "java.lang.String";
+	protected String _sourceColumnType;
 
 	protected String[][] _inputSchema;
 
@@ -141,12 +142,13 @@ public abstract class DataTransform {
 
 		if (StringUtilities.isNotNullOrEmpty(_dataColumn)) {
 			_sourceColumnIndex = ArrayUtilities.indexOf(schema, _dataColumn, true);
+			_sourceColumnType = schema[_sourceColumnIndex][1];
 		}
 
 		if (_outColumnIndex != -1) {
 			schema[_outColumnIndex][1] = _columnType;
 			return schema;
-		} else {
+		} else if ((_name != null) && !_name.isEmpty()) {
 			int nLength = schema.length;
 			String[][] aNewSchema = new String[nLength + 1][2];
 			for (int i = 0; i < nLength; i++) {
@@ -159,6 +161,7 @@ public abstract class DataTransform {
 			aNewSchema[nLength][1] = _columnType;
 			return aNewSchema;
 		}
+		return schema;
 	}
 
 	protected Object[] addDataColumn(Object[] dataRow) {

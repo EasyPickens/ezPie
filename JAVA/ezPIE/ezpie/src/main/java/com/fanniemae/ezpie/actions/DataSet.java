@@ -148,12 +148,17 @@ public class DataSet extends Action {
 					while (!dc.eof()) {
 						Object[] aValues = dc.getDataRow();
 						Object[] dataRow = new Object[finalColumnCount];
-						for (int sourceColumnNumber = 0; sourceColumnNumber < aValues.length; sourceColumnNumber++) {
-							dataRow[columnIndexes[sourceColumnNumber]] = aValues[sourceColumnNumber];
+						try {
+
+							for (int sourceColumnNumber = 0; sourceColumnNumber < aValues.length; sourceColumnNumber++) {
+								dataRow[columnIndexes[sourceColumnNumber]] = aValues[sourceColumnNumber];
+							}
+							dw.writeDataRow(dataRow);
+							rowCount++;
+							fullRowCount++;
+						} catch (Exception ex) {
+							_session.addLogMessage("ERROR", "Union Data", ex.getMessage());
 						}
-						dw.writeDataRow(dataRow);
-						rowCount++;
-						fullRowCount++;
 					}
 					dc.close();
 					_session.addLogMessage("", String.format("DataSource #%d", streamNumber + 1), String.format("%,d data rows added", rowCount));

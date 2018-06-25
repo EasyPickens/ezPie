@@ -45,6 +45,8 @@ public class TransformFactory {
 			return new Join(session, transform);
 		case "ColumnFilter":
 			return new ColumnFilter(session, transform);
+		case "Filter":
+			return new CompareFilter(session, transform);
 		case "SqlParameter":
 			return null;
 		case "Rename":
