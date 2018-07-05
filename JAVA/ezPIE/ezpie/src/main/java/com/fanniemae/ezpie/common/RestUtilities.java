@@ -57,19 +57,19 @@ public final class RestUtilities {
 	}
 
 	public static String sendGetRequest(String urlStr) {
-		return sendGetRequest(urlStr, null, 0, null, null, null, null);
+		return sendGetRequest(urlStr, null, 0, null, null, null, null, null);
 	}
 
 	public static String sendGetRequest(String urlStr, String username, String password) {
-		return sendGetRequest(urlStr, null, 0, null, null, username, password);
+		return sendGetRequest(urlStr, null, 0, null, null, username, password, null);
 	}
 
 	public static String sendGetRequest(String urlStr, String proxyHost, int proxyPort, String proxyUsername, String proxyPassword) {
-		return sendGetRequest(urlStr, proxyHost, proxyPort, proxyUsername, proxyPassword, null, null);
+		return sendGetRequest(urlStr, proxyHost, proxyPort, proxyUsername, proxyPassword, null, null, null);
 	}
 
-	public static String sendGetRequest(String urlStr, String proxyHost, int proxyPort, String proxyUsername, String proxyPassword, String username, String password) {
-		return sendRequest(false, urlStr, null, proxyHost, proxyPort, proxyUsername, proxyPassword, username, password);
+	public static String sendGetRequest(String urlStr, String proxyHost, int proxyPort, String proxyUsername, String proxyPassword, String username, String password, Map<String,String> header) {
+		return sendRequest(false, urlStr, null, proxyHost, proxyPort, proxyUsername, proxyPassword, username, password, header);
 	}
 
 	public static String sendPostRequest(String urlStr, String body) {
@@ -85,10 +85,10 @@ public final class RestUtilities {
 	}
 
 	public static String sendPostRequest(String urlStr, String body, String proxyHost, int proxyPort, String proxyUsername, String proxyPassword, String username, String password) {
-		return sendRequest(true, urlStr, body, proxyHost, proxyPort, proxyUsername, proxyPassword, username, password);
+		return sendRequest(true, urlStr, body, proxyHost, proxyPort, proxyUsername, proxyPassword, username, password, null);
 	}
 
-	public static String sendRequest(boolean post, String urlStr, String body, String proxyHost, int proxyPort, String proxyUsername, String proxyPassword, String username, String password) {
+	public static String sendRequest(boolean post, String urlStr, String body, String proxyHost, int proxyPort, String proxyUsername, String proxyPassword, String username, String password, Map<String,String> header) {
 
 		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
 			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -143,9 +143,19 @@ public final class RestUtilities {
 				String userpass = username + ":" + password;
 				String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
 				connection.setRequestProperty("Authorization", basicAuth);
+				if ((header != null) && (header.size() > 0)) {
+					for (Map.Entry<String,String> entry : header.entrySet()) {
+						connection.setRequestProperty(entry.getKey(), entry.getValue());
+					}
+				}
 			}
 			if (post) {
 				connection.setRequestProperty("Content-Type", "application/json");
+				if ((header != null) && (header.size() > 0)) {
+					for (Map.Entry<String,String> entry : header.entrySet()) {
+						connection.setRequestProperty(entry.getKey(), entry.getValue());
+					}
+				}				
 				connection.setRequestMethod("POST");
 				connection.setDoOutput(true);
 				DataOutputStream wr = new DataOutputStream(connection.getOutputStream());

@@ -12,7 +12,9 @@
 package com.fanniemae.ezpie.data.connectors;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -55,6 +57,8 @@ public class RestConnector extends DataConnector {
 	protected int _index = 0;
 	protected DataType[] _dataTypes;
 
+	protected Map<String, String> _requestHeader = new HashMap<String, String>();
+
 	public RestConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
 		_connectionName = _session.getAttribute(dataSource, "ConnectionName");
@@ -70,14 +74,22 @@ public class RestConnector extends DataConnector {
 		// if (StringUtilities.isNullOrEmpty(_url))
 		// throw new RuntimeException("Missing required URL value for the RestDataSource");
 
-		_columns = XmlUtilities.selectNodes(_dataSource, "*");
+		_columns = XmlUtilities.selectNodes(_dataSource, "Column");
 
+		NodeList headerList = XmlUtilities.selectNodes(_conn, "Header");
+		if (headerList.getLength() > 0) {
+			int length = headerList.getLength();
+			for (int i = 0; i < length; i++) {
+				Element header = (Element) headerList.item(i);
+				_requestHeader.put(_session.requiredAttribute(header, "Key"), _session.optionalAttribute(header, "Value", ""));
+			}
+		}
 	}
 
 	@Override
 	public Boolean open() {
 		try {
-			String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password);
+			String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password, _requestHeader);
 			int length = (response == null) ? 0 : response.length();
 			_session.addLogMessage("", "RestConnector", String.format("View Raw Response (%,d bytes)", length), "file://" + FileUtilities.writeRandomTextFile(_session.getLogPath(), response));
 
@@ -192,7 +204,7 @@ public class RestConnector extends DataConnector {
 			}
 			_dataTypes[i] = DataUtilities.dataTypeToEnum(_dataSchema[i][1]);
 		}
-		
+
 		// populate the data rows
 		for (int i = 0; i < rows.size(); i++) {
 			ArrayList<String> columns = rows.get(i);
