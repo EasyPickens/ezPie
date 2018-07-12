@@ -4,12 +4,12 @@
 
 	<groupId>com.fanniemae.opensource</groupId>
 	<artifactId>slicedpie</artifactId>
-	<version>1.1.0</version>
+	<version>1.1.2</version>
 	<packaging>war</packaging>
 
 	<name>slicedpie</name>
 	<build>
-		<finalName>slicedpie</finalName>
+		<finalName>${project.artifactId}-${project.version}</finalName>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
@@ -54,7 +54,7 @@
 		<dependency>
 			<groupId>com.fanniemae.opensource</groupId>
 			<artifactId>ezpie</artifactId>
-			<version>1.2.5</version>
+			<version>1.2.7</version>
 		</dependency>
 	</dependencies>
 </project>

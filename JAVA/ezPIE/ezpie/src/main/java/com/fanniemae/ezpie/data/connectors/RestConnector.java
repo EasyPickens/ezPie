@@ -27,6 +27,7 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.PieException;
+import com.fanniemae.ezpie.common.RestConverter;
 import com.fanniemae.ezpie.common.RestUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
@@ -92,6 +93,9 @@ public class RestConnector extends DataConnector {
 			String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password, _requestHeader);
 			int length = (response == null) ? 0 : response.length();
 			_session.addLogMessage("", "RestConnector", String.format("View Raw Response (%,d bytes)", length), "file://" + FileUtilities.writeRandomTextFile(_session.getLogPath(), response));
+			
+			RestConverter rc = new RestConverter(_session, _dataSource);
+			rc.pullData(response);
 
 			int numColumns = _columns.getLength();
 			_session.addLogMessage("", "RestConnector", String.format("%,d columns found", numColumns));
