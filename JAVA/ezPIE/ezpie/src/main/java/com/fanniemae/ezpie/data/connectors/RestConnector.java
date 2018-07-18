@@ -14,6 +14,7 @@ package com.fanniemae.ezpie.data.connectors;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
@@ -58,6 +59,11 @@ public class RestConnector extends DataConnector {
 	protected int _index = 0;
 	protected DataType[] _dataTypes;
 
+	protected List<String> _columnKeys;
+	protected List<Map<String, Object>> _data;
+
+	protected int _rowCount;
+
 	protected Map<String, String> _requestHeader = new HashMap<String, String>();
 
 	public RestConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
@@ -72,8 +78,6 @@ public class RestConnector extends DataConnector {
 		_proxyUsername = _session.getAttribute(_conn, "ProxyUsername");
 		_proxyPassword = _session.getAttribute(_conn, "ProxyPassword");
 		_url = _session.requiredAttribute(dataSource, "URL");
-		// if (StringUtilities.isNullOrEmpty(_url))
-		// throw new RuntimeException("Missing required URL value for the RestDataSource");
 
 		_columns = XmlUtilities.selectNodes(_dataSource, "Column");
 
@@ -90,67 +94,102 @@ public class RestConnector extends DataConnector {
 	@Override
 	public Boolean open() {
 		try {
-			String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password, _requestHeader);
+			// String response = RestUtilities.sendGetRequest(_url, _proxyHost, _proxyPort, _proxyUsername, _proxyPassword, _username, _password, _requestHeader);
+			String response = FileUtilities.loadFile("C:\\Developers\\Code\\TestDirectory\\_Resources\\UrbanCodeRelease.json");
 			int length = (response == null) ? 0 : response.length();
 			_session.addLogMessage("", "RestConnector", String.format("View Raw Response (%,d bytes)", length), "file://" + FileUtilities.writeRandomTextFile(_session.getLogPath(), response));
-			
+
 			RestConverter rc = new RestConverter(_session, _dataSource);
-			rc.pullData(response);
+			_data = rc.getData(response);
+			Map<String, String> fullSchema = rc.getSchema();
 
-			int numColumns = _columns.getLength();
-			_session.addLogMessage("", "RestConnector", String.format("%,d columns found", numColumns));
-
-			// Read/create column names.
-			_dataSchema = new String[numColumns][2];
-			_dataTypes = new DataType[numColumns];
-
-			// get columns from definition file and split
-			ArrayList<TreeNode<String>> columns = new ArrayList<TreeNode<String>>();
-			ArrayList<String[]> tempPaths = new ArrayList<String[]>();
-			for (int i = 0; i < numColumns; i++) {
-				String columnName = _session.getAttribute(_columns.item(i), "Name");
-				String path = _session.getAttribute(_columns.item(i), "JsonPath");
-				String columnType = _session.optionalAttribute(_columns.item(i), "DataType", null);
-				String[] pathParts = path.split("\\.");
-				tempPaths.add(pathParts);
-				_dataSchema[i][0] = columnName;
-				_dataSchema[i][1] = columnType;
-			}
-
-			// build tree that will contain all of the JSON attributes to return
-			for (int m = 0; m < tempPaths.size(); m++) {
-				boolean found = false;
-				for (int n = 0; n < columns.size(); n++) {
-					if (searchTree(columns.get(n), tempPaths.get(m), 0)) {
-						found = true;
+			_columnKeys = new ArrayList<String>();
+			NodeList columns = XmlUtilities.selectNodes(_dataSource, "Column");
+			if (columns.getLength() > 0) {
+				_dataSchema = new String[columns.getLength()][2];
+				int col = columns.getLength();
+				for (int i = 0; i < col; i++) {
+					String columnName = _session.getAttribute(_columns.item(i), "Name");
+					String path = _session.getAttribute(_columns.item(i), "JsonPath");
+					String key = path.replace('.', '_');
+					if (fullSchema.containsKey(path.replace('.', '_'))) {
+						_dataSchema[i][0] = columnName;
+						_dataSchema[i][1] = fullSchema.get(key);
+						_columnKeys.add(key);
+					} else {
+						_dataSchema[i][0] = columnName;
+						_dataSchema[i][1] = "java.lang.String";
+						_columnKeys.add(key);
 					}
 				}
-				if (!found) {
-					columns.add(new TreeNode<String>(tempPaths.get(m)[0]));
-					searchTree(columns.get(columns.size() - 1), tempPaths.get(m), 0);
+			} else {
+				_dataSchema = new String[fullSchema.size()][2];
+
+				int i = 0;
+				for (Map.Entry<String, String> kvp : fullSchema.entrySet()) {
+					_dataSchema[i][0] = kvp.getKey();
+					_dataSchema[i][1] = kvp.getValue();
+					_columnKeys.add(kvp.getKey());
+					i++;
 				}
 			}
 
-			TreeNode<String> root = new TreeNode<String>("root");
-			for (int n = 0; n < columns.size(); n++) {
-				root.addChild(columns.get(n));
-			}
+			_rowCount = _data.size();
 
-			Object json = new JSONTokener(response).nextValue();
-
-			// create rows by parsing JSON and using the tree with the attributes to search for
-			ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>();
-			if (json instanceof JSONObject) {
-				rows = buildRows((JSONObject) json, rows, root);
-			} else if (json instanceof JSONArray) {
-				ArrayList<ArrayList<String>> parentRows = new ArrayList<ArrayList<String>>(rows);
-				for (int i = 0; i < ((JSONArray) json).length(); i++) {
-					rows.addAll(buildRows(((JSONArray) json).getJSONObject(i), parentRows, root));
-				}
-			}
-
-			// determine data types and cast values to correct type
-			dataTypeRows(rows);
+			// int numColumns = _columns.getLength();
+			// _session.addLogMessage("", "RestConnector", String.format("%,d columns found", numColumns));
+			//
+			// // Read/create column names.
+			// _dataSchema = new String[numColumns][2];
+			// _dataTypes = new DataType[numColumns];
+			//
+			// // get columns from definition file and split
+			// ArrayList<TreeNode<String>> columns = new ArrayList<TreeNode<String>>();
+			// ArrayList<String[]> tempPaths = new ArrayList<String[]>();
+			// for (int i = 0; i < numColumns; i++) {
+			// String columnName = _session.getAttribute(_columns.item(i), "Name");
+			// String path = _session.getAttribute(_columns.item(i), "JsonPath");
+			// String columnType = _session.optionalAttribute(_columns.item(i), "DataType", null);
+			// String[] pathParts = path.split("\\.");
+			// tempPaths.add(pathParts);
+			// _dataSchema[i][0] = columnName;
+			// _dataSchema[i][1] = columnType;
+			// }
+			//
+			// // build tree that will contain all of the JSON attributes to return
+			// for (int m = 0; m < tempPaths.size(); m++) {
+			// boolean found = false;
+			// for (int n = 0; n < columns.size(); n++) {
+			// if (searchTree(columns.get(n), tempPaths.get(m), 0)) {
+			// found = true;
+			// }
+			// }
+			// if (!found) {
+			// columns.add(new TreeNode<String>(tempPaths.get(m)[0]));
+			// searchTree(columns.get(columns.size() - 1), tempPaths.get(m), 0);
+			// }
+			// }
+			//
+			// TreeNode<String> root = new TreeNode<String>("root");
+			// for (int n = 0; n < columns.size(); n++) {
+			// root.addChild(columns.get(n));
+			// }
+			//
+			// Object json = new JSONTokener(response).nextValue();
+			//
+			// // create rows by parsing JSON and using the tree with the attributes to search for
+			// ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>();
+			// if (json instanceof JSONObject) {
+			// rows = buildRows((JSONObject) json, rows, root);
+			// } else if (json instanceof JSONArray) {
+			// ArrayList<ArrayList<String>> parentRows = new ArrayList<ArrayList<String>>(rows);
+			// for (int i = 0; i < ((JSONArray) json).length(); i++) {
+			// rows.addAll(buildRows(((JSONArray) json).getJSONObject(i), parentRows, root));
+			// }
+			// }
+			//
+			// // determine data types and cast values to correct type
+			// dataTypeRows(rows);
 
 		} catch (JSONException ex) {
 			throw new RuntimeException("Error while trying to make REST request: " + ex.getMessage(), ex);
@@ -162,7 +201,7 @@ public class RestConnector extends DataConnector {
 	public Boolean eof() {
 		if ((_rowLimit != -1) && (_index >= _rowLimit)) {
 			return true;
-		} else if (_index < _rows.length) {
+		} else if (_index < _rowCount) {
 			return false;
 		}
 		return true;
@@ -170,7 +209,13 @@ public class RestConnector extends DataConnector {
 
 	@Override
 	public Object[] getDataRow() {
-		Object[] row = _rows[_index];
+		Map<String, Object> dataRow = _data.get(_index);
+
+		int length = _dataSchema.length;
+		Object[] row = new Object[length];
+		for (int i = 0; i < length; i++) {
+			row[i] = dataRow.get(_columnKeys.get(i));
+		}
 		_index++;
 		return row;
 	}
