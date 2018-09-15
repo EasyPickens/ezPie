@@ -31,6 +31,53 @@ public final class DateUtilities {
 
 	private DateUtilities() {
 	}
+	
+	public static Date getTodayStartOfDay() {
+		return startOfDay(Calendar.getInstance());
+	}
+	
+	public static Date getTomorrowStartOfDay() {
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, 1);
+		return startOfDay(cal);
+	}
+	
+	public static Date getYesterdayStartOfDay() {
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -1);
+		return startOfDay(cal);
+	}
+	
+	protected static Date startOfDay(Calendar cal) {
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		return cal.getTime();
+	}
+	
+	
+	public static Date getTodayEndOfDay() {
+		return endOfDay(Calendar.getInstance());
+	}
+	
+	public static Date getTomorrowEndOfDay() {
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, 1);
+		return endOfDay(cal);
+	}
+	
+	public static Date getYesterdayEndOfDay() {
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DATE, -1);
+		return endOfDay(cal);
+	}
+	
+	protected static Date endOfDay(Calendar cal) {
+		cal.set(Calendar.HOUR_OF_DAY, 23);
+		cal.set(Calendar.MINUTE, 59);
+		cal.set(Calendar.SECOND, 59);
+		return cal.getTime();
+	}
 
 	public static String getCurrentDateTime() {
 		return _sdfISO.format(Calendar.getInstance().getTime());

@@ -54,6 +54,8 @@ public class TransformFactory {
 			return new RenameColumn(session, transform);
 		case "Column":
 			return null;
+		case "Validation":
+			return new Validation(session, transform);
 		default:
 			throw new PieException(String.format("%s data transformation is not currently supported.", transform.getNodeName()));
 		}

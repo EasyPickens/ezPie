@@ -63,6 +63,7 @@ public class DelimitedConnector extends DataConnector {
 			if (FileUtilities.isInvalidFile(checkResourceDir)) {
 			throw new PieException(String.format("%s file not found.", _filename));
 			}
+			_filename = checkResourceDir;
 		}
 		_session.addLogMessage("", "Filename", _filename);
 

@@ -233,20 +233,22 @@ public final class StringUtilities {
 	}
 
 	public static Date toDate(String value) {
-		return toDate(value, null);
+		return toDate(value, null, null);
 	}
 
-	public static Date toDate(String value, Date defaultValue) {
+	public static Date toDate(String value, Date defaultValue, String customFormat) {
 		try {
 			if (value == null) {
 				return defaultValue;
+			} else if (isNotNullOrEmpty(customFormat)) {
+				return DateUtils.parseDateStrictly(value, customFormat);
 			}
 			return DateUtils.parseDateStrictly(value, SUPPORTED_DATE_FORMATS);
 		} catch (ParseException ex) {
 			return defaultValue;
 		}
 	}
-
+	
 	public static LocalDateTime toDateTime(String s, LocalDateTime defaultValue) {
 		if (StringUtilities.isNullOrEmpty(s))
 			return defaultValue;

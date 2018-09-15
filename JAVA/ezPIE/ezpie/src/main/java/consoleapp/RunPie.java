@@ -31,7 +31,7 @@ public class RunPie {
 
 	protected static void runJobManager() {
 		// String sSettings = "C:\\Developers\\Test\\_Settings.xml";
-		String sSettings = "C:\\Developers\\Code\\TestDirectory\\_Settings.xml";
+		String sSettings = "F:\\Developers\\Code\\TestDirectory\\_Settings.xml";
 		// String job = "test.xml";
 		// String job = "CMFT_Monthly_Scores.xml";
 		// String job = "CMFT_Monthly_v2.xml";
@@ -127,7 +127,8 @@ public class RunPie {
 		// String job = "ChartTest";
 		// String job = "RestJDBC";
 		// String job = "Jira";
-	    String job = "Jenkins";
+	    // String job = "Jenkins";
+		String job = "validatecsv";
 		String logFilename = null;
 		try {
 			System.out.println("Initializing PIE JobManager");

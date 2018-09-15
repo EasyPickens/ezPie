@@ -124,16 +124,19 @@ public class DataEngine {
 				if ((operationCount == 1) && dataOperations.get(0).isolated()) {
 					_session.addLogMessage("", String.format("Processing Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
 					dataOperations.get(0).addTransformLogMessage();
+					if (dataStream == null) {
+						throw new PieException("Internal error, dataStream is null.");
+					}
 					dataStream = dataOperations.get(0).processDataStream(dataStream, _memoryLimit);
 					_schema = dataStream.getSchema();
 				} else {
 					// These operations can be combined - multiple operations during one
 					// pass through the data stream.
+					_session.addLogMessage("", String.format("Data Transform Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
 					try (DataConnector dc = getConnector(dataStream); DataWriter dw = new DataWriter(dataFilename, _memoryLimit, false)) {
 						dc.open();
 						String[][] schema = dc.getDataSourceSchema();
 						if (operationCount > 0) {
-							_session.addLogMessage("", String.format("Data Transform Group #%d of %d", iGroup + 1, _processingGroupsCount), "");
 							// Update the schema based on the operations within this group.
 							for (int i = 0; i < operationCount; i++) {
 								dataOperations.get(i).addTransformLogMessage();
@@ -232,7 +235,7 @@ public class DataEngine {
 
 	protected void defineProcessingGroups() {
 		NodeList nlTransforms = XmlUtilities.selectNodes(_dataSource, "*");
-		ExecutionPlanner planner = new ExecutionPlanner(_session);
+		ExecutionPlanner planner = new ExecutionPlanner(_session, _localCacheEnabled, _localCacheMinutes);
 		_processingGroups = planner.getExecutionPlan(nlTransforms);
 		_processingGroupsCount = _processingGroups.size();
 	}

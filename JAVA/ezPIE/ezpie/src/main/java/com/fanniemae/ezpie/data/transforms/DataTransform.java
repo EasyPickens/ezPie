@@ -50,6 +50,7 @@ public abstract class DataTransform {
 
 	protected String[][] _inputSchema;
 
+	protected int _localCacheMinutes = 30;
 	protected int _outColumnIndex;
 	protected int _sourceColumnIndex;
 	protected int _rowsProcessed;
@@ -57,10 +58,11 @@ public abstract class DataTransform {
 	protected int _rowsReturned;
 	protected int _rowsRemoved;
 
-	protected Boolean _isolate = false;
-	protected Boolean _nameRequired = true;
-	protected Boolean _newColumn;
-	protected Boolean _addedNewColumn;
+	protected boolean _localCacheEnabled = true;
+	protected boolean _isolate = false;
+	protected boolean _nameRequired = true;
+	protected boolean _newColumn;
+	protected boolean _addedNewColumn;
 
 	protected ReportBuilder _transformInfo = new ReportBuilder();
 
@@ -93,6 +95,11 @@ public abstract class DataTransform {
 			_transformInfo.appendFormatLine("ExceptionID = %s", _exceptionDataSetName);
 			_transformInfo.appendFormatLine("Exception Filename = %s", _exceptionFilename);
 		}
+	}
+	
+	public void setLocalCacheConfiguration(boolean localCacheEnabled, int localCacheMinutes) {
+		_localCacheEnabled = localCacheEnabled;
+		_localCacheMinutes = localCacheMinutes;
 	}
 
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
@@ -143,7 +150,7 @@ public abstract class DataTransform {
 		if (StringUtilities.isNotNullOrEmpty(_dataColumn)) {
 			_sourceColumnIndex = ArrayUtilities.indexOf(schema, _dataColumn, true);
 			if (_sourceColumnIndex == -1) {
-				throw new PieException(String.format("Data column \"%s\" not found in the data set.", _dataColumn));
+				throw new PieException(String.format("Data column \"%s\" was not found in the data set.", _dataColumn));
 			}
 			_sourceColumnType = schema[_sourceColumnIndex][1];
 		}
