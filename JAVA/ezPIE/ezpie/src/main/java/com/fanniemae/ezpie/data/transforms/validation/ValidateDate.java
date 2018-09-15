@@ -5,9 +5,11 @@ import java.util.Date;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
+import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 public class ValidateDate extends DataValidation {
 
@@ -27,7 +29,50 @@ public class ValidateDate extends DataValidation {
 
 	@Override
 	public Object[] validateDataRow(Object[] dataRow) {
-		// TODO Auto-generated method stub
+		_session.setDataTokens(DataUtilities.dataRowToTokenHash(_inputSchema, dataRow));
+		
+		Object[] validationResults = new Object[] { _rowNumber, _dataColumn, "null", "Missing required valid date value.", new Date() };
+		
+		Object objValue = dataRow[_sourceColumnIndex];
+		if ((objValue == null) && !_allowNulls) {
+			validationResults[3] = "Missing a valid date value.";
+			return validationResults;
+		} else if (objValue == null) {
+			return dataRow;
+		}
+		
+		Date dateValue = null;
+		if (_sourceColumnDataType == DataType.DateData) {
+			dateValue = (Date) objValue;
+		} else if (_sourceColumnDataType == DataType.StringData) {
+			// Try to convert the value into a date
+			if (_requiredFormat != null) {
+				dateValue = StringUtilities.toDate((String) objValue, null, _requiredFormat);
+			} else {
+				dateValue = StringUtilities.toDate((String)objValue);
+			}
+			validationResults[2] = (String)objValue;
+			
+			if (dateValue == null) {
+				// String value could not be converted into a valid date.
+				validationResults[3] = "Provided string could not be converted into a valid date.";
+				return validationResults;
+			}
+		}
+		
+		if (dateValue != null) {
+			if ((_minValue != null) && dateValue.before(_minValue)) {
+				validationResults[3] = String.format("Provided date is before the set minimum date of %s.", DateUtilities.toIsoString(_minValue));
+				return validationResults;
+			} else if ((_maxValue != null) && dateValue.after(_maxValue)) {
+				validationResults[3] = String.format("Provided date is after the set maximum date of %s.", DateUtilities.toIsoString(_maxValue));
+				return validationResults;
+			}
+		}
+		
+		_session.clearDataTokens();
+		_rowNumber++;
+		
 		return null;
 	}
 
