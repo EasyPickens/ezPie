@@ -71,7 +71,7 @@ public class DataProvider {
 
 		_url = eleConnection.getAttribute("URL");
 		_className = eleConnection.getAttribute("ClassName");
-		_connectionString = eleConnection.getAttribute("ConnectionString");
+		_connectionString = session.getAttribute(eleConnection, "ConnectionString");
 		String connectionType = eleConnection.getAttribute("Type");
 		JdbcProvider jdbcDriver = null;
 		if (StringUtilities.isNullOrEmpty(_className) || StringUtilities.isNullOrEmpty(_url)) {

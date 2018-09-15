@@ -59,7 +59,10 @@ public class DelimitedConnector extends DataConnector {
 		if (StringUtilities.isNullOrEmpty(_filename)) {
 			throw new RuntimeException("DataSource.Delimited requires a Filename.");
 		} else if (FileUtilities.isInvalidFile(_filename)) {
+			String checkResourceDir = FileUtilities.addDirectory(FileUtilities.addDirectory(_session.getApplicationPath(), "_resources"), _filename);
+			if (FileUtilities.isInvalidFile(checkResourceDir)) {
 			throw new PieException(String.format("%s file not found.", _filename));
+			}
 		}
 		_session.addLogMessage("", "Filename", _filename);
 
@@ -103,7 +106,7 @@ public class DelimitedConnector extends DataConnector {
 
 			// strongly type the new row values.
 			for (int i = 0; i < iLen; i++) {
-				_dataRow[i] = castValue(i, dataRow[i]);
+				_dataRow[i] = castValue(i, dataRow[i].trim());
 			}
 
 			// strongly type the new row values.
@@ -147,7 +150,16 @@ public class DelimitedConnector extends DataConnector {
 			_sourceIndex = new int[dataRow.length];
 			boolean[] skipSchemaCheck = new boolean[dataRow.length];
 			for (int i = 0; i < dataRow.length; i++) {
-				_dataSchema[i][0] = _includesColumnNames ? dataRow[i] : String.format("Column%d", i);
+				String columnName = String.format("Column%d", i);
+				if (_includesColumnNames) {
+					String checkColName = dataRow[i];
+					if (StringUtilities.isNullOrEmpty(checkColName)) {
+						columnName = String.format("Column%d", 1);
+					} else {
+						columnName = checkColName.trim();
+					}
+				}
+				_dataSchema[i][0] = columnName;
 				_sourceIndex[i] = i;
 				skipSchemaCheck[i] = false;
 			}

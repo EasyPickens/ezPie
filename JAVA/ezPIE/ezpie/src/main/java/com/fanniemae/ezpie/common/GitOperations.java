@@ -56,6 +56,7 @@ import sun.net.www.protocol.http.AuthCacheValue;
  * 
  */
 
+@SuppressWarnings("restriction")
 public class GitOperations {
 
 	protected boolean _useProxy = false;

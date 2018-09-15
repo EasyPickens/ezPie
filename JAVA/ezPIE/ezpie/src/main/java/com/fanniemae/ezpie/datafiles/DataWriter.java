@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.common.CryptoUtilities;
 import com.fanniemae.ezpie.common.DataStream;
+import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.datafiles.lowlevel.BinaryOutputStream;
@@ -163,6 +164,10 @@ public class DataWriter extends DataFormat {
 			ie.setOffSet(_bos.getPosition());
 			_indexBlock.add(ie);
 			_nextBreak += _indexInterval;
+		}
+
+		if (data.length != _columnCount) {
+			throw new PieException(String.format("Expected number of columns (%d, args) is different from the actual number of data columns (%d) in this row.", _columnCount, data.length));
 		}
 
 		for (int i = 0; i < _columnCount; i++) {

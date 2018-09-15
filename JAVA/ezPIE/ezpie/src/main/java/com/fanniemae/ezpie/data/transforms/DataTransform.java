@@ -142,6 +142,9 @@ public abstract class DataTransform {
 
 		if (StringUtilities.isNotNullOrEmpty(_dataColumn)) {
 			_sourceColumnIndex = ArrayUtilities.indexOf(schema, _dataColumn, true);
+			if (_sourceColumnIndex == -1) {
+				throw new PieException(String.format("Data column \"%s\" not found in the data set.", _dataColumn));
+			}
 			_sourceColumnType = schema[_sourceColumnIndex][1];
 		}
 

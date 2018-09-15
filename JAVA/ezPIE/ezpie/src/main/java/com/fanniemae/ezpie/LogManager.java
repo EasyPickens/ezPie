@@ -45,6 +45,8 @@ public class LogManager {
 
 	protected LogLevel _logLevel = LogLevel.FULL_LOG;
 	protected LogFormat _logFormat = LogFormat.HTML;
+	
+	protected boolean _logMilliseconds = false;
 
 	protected String _logFilename;
 	protected String _templatePath;
@@ -77,7 +79,7 @@ public class LogManager {
 
 	protected long _startTime = System.currentTimeMillis();
 
-	public LogManager(String templatePath, String logFilename, String logFormat, String logLevel) {
+	public LogManager(String templatePath, String logFilename, String logFormat, String logLevel, String elapsedTimeFormat) {
 		_logFilename = logFilename;
 		_templatePath = templatePath;
 
@@ -98,6 +100,10 @@ public class LogManager {
 			}
 		}
 
+		if ("ms".equalsIgnoreCase(elapsedTimeFormat)) {
+			_logMilliseconds = true;
+		}
+		
 		if ((logFormat != null) && ("Text".equalsIgnoreCase(logFormat))) {
 			_logFormat = LogFormat.TEXT;
 			_footerLength = 0;
@@ -262,6 +268,8 @@ public class LogManager {
 	protected String elapsedTime() {
 		if (_logFormat == LogFormat.TEXT) {
 			return DateUtilities.getCurrentDateTime();
+		} else if (_logMilliseconds) {
+			return DateUtilities.elapsedTimeMilliseconds(_startTime);
 		} else {
 			return DateUtilities.elapsedTimeShort(_startTime);
 		}

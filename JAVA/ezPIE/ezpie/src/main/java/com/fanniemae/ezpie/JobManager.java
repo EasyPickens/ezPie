@@ -94,8 +94,10 @@ public class JobManager {
 			}
 		}
 
+		String jsonString = jsonDataSets.toString();
+		_session.addLogMessage("", "JSON Returned", String.format("%,d bytes of data", jsonString.length()));
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
-		return jsonDataSets.toString();
+		return jsonString;
 	}
 
 	public String processActions(NodeList nlActions) {

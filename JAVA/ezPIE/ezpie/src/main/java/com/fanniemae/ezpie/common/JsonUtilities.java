@@ -45,11 +45,16 @@ public class JsonUtilities {
 		try (DataReader dr = new DataReader(ds)) {
 			String[] columnNames = dr.getColumnNames();
 			DataType[] dataTypes = dr.getDataTypes();
+
+			// Add an array of data set column names to the output.
+			dataSet.put("ColumnNames", columnNames);
+
+			// Add an array of the data set column types to the output.
+			dataSet.put("ColumnType", dataTypesToJsonTypes(dataTypes));
+
 			while (!dr.eof()) {
 				Object[] dataRow = dr.getDataRow();
 				JSONObject jsonDataRow = new JSONObject();
-				
-				dataSet.put("ColumnNames", columnNames);
 
 				for (int i = 0; i < columnNames.length; i++) {
 					if (dataRow[i] == null) {
@@ -70,7 +75,7 @@ public class JsonUtilities {
 
 		return dataSet;
 	}
-	
+
 	public static String writeJsonFile(String responseStr, String filename) {
 		Object responseJSON = new JSONTokener(responseStr).nextValue();
 		String jsonString = "";
@@ -90,5 +95,32 @@ public class JsonUtilities {
 
 		return filename;
 	}
-	
+
+	public static String[] dataTypesToJsonTypes(DataType[] dataTypes) {
+		String[] columnTypes = new String[dataTypes.length];
+		for (int i = 0; i < dataTypes.length; i++) {
+			switch (dataTypes[i]) {
+			case DateData:
+				columnTypes[i] = "DateTime";
+				break;
+			case BooleanData:
+				columnTypes[i] = "Boolean";
+				break;
+			case BigDecimalData:
+			case ByteData:
+			case DoubleData:
+			case FloatData:
+			case IntegerData:
+			case LongData:
+			case ShortData:
+				columnTypes[i] = "Numeric";
+				break;
+			default:
+				columnTypes[i] = "String";
+				break;
+			}
+		}
+		return columnTypes;
+	}
+
 }

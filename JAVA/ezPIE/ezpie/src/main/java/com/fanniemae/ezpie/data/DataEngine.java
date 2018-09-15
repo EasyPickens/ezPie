@@ -151,7 +151,7 @@ public class DataEngine {
 							if (operationCount > 0) {
 								for (int i = 0; i < operationCount; i++) {
 									dataRow = dataOperations.get(i).processDataRow(dataRow);
-									if (dataRow != null) {
+									if (dataRow == null) {
 										break;
 									}
 								}

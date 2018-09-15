@@ -88,8 +88,11 @@ public final class DateUtilities {
 	}
 
 	public static String elapsedTimeShort(long start) {
-		long end = System.currentTimeMillis();
-		return elapsedTimeShort(start, end);
+		return elapsedTimeShort(start, System.currentTimeMillis());
+	}
+	
+	public static String elapsedTimeMilliseconds(long start) {
+		return String.format("%,d ms", Math.abs(System.currentTimeMillis()-start));
 	}
 
 	public static String elapsedTimeShort(long start, long end) {

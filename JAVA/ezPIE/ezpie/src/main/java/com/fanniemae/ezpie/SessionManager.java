@@ -53,6 +53,7 @@ public class SessionManager {
 	protected String _appPath;
 	protected String _definitionPath;
 	protected String _logPath;
+	protected String _elapsedTime;
 	protected String _stagingPath;
 	protected String _templatePath;
 	protected String _pathSeparator = System.getProperty("file.separator");
@@ -128,6 +129,7 @@ public class SessionManager {
 		_logPath = FileUtilities.formatPath(eleConfig.getAttribute("LogPath"), String.format("%1$s_Logs", _appPath), "LogPath");
 		_tokenPrefix = eleConfig.hasAttribute(TOKEN_PREFIX_ATTRIBUTE) ? eleConfig.getAttribute(TOKEN_PREFIX_ATTRIBUTE) : _tokenPrefix;
 		_tokenSuffix = eleConfig.hasAttribute(TOKEN_SUFFIX_ATTRIBUTE) ? eleConfig.getAttribute(TOKEN_SUFFIX_ATTRIBUTE) : _tokenSuffix;
+		_elapsedTime = eleConfig.getAttribute("ElapsedTime");
 		String logFormat = eleConfig.getAttribute("LogFormat");
 		String logLevel = eleConfig.getAttribute("LogLevel");
 		String logFileExtension = "Text".equalsIgnoreCase(logFormat) ? "txt" : "html";
@@ -148,7 +150,7 @@ public class SessionManager {
 		}
 
 		// Create Log page.
-		_logger = new LogManager(_templatePath, _logFilename, logFormat, logLevel);
+		_logger = new LogManager(_templatePath, _logFilename, logFormat, logLevel, _elapsedTime);
 		_logger.addMessage("", "Data Caching", _dataCachingEnabled ? "Enabled" : "Disabled");
 
 		if ((jobFilename != null) && !jobFilename.toLowerCase().endsWith(".xml")) {
