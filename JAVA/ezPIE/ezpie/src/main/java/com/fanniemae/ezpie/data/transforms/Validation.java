@@ -38,7 +38,7 @@ public class Validation extends DataTransform {
 		// Get the name of the validation report dataset.
 		String validationResults = FileUtilities.getRandomFilename(_session.getStagingPath(), ".dat");
 		
-	    DataStream dataStream = null;
+	    DataStream validationStream = null;
 	    
 	    try (DataReader dr = new DataReader(inputStream); DataWriter dw = new DataWriter(validationResults, memoryLimit);) {
 	    	dw.setDataColumns(_validationColumnNames, _validationDataTypes);
@@ -88,13 +88,13 @@ public class Validation extends DataTransform {
 			dw.setFullRowCountKnown(true); // dc.getFullRowCountKnown());
 			dw.close();
 			dr.close();
-			dataStream = dw.getDataStream();
-			_session.addDataSet(_name, dataStream);
-			_session.addLogMessage("", "Validation Results", String.format("%,d rows (%,d bytes in %s, args)", rowCount, dataStream.getSize(), dataStream.IsMemory() ? "memorystream" : "filestream"));
+			validationStream = dw.getDataStream();
+			_session.addDataSet(_name, validationStream);
+			_session.addLogMessage("", "Validation Results", String.format("%,d rows (%,d bytes in %s, args)", rowCount, validationStream.getSize(), validationStream.IsMemory() ? "memorystream" : "filestream"));
 	    } catch (Exception ex) {
 	    	throw new PieException(String.format("Error while running data set validation. %s", ex.getMessage()),ex);
 	    }
-	    return dataStream;
+	    return inputStream;
 	}
 
 }
