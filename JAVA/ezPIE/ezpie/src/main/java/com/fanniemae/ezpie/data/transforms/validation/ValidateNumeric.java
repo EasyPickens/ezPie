@@ -8,6 +8,13 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-09-15
+ * 
+ */
+
 public class ValidateNumeric extends DataValidation {
 
 	protected Double _minValue = null;

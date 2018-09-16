@@ -10,6 +10,13 @@ import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-09-15
+ * 
+ */
+
 public class ValidateDate extends DataValidation {
 
 	protected Date _minValue = null;

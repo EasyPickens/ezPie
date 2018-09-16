@@ -10,6 +10,13 @@ import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-09-16
+ * 
+ */
+
 public class ValidateString extends DataValidation {
 
 	protected Integer _minLength;
@@ -23,7 +30,7 @@ public class ValidateString extends DataValidation {
 		super(session, transform, inputSchema);
 		_minLength = StringUtilities.toIntegerClass(getOptionalAttribute("MinLength"));
 		_maxLength = StringUtilities.toIntegerClass(getOptionalAttribute("MaxLength"));
-		_allowNulls = StringUtilities.toBoolean(getOptionalAttribute("AllowNulls"), false);
+		_allowNulls = StringUtilities.toBoolean(getOptionalAttribute("AllowNulls"), true);
 		_allowCharacters = getOptionalAttribute("AllowCharacters");
 
 		if (StringUtilities.isNotNullOrEmpty(_allowCharacters)) {
