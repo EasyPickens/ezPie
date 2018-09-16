@@ -105,17 +105,17 @@ public class DelimitedConnector extends DataConnector {
 			// null the previous row values before reading the next row.
 			Arrays.fill(_dataRow, null);
 
-			// strongly type the new row values.
-			for (int i = 0; i < iLen; i++) {
-				_dataRow[i] = castValue(i, dataRow[i].trim());
-			}
+//			// strongly type the new row values.
+//			for (int i = 0; i < iLen; i++) {
+//				_dataRow[i] = castValue(i, dataRow[i].trim());
+//			}
 
 			// strongly type the new row values.
 			for (int i = 0; i < iLen; i++) {
 				if (_sourceIndex[i] == -1) {
 					_dataRow[i] = null;
 				} else {
-					_dataRow[i] = castValue(i, dataRow[_sourceIndex[i]]);
+					_dataRow[i] = castValue(i, dataRow[_sourceIndex[i]].trim());
 				}
 			}
 		} catch (IOException ex) {

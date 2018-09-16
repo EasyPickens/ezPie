@@ -20,7 +20,7 @@ public abstract class DataValidation {
 	protected int _sourceColumnIndex = -1;
 	protected DataType _sourceColumnDataType = DataType.StringData;
 
-	protected int _rowNumber = 0;
+	protected int _rowNumber = 1;
 
 	public DataValidation(SessionManager session, Element transform, String[][] inputSchema) {
 
@@ -40,7 +40,7 @@ public abstract class DataValidation {
 
 	public abstract Object[] validateDataRow(Object[] dataRow);
 
-	protected String getoptionalAttribute(String attributeName) {
+	protected String getOptionalAttribute(String attributeName) {
 		return _session.optionalAttribute(_transform, attributeName);
 	}
 

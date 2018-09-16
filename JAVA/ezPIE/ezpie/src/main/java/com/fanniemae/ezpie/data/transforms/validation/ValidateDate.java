@@ -5,7 +5,6 @@ import java.util.Date;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
-import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.DateUtilities;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.StringUtilities;
@@ -23,22 +22,21 @@ public class ValidateDate extends DataValidation {
 
 		_minValue = readDateValue("MinValue");
 		_maxValue = readDateValue("MaxValue");
-		_allowNulls = StringUtilities.toBoolean(_requiredFormat, true);
+		_allowNulls = StringUtilities.toBoolean(getOptionalAttribute("AllowNulls", "True"), true);
 		_requiredFormat = getOptionalAttribute("RequiredFormat", null);
 	}
 
 	@Override
 	public Object[] validateDataRow(Object[] dataRow) {
-		_session.setDataTokens(DataUtilities.dataRowToTokenHash(_inputSchema, dataRow));
-		
 		Object[] validationResults = new Object[] { _rowNumber, _dataColumn, "null", "Missing required valid date value.", new Date() };
+		_rowNumber++;
 		
 		Object objValue = dataRow[_sourceColumnIndex];
 		if ((objValue == null) && !_allowNulls) {
-			validationResults[3] = "Missing a valid date value.";
+			validationResults[3] = "No date value provided.";
 			return validationResults;
 		} else if (objValue == null) {
-			return dataRow;
+			return null;
 		}
 		
 		Date dateValue = null;
@@ -70,9 +68,6 @@ public class ValidateDate extends DataValidation {
 			}
 		}
 		
-		_session.clearDataTokens();
-		_rowNumber++;
-		
 		return null;
 	}
 
@@ -97,7 +92,7 @@ public class ValidateDate extends DataValidation {
 			return DateUtilities.getYesterdayEndOfDay();
 		default:
 			if (!StringUtilities.isDate(value)) {
-				throw new PieException(String.format("%s requires a valid ate.  '%s' is not a recognized date value or format.", attributeName, value));
+				throw new PieException(String.format("%s requires a valid date.  '%s' is not a recognized date value or format.", attributeName, value));
 			}
 			return StringUtilities.toDate(value);
 		}

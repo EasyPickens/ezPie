@@ -217,6 +217,26 @@ public final class StringUtilities {
 			return defaultValue;
 		}
 	}
+	
+	public static Double toDoubleClass(String value) {
+		if (isNullOrEmpty(value))
+			return null;
+		try {
+			return Double.parseDouble(value.trim());
+		} catch (NumberFormatException ex) {
+			return null;
+		}
+	}
+	
+	public static Integer toIntegerClass(String value) {
+		if (isNullOrEmpty(value))
+			return null;
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException ex) {
+			return null;
+		}
+	}
 
 	public static BigDecimal toBigDecimal(String value) {
 		return toBigDecimal(value, new BigDecimal("0.0"));
