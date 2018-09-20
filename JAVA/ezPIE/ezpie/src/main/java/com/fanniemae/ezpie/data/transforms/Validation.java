@@ -11,9 +11,11 @@ import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.transforms.validation.DataValidation;
+import com.fanniemae.ezpie.data.transforms.validation.ValidateBoolean;
 import com.fanniemae.ezpie.data.transforms.validation.ValidateDate;
 import com.fanniemae.ezpie.data.transforms.validation.ValidateList;
 import com.fanniemae.ezpie.data.transforms.validation.ValidateNumeric;
+import com.fanniemae.ezpie.data.transforms.validation.ValidateSql;
 import com.fanniemae.ezpie.data.transforms.validation.ValidateString;
 import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.DataWriter;
@@ -76,7 +78,13 @@ public class Validation extends DataTransform {
 					break;
 				case "List":
 					_validationOperations[i] = new ValidateList(_session, (Element) nl.item(i), inputSchema);
-					break;					
+					break;
+				case "Boolean":
+					_validationOperations[i] = new ValidateBoolean(_session, (Element) nl.item(i), inputSchema);
+					break;
+				case "SqlCheck":
+					_validationOperations[i] = new ValidateSql(_session, (Element) nl.item(i), inputSchema);
+					break;
 				default:
 					throw new PieException(String.format("%s is not a currently supported validation operation.", nl.item(i).getNodeName()));
 				}
@@ -111,9 +119,16 @@ public class Validation extends DataTransform {
 			dr.close();
 			validationStream = dw.getDataStream();
 			_session.addDataSet(_name, validationStream);
-			_session.addLogMessage("", "Validation Results", String.format("%,d problems found (%,d bytes in %s, args)", problemCount, validationStream.getSize(), validationStream.IsMemory() ? "memorystream" : "filestream"));
+			_session.addLogMessage("", "Validation Results", String.format("Checked %,d rows and found %,d validation errors (%,d bytes in %s, args)", rowCount, problemCount, validationStream.getSize(), validationStream.IsMemory() ? "memorystream" : "filestream"));
+			_session.addToken(_name,  "validationErrors", String.format("%d", problemCount));
 		} catch (Exception ex) {
 			throw new PieException(String.format("Error while running data set validation. %s", ex.getMessage()), ex);
+		} finally {
+			for (int i = 0; i < _validationOperations.length; i++) {
+				if (_validationOperations[i] != null) {
+					_validationOperations[i].close();
+				}
+			}
 		}
 		return inputStream;
 	}

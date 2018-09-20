@@ -12,24 +12,22 @@
 package com.fanniemae.ezpie.data.connectors;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Types;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.fanniemae.ezpie.SessionManager;
 import com.fanniemae.ezpie.common.Constants;
-import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.ExceptionUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.PieException;
+import com.fanniemae.ezpie.common.SqlUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
 import com.fanniemae.ezpie.common.XmlUtilities;
 import com.fanniemae.ezpie.data.DataProvider;
@@ -106,8 +104,10 @@ public class SqlConnector extends DataConnector {
 			_connectionString = _con.getMetaData().getURL();
 
 			_session.addLogMessage("", "ConnectionName", _connection.getAttribute("Name"));
+			
+			NodeList parameterList = XmlUtilities.selectNodes(_dataSource, "SqlParameter");
+			SqlUtilities.addSqlParameters(_session, _pstmt, parameterList);
 
-			addSqlParameters();
 			String sCommandTimeout = _dataSource.getAttribute("CommandTimeout");
 			if (StringUtilities.isNullOrEmpty(sCommandTimeout)) {
 				sCommandTimeout = _connection.getAttribute("CommandTimeout");
@@ -248,79 +248,6 @@ public class SqlConnector extends DataConnector {
 
 	protected boolean isNotPostgreSQL() throws SQLException {
 		return !isPostgreSQL();
-	}
-
-	protected void addSqlParameters() throws SQLException {
-		// Add parameters in the order listed.
-		// Check report definition for defined parameters
-		NodeList parameterList = XmlUtilities.selectNodes(_dataSource, "SqlParameter");
-		int length = parameterList.getLength();
-		if (length == 0)
-			return;
-
-		java.util.Date javaDate;
-		for (int i = 0; i < length; i++) {
-			int paramNumber = i + 1;
-			Element eleParameter = (Element) parameterList.item(i);
-			String value = _session.getAttribute(eleParameter, "Value");
-			String paramType = _session.getAttribute(eleParameter, "SqlType").trim();
-			String nullValue = _session.getAttribute(eleParameter, "NullValue");
-			if (value.equals(nullValue)) {
-				_pstmt.setNull(paramNumber, DataUtilities.dbStringTypeToJavaSqlType(paramType));
-			}
-
-			String typeUsed = "";
-			switch (DataUtilities.dbStringTypeToJavaSqlType(paramType)) {
-			case Types.BIGINT:
-				_pstmt.setLong(paramNumber, Long.parseLong(value));
-				typeUsed = "bigint";
-				break;
-			case Types.BOOLEAN:
-				_pstmt.setBoolean(paramNumber, Boolean.parseBoolean(value));
-				typeUsed = "boolean";
-				break;
-			case Types.DECIMAL:
-				_pstmt.setBigDecimal(paramNumber, new BigDecimal(value));
-				typeUsed = "decimal";
-				break;
-			case Types.DATE:
-				javaDate = StringUtilities.toDate(value);
-				_pstmt.setDate(paramNumber, new java.sql.Date(javaDate.getTime()));
-				typeUsed = "date";
-				break;
-			case Types.DOUBLE:
-				_pstmt.setDouble(paramNumber, Double.parseDouble(value));
-				typeUsed = "double";
-				break;
-			case Types.INTEGER:
-				_pstmt.setInt(paramNumber, Integer.parseInt(value));
-				typeUsed = "integer";
-				break;
-			case Types.TIME:
-				javaDate = StringUtilities.toDate(value);
-				_pstmt.setTime(paramNumber, new java.sql.Time(javaDate.getTime()));
-				typeUsed = "time";
-				break;
-			case Types.TIMESTAMP:
-				javaDate = StringUtilities.toDate(value);
-				_pstmt.setTimestamp(paramNumber, new java.sql.Timestamp(javaDate.getTime()));
-				typeUsed = "timestamp";
-				break;
-			case Types.CHAR:
-			case Types.LONGNVARCHAR:
-			case Types.LONGVARCHAR:
-			case Types.NVARCHAR:
-			case Types.VARCHAR:
-				_pstmt.setString(paramNumber, value);
-				typeUsed = "string";
-				break;
-			default:
-				_pstmt.setString(paramNumber, value);
-				typeUsed = "string";
-				break;
-			}
-			_session.addLogMessage("", "SQL Parameter", String.format("Parameter #%d is set to %s (%s)", paramNumber, value, typeUsed));
-		}
 	}
 
 	@Override

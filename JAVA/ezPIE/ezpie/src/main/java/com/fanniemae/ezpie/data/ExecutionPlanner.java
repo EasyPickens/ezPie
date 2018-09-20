@@ -56,7 +56,7 @@ public class ExecutionPlanner {
 			DataTransform currentTransform = TransformFactory.getTransform(_session, eleTransform);
 			currentTransform.setLocalCacheConfiguration(_localCacheEnabled, _localCacheMinutes);
 			if (currentTransform.isolated()) {
-				if (processingGroups.size() == 0) {
+				if ((processingGroups.size() == 0) && (currentTransformGroup.size() == 0)) {
 					processingGroups.put(processingGroups.size(), new HashMap<Integer,DataTransform>());
 				}
 				if (currentTransformGroup.size() > 0) {

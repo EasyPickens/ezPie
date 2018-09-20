@@ -251,4 +251,27 @@ public final class DataUtilities {
 			throw new PieException(String.format("Could not convert %s into a java type name. %s", typeName, e.getMessage()), e);
 		}
 	}
+
+	public static Double toDoubleClass(Object value) {
+		if (value == null) {
+			return null;
+		}
+
+		switch (value.getClass().getName()) {
+		case "java.lang.Double":
+			return (Double) value;
+		case "java.lang.Integer":
+			return new Double((int) value);
+		case "java.lang.Short":
+			return new Double((short) value);
+		case "java.lang.Long":
+			return new Double((long) value);
+		case "java.lang.Byte":
+			return new Double((byte)value);
+		case "java.lang.String":
+			return StringUtilities.toDoubleClass((String) value);
+		default:
+			throw new PieException(String.format("%s data type is not currently supported as a numeric.", value.getClass().getName()));
+		}
+	}
 }

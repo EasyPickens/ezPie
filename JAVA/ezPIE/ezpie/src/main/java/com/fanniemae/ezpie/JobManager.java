@@ -94,7 +94,7 @@ public class JobManager {
 			}
 		}
 
-		String jsonString = jsonDataSets.toString();
+		String jsonString = jsonDataSets.toString(4);
 		_session.addLogMessage("", "JSON Returned", String.format("%,d bytes of data", jsonString.length()));
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
 		return jsonString;

@@ -35,6 +35,8 @@ public abstract class DataValidation {
 		_transform = transform;
 		_inputSchema = inputSchema;
 
+		_session.addLogMessage("", "Setup Operation", transform.getNodeName() + " validation");
+		
 		_dataColumn = getRequiredAttribute("DataColumn");
 
 		_sourceColumnIndex = ArrayUtilities.indexOf(inputSchema, _dataColumn);
@@ -58,4 +60,6 @@ public abstract class DataValidation {
 	protected String getRequiredAttribute(String attributeName) {
 		return _session.requiredAttribute(_transform, attributeName);
 	}
+	
+	public void close() {}
 } 

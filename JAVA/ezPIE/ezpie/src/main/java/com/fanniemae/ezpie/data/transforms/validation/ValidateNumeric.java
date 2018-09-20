@@ -5,8 +5,8 @@ import java.util.Date;
 import org.w3c.dom.Element;
 
 import com.fanniemae.ezpie.SessionManager;
+import com.fanniemae.ezpie.common.DataUtilities;
 import com.fanniemae.ezpie.common.StringUtilities;
-import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 /**
  * 
@@ -34,7 +34,7 @@ public class ValidateNumeric extends DataValidation {
 	public Object[] validateDataRow(Object[] dataRow) {
 		Object[] validationResults = new Object[] { _rowNumber, _dataColumn, "null", "Missing required valid numeric value.", new Date() };
 		_rowNumber++;
-		
+
 		Object objValue = dataRow[_sourceColumnIndex];
 		if ((objValue == null) && !_allowNulls) {
 			validationResults[3] = "No numeric value provided.";
@@ -43,20 +43,14 @@ public class ValidateNumeric extends DataValidation {
 			return null;
 		}
 
-		Double doubleValue = null;
-		if (_sourceColumnDataType == DataType.DoubleData) {
-			doubleValue = (Double) objValue;
-			validationResults[2] = StringUtilities.formatAsNumber(doubleValue);
-		} else if (_sourceColumnDataType == DataType.StringData) {
-			// Try to convert the string value into a numeric
-			validationResults[2] = (String) objValue;
-			Double doubleClass = StringUtilities.toDoubleClass((String) objValue);
-			if (doubleClass == null) {
-				validationResults[3] = "Provided string could not be converted into a valid numeric value.";
-				return validationResults;
-			}
-			doubleValue = doubleClass.doubleValue();
+		Double doubleValue = DataUtilities.toDoubleClass(objValue);
+		if (doubleValue == null) {
+			validationResults[3] = "Provided value could not be converted into a numeric value.";
+			validationResults[2] = objValue.toString();
+			return validationResults;
 		}
+		
+		validationResults[2] = StringUtilities.formatAsNumber(doubleValue);
 
 		if (!_allowDecimals && (Math.floor(doubleValue) != doubleValue)) {
 			validationResults[3] = "Provided numeric is not an integer.";
@@ -72,17 +66,4 @@ public class ValidateNumeric extends DataValidation {
 		return null;
 	}
 
-//	private Double readDoubleValue(String string) {
-//		Double result = 0.0D;
-//		try {
-//			result = Double.parseDouble(string);
-//		} catch (NumberFormatException ex) {
-//			if (StringUtilities.toDouble(string) == 0.0D) {
-//				throw new PieException(String.format("%s requires a valid double. '%s' is not a recognized double value or format.", string, result));
-//			}
-//
-//			return 0.0D;
-//		}
-//		return result;
-//	}
 }
