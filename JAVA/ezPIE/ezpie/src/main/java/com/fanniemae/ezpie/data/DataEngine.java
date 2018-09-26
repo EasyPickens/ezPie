@@ -36,6 +36,7 @@ import com.fanniemae.ezpie.data.connectors.DataSetConnector;
 import com.fanniemae.ezpie.data.connectors.DelimitedConnector;
 import com.fanniemae.ezpie.data.connectors.DirectoryConnector;
 import com.fanniemae.ezpie.data.connectors.ExcelConnector;
+import com.fanniemae.ezpie.data.connectors.JsonConnector;
 import com.fanniemae.ezpie.data.connectors.RestConnector;
 import com.fanniemae.ezpie.data.connectors.SqlConnector;
 import com.fanniemae.ezpie.data.transforms.DataTransform;
@@ -228,6 +229,8 @@ public class DataEngine {
 			return new RestConnector(_session, _dataSource, false);
 		case "excel":
 			return new ExcelConnector(_session, _dataSource, false);
+		case "json":
+			return new JsonConnector(_session, _dataSource, false);
 		default:
 			throw new PieException(String.format("Requested DataSource Type=%s not currently supported.", connectorType));
 		}

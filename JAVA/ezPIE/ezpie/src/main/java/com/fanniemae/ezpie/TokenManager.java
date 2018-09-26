@@ -116,6 +116,9 @@ public class TokenManager {
 			String key = entry.getKey();
 			String value = entry.getValue();
 			domainTokens.put(key, value);
+			if ((value != null) && (value.length() > 100)) {
+				value = value.substring(0, 75) + " ...";
+			}
 			sb.append(String.format(TOKEN_ADDED_FORMAT_STRING, _tokenPrefix, tokenType, key, _tokenSuffix, value));
 			added++;
 		}

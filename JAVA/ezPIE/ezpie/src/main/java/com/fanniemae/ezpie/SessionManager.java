@@ -526,7 +526,7 @@ public class SessionManager {
 		String value = getAttribute(element, attributeName);
 		if (StringUtilities.isNullOrEmpty(value)) {
 			throw new PieException(errorMessage);
-		} else if (_lastAttributeSecure || "UserID".equals(attributeName) || "Password".equals(attributeName)) {
+		} else if (_lastAttributeSecure || "UserID".equals(attributeName) || "Password".equals(attributeName) || "Data".equals(attributeName)) {
 			addLogMessage("", attributeName, getHiddenMessage());
 		} else {
 			addLogMessage("", attributeName, value);
