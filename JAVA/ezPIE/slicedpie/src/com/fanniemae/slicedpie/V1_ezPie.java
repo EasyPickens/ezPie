@@ -31,7 +31,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.fanniemae.ezpie.JobManager;
-import com.gargoylesoftware.htmlunit.javascript.host.Console;
 
 /**
  * 
