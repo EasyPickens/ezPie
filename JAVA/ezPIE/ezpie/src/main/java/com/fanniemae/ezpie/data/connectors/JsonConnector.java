@@ -28,7 +28,6 @@ public class JsonConnector extends DataConnector {
 
 	@Override
 	public Boolean open() {
-		
 		try {
 			String data = _session.requiredAttribute(_dataSource, "Data");
 			if (data.startsWith("file://")) {

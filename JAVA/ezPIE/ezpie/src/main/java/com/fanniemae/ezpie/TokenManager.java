@@ -44,7 +44,7 @@ public class TokenManager {
 
 	protected String _tokenPrefix = "[";
 	protected String _tokenSuffix = "]";
-	
+
 	protected static final String TOKEN_ADDED = "Token Added";
 	protected static final String TOKENS_ADDED = "Tokens Added";
 	protected static final String TOKEN_ADDED_FORMAT_STRING = "%1$s%2$s.%3$s%4$s = %5$s";
@@ -183,6 +183,7 @@ public class TokenManager {
 		int iTokenEnd = 0;
 		String[] aTokens = value.split(String.format("\\Q%s\\E", _tokenPrefix));
 
+		boolean madeChanges = false;
 		for (int i = 0; i < aTokens.length; i++) {
 			tokenSplit = aTokens[i].indexOf('.');
 			iTokenEnd = aTokens[i].indexOf(_tokenSuffix);
@@ -199,6 +200,7 @@ public class TokenManager {
 				continue;
 			} else if ("Data".equals(tokenGroup) && _dataTokens.containsKey(tokenKey)) {
 				value = value.replace(fullToken, _dataTokens.get(tokenKey));
+				madeChanges = true;
 			} else if ("System".equals(tokenGroup)) {
 				// System tokens call methods
 				SimpleDateFormat sdf;
@@ -227,7 +229,7 @@ public class TokenManager {
 					sdf = new SimpleDateFormat("dd");
 					value = value.replace(fullToken, sdf.format(_startDateTime));
 					break;
-				case "ElapsedTime": 
+				case "ElapsedTime":
 					// returns minutes.
 					Date dtCurrent = new Date();
 					double minutes = (dtCurrent.getTime() - _startDateTime.getTime()) / 60000.0;
@@ -239,12 +241,22 @@ public class TokenManager {
 				}
 			} else if (_tokens.containsKey(tokenGroup) && _tokens.get(tokenGroup).containsKey(tokenKey)) {
 				value = value.replace(fullToken, _tokens.get(tokenGroup).get(tokenKey));
+				madeChanges = true;
 			} else {
+				/*
+				 Changed behavior, if token does not exist then it will stay in stream.
+				 Using this to ensure that some unique values make it through to engine.
+				 JSON strings were valid but the tokenizer was removing them.
+				*/
 				// if the token is not found, it evaluates to empty string.
-				value = value.replace(fullToken, "");
+				// value = value.replace(fullToken, "");
 			}
 		}
-		return resolveTokens(value);
+		if (madeChanges) {
+			return resolveTokens(value);
+		} else {
+			return value;
+		}
 	}
 
 	protected void loadTokenValues(String tokenType, String[][] kvps) {

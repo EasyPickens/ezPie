@@ -62,7 +62,7 @@ public class ValidateSql extends DataValidation {
 		_parameterList = XmlUtilities.selectNodes(_transform, "SqlParameter");
 		int length = _parameterList.getLength();
 		for (int i = 0; i < length; i++) {
-			_session.addLogMessage("", String.format("SQL Parameter $d", i + 1), ((Element) _parameterList.item(i)).getAttribute("Value"));
+			_session.addLogMessage("", String.format("SQL Parameter #%d", i + 1), ((Element) _parameterList.item(i)).getAttribute("Value"));
 		}
 
 	}
