@@ -1,5 +1,12 @@
 package com.rest.wrapper.ezpie.warmpie.controllers;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-09-27
+ * 
+ */
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;

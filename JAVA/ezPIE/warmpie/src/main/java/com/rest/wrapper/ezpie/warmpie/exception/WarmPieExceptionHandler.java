@@ -1,5 +1,12 @@
 package com.rest.wrapper.ezpie.warmpie.exception;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-09-27
+ * 
+ */
+
 import java.util.Date;
 
 import org.springframework.http.HttpStatus;

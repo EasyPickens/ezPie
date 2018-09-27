@@ -31,7 +31,7 @@ import com.opencsv.CSVReader;
 
 /**
  * 
- * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-14
  * 
  */

@@ -19,7 +19,7 @@ import java.util.List;
 
 /**
  * 
- * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2017-03-27
  * 
  */

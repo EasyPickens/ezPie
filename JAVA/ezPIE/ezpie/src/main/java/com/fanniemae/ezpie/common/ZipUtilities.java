@@ -32,7 +32,7 @@ import java.util.zip.ZipOutputStream;
 
 /**
  * 
- * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @author Tara Tritt
  * @since 2016-05-06
  * 

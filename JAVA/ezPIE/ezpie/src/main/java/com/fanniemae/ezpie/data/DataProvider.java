@@ -41,7 +41,7 @@ import com.fanniemae.ezpie.data.utilities.SqlParameterInfo;
 
 /**
  * 
- * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2015-12-22
  * 
  */

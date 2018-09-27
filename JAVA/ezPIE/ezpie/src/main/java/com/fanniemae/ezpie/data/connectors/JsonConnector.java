@@ -12,6 +12,13 @@ import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.JsonFlattener;
 import com.fanniemae.ezpie.common.PieException;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-09-25
+ * 
+ */
+
 public class JsonConnector extends DataConnector {
 	
 	protected List<Map<String,Object>> _data = null;

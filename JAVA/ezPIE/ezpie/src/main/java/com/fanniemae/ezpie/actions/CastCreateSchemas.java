@@ -28,7 +28,7 @@ import com.fanniemae.ezpie.common.XmlUtilities;
 
 /**
  * 
- * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2016-08-30
  *
  */

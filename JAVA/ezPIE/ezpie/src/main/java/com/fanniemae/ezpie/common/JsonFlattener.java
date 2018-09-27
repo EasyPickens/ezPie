@@ -13,6 +13,13 @@ import org.json.JSONObject;
 
 import com.fanniemae.ezpie.SessionManager;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-09-18
+ * 
+ */
+
 public class JsonFlattener {
 
 	protected SessionManager _session;

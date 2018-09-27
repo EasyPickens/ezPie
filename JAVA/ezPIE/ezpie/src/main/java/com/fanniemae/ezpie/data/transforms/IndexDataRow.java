@@ -20,7 +20,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 //@formatter:off
 /**
  * 
- * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-21
  * 
  * One row of data (IndexDataRow) used to sort. Each entry is compared until a greater than or 

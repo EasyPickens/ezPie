@@ -28,7 +28,7 @@ import com.fanniemae.ezpie.common.PieException;
 
 /**
  * 
- * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2016-11-22
  * 
  */

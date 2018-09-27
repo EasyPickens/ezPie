@@ -35,7 +35,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
 /**
  *
- * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @author Tara Tritt
  * @since 2016-04-29
  * 

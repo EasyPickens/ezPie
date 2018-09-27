@@ -30,7 +30,7 @@ import org.json.JSONArray;
 /**
  *
  * @author Tara Tritt
- * @author Rick Monson (richard_monson@fanniemae.com, https://www.linkedin.com/in/rick-monson/)
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2016-05-11
  * 
  */
