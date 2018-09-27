@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class WarmpieApplication {
+public class WarmPie {
 
 	public static void main(String[] args) {
-		SpringApplication.run(WarmpieApplication.class, args);
+		SpringApplication.run(WarmPie.class, args);
 	}
 }
