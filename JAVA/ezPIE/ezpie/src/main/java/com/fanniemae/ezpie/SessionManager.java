@@ -541,6 +541,18 @@ public class SessionManager {
 	public int getCacheMinutes() {
 		return _cacheMinutes;
 	}
+	
+	public void deleteDataSets() {
+		if (_dataSets != null) {
+			for(Map.Entry<String,DataStream> entry : _dataSets.entrySet()) {
+				try {
+					entry.getValue().delete();
+				} catch (Exception ex) {
+					ExceptionUtilities.goSilent(ex);
+				}
+			}
+		}
+	}
 
 	protected String getJarDirectory() {
 		try {

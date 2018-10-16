@@ -44,7 +44,8 @@ public class DelimitedConnector extends DataConnector {
 
 	protected char _delimiter = ',';
 
-	protected Boolean _includesColumnNames = true;
+	protected boolean _includesColumnNames = true;
+	protected boolean _fullSchemaScan = false;
 
 	protected int _columnCount;
 
@@ -52,7 +53,7 @@ public class DelimitedConnector extends DataConnector {
 	protected Object[] _dataRow;
 	protected DataType[] _dataTypes;
 
-	public DelimitedConnector(SessionManager session, Element dataSource, Boolean isSchemaOnly) {
+	public DelimitedConnector(SessionManager session, Element dataSource, boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
 
 		_filename = _session.getAttribute(_dataSource, "Filename");
@@ -72,7 +73,8 @@ public class DelimitedConnector extends DataConnector {
 			_delimiter = sDelimiter.charAt(0);
 			_session.addLogMessage("", "Delimiter", String.valueOf(_delimiter));
 		}
-		_includesColumnNames = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "IncludesColumnNames", null), true);
+		_includesColumnNames = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "IncludesColumnNames"), _includesColumnNames);
+		_fullSchemaScan = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "FullScan"),_fullSchemaScan);
 		scanSchema(_filename);
 		selectedColumns();
 	}
@@ -169,6 +171,8 @@ public class DelimitedConnector extends DataConnector {
 				dataRow = rdr.readNext();
 			}
 
+			// Default the schema scan to 1,000 rows of data.
+			int row = 0;
 			while (dataRow != null) {
 				for (int i = 0; i < Math.min(dataRow.length, _dataSchema.length); i++) {
 					if (!skipSchemaCheck[i] && StringUtilities.isNotNullOrEmpty(dataRow[i])) {
@@ -177,6 +181,10 @@ public class DelimitedConnector extends DataConnector {
 							skipSchemaCheck[i] = true;
 						}
 					}
+				}
+				row++;
+				if ((row > 1000) && !_fullSchemaScan) {
+					break;
 				}
 				dataRow = rdr.readNext();
 			}

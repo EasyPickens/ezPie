@@ -19,6 +19,7 @@ import org.json.JSONObject;
 //import javax.ws.rs.core.Response;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -70,7 +71,7 @@ public class PieController {
 		JobManager jm = new JobManager(_pathToSettings, jobname, null);
 		String data = jm.getDataJson();
 		System.out.println(String.format("%s: INFO job %s processing completed.", sdf.format(Calendar.getInstance().getTime()), jobname));
-		return new ResponseEntity<Object>(data, HttpStatus.OK);
+		return new ResponseEntity<Object>(data, getJsonHeader(), HttpStatus.OK);
 	}
 
 	@PostMapping("/api/v1/runjob/{jobname}")
@@ -107,7 +108,14 @@ public class PieController {
 
 		String data = jm.getDataJson();
 		System.out.println(String.format("%s: INFO job %s processing completed.", sdf.format(Calendar.getInstance().getTime()), jobname));
-		return new ResponseEntity<Object>(data, HttpStatus.OK);
+		return new ResponseEntity<Object>(data, getJsonHeader(), HttpStatus.OK);
+	}
+	
+	
+	protected HttpHeaders getJsonHeader() {
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.set("Content-Type", "application/json");
+		return responseHeaders;
 	}
 
 }

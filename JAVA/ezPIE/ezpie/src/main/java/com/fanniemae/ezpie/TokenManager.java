@@ -16,6 +16,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -51,6 +53,8 @@ public class TokenManager {
 
 	protected byte[][] _encryptionKey = null;
 
+	protected Pattern _pattern;
+	
 	protected enum LogVisibility {
 		NONE, TOKEN_NAME, FULL
 	}
@@ -60,6 +64,10 @@ public class TokenManager {
 		_encryptionKey = encryptionKey;
 		_tokenPrefix = tokenPrefix;
 		_tokenSuffix = tokenSuffix;
+		
+		// Setup regex pattern
+		String regexPattern = "(\\[([a-zA-Z_\\.]+)\\])";
+		_pattern = Pattern.compile(regexPattern);
 
 		loadTokenValues(eleSettings, "Configuration");
 
@@ -157,7 +165,7 @@ public class TokenManager {
 		_tokenSuffix = value;
 	}
 
-	public String resolveTokens(String value) {
+	public String resolveTokens2(String value) {
 		if (value == null) {
 			return value;
 		}
@@ -187,7 +195,7 @@ public class TokenManager {
 		for (int i = 0; i < aTokens.length; i++) {
 			tokenSplit = aTokens[i].indexOf('.');
 			iTokenEnd = aTokens[i].indexOf(_tokenSuffix);
-			if ((tokenSplit == -1) || (iTokenEnd == -1)) {
+			if ((tokenSplit == -1) || (iTokenEnd == -1) || (tokenSplit >= iTokenEnd)) {
 				continue;
 			}
 
@@ -243,13 +251,98 @@ public class TokenManager {
 				value = value.replace(fullToken, _tokens.get(tokenGroup).get(tokenKey));
 				madeChanges = true;
 			} else {
-				/*
-				 Changed behavior, if token does not exist then it will stay in stream.
-				 Using this to ensure that some unique values make it through to engine.
-				 JSON strings were valid but the tokenizer was removing them.
-				*/
 				// if the token is not found, it evaluates to empty string.
-				// value = value.replace(fullToken, "");
+				value = value.replace(fullToken, "");
+			}
+		}
+		if (madeChanges) {
+			return resolveTokens2(value);
+		} else {
+			return value;
+		}
+	}
+	
+	public String resolveTokens(String value) {
+		if (value == null) {
+			return value;
+		}
+
+		String rawString = (_dataTokens == null) ? value.replace(String.format("%sData.", _tokenPrefix), "|Data|") : value;
+
+		int tokenStart = rawString.indexOf(_tokenPrefix);
+		if (tokenStart == -1) {
+			return value;
+		}
+
+		int tokenMid = rawString.indexOf(".", tokenStart);
+		if (tokenMid == -1) {
+			return value;
+		}
+
+		int tokenEnd = rawString.indexOf(_tokenSuffix, tokenMid);
+		if (tokenEnd == -1) {
+			return value;
+		}
+
+		boolean madeChanges = false;
+		Matcher matcher = _pattern.matcher(rawString);
+		while(matcher.find()) {
+			
+			String fullToken = matcher.group(0);
+			int tokenSplit = fullToken.indexOf('.');
+			String tokenGroup = fullToken.substring(1, tokenSplit);
+			String tokenKey = fullToken.substring(tokenSplit + 1, fullToken.length()-1);
+
+			// Skip data tokens if no row of data is provided.
+			if ((_dataTokens == null) && "Data".equals(tokenGroup)) {
+				continue;
+			} else if ("Data".equals(tokenGroup) && _dataTokens.containsKey(tokenKey)) {
+				value = value.replace(fullToken, _dataTokens.get(tokenKey));
+				madeChanges = true;
+			} else if ("System".equals(tokenGroup)) {
+				// System tokens call methods
+				SimpleDateFormat sdf;
+				switch (tokenKey) {
+				case "CurrentDateTimeString":
+					sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+					value = value.replace(fullToken, sdf.format(new Date()));
+					break;
+				case "StartDateTimeString":
+					sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+					value = value.replace(fullToken, sdf.format(_startDateTime));
+					break;
+				case "ISOStartDateTime":
+					sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					value = value.replace(fullToken, sdf.format(_startDateTime));
+					break;
+				case "Year":
+					sdf = new SimpleDateFormat("yyyy");
+					value = value.replace(fullToken, sdf.format(_startDateTime));
+					break;
+				case "Month":
+					sdf = new SimpleDateFormat("MM");
+					value = value.replace(fullToken, sdf.format(_startDateTime));
+					break;
+				case "Day":
+					sdf = new SimpleDateFormat("dd");
+					value = value.replace(fullToken, sdf.format(_startDateTime));
+					break;
+				case "ElapsedTime":
+					// returns minutes.
+					Date dtCurrent = new Date();
+					double minutes = (dtCurrent.getTime() - _startDateTime.getTime()) / 60000.0;
+					value = value.replace(fullToken, String.format("%f", minutes));
+					break;
+				case "UUID":
+					value = value.replace(fullToken, UUID.randomUUID().toString());
+					break;
+				}
+			} else if (_tokens.containsKey(tokenGroup) && _tokens.get(tokenGroup).containsKey(tokenKey)) {
+				value = value.replace(fullToken, _tokens.get(tokenGroup).get(tokenKey));
+				madeChanges = true;
+			} else {
+				// if the token is not found, it evaluates to empty string.
+				value = value.replace(fullToken, "");
 			}
 		}
 		if (madeChanges) {

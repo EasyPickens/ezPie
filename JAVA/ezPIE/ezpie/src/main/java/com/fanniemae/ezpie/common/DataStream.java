@@ -81,4 +81,11 @@ public class DataStream {
     public String[][] getSchema() {
     	return _schema;
     }
+    
+    public void delete() {
+    	if (!_isMemory) {
+    		File fi = new File(_filename);
+    		fi.delete();
+    	}
+    }
 }

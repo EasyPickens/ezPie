@@ -44,6 +44,8 @@ public class ExportDelimited extends Action {
 	protected String _delimiter = ",";
 	protected String _lineSeparator = System.lineSeparator();
 	protected String _dataSetName;
+	
+	protected int _exportRowLimit = -1;
 
 	protected DataStream _dataStream;
 
@@ -72,6 +74,7 @@ public class ExportDelimited extends Action {
 		_writeColumnNames = StringUtilities.toBoolean(optionalAttribute("IncludeColumnNames"), _writeColumnNames);
 		_removeCrLf = StringUtilities.toBoolean(optionalAttribute("FlattenFieldStrings"), _removeCrLf);
 		_filenameToken = _session.optionalAttribute(action, "Name","ExportDelimited");
+		_exportRowLimit = StringUtilities.toInteger(optionalAttribute("RowLimit"),-1);
 	}
 
 	@Override
@@ -120,6 +123,10 @@ public class ExportDelimited extends Action {
 				}
 				fw.append(_lineSeparator);
 				iRowCount++;
+				
+				if ((_exportRowLimit != -1) && (iRowCount >= _exportRowLimit)) {
+					break;
+				}
 			}
 			fw.close();
 			dr.close();

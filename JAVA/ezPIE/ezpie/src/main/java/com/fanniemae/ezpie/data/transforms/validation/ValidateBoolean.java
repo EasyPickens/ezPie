@@ -60,7 +60,7 @@ public class ValidateBoolean extends DataValidation {
 			return null;
 		} else if ((_falseValue != null) && _falseValue.equals(value)) {
 			return null;
-		} else if ((_trueValue == null) && (value != null) && StringUtilities.toBoolean(value)) {
+		} else if ((_trueValue == null) && (value != null) && StringUtilities.isBoolean(value)) {
 			return null;
 		} else {
 			validationResults[3] = "Provided value is not a recognized boolean value.";

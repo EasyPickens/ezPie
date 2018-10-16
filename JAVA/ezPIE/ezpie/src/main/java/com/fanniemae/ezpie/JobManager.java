@@ -61,6 +61,7 @@ public class JobManager {
 		NodeList nlActions = XmlUtilities.selectNodes(_session.getJobDefinition(), "*");
 		String result = processActions(nlActions);
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
+		deleteDataSets();
 		return result;
 	}
 
@@ -94,6 +95,7 @@ public class JobManager {
 			}
 		}
 
+		deleteDataSets();
 		String jsonString = jsonDataSets.toString(4);
 		_session.addLogMessage("", "JSON Returned", String.format("%,d bytes of data", jsonString.length()));
 		_session.addLogMessage("Completed", "", String.format("Processing completed successfully on %s.", DateUtilities.getCurrentDateTimePretty()));
@@ -102,6 +104,12 @@ public class JobManager {
 
 	public String processActions(NodeList nlActions) {
 		return ProcessActions.run(_session, nlActions, null);
+	}
+	
+	protected void deleteDataSets() {
+		if (!_session.cachingEnabled()) {
+			_session.deleteDataSets();
+		}
 	}
 
 }
