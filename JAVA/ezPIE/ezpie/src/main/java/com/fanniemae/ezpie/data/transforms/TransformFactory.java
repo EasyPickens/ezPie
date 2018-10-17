@@ -56,6 +56,8 @@ public class TransformFactory {
 			return null;
 		case "Validation":
 			return new Validation(session, transform);
+		case "Group":
+			return new Group(session, transform);
 		default:
 			throw new PieException(String.format("%s data transformation is not currently supported.", transform.getNodeName()));
 		}

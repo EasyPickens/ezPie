@@ -47,7 +47,11 @@ public class Sort extends Index {
 		DataStream outputStream = null;
 		String sortedFilename = FileUtilities.getRandomFilename(_session.getStagingPath());
 		int rowCount = 0;
-		try (DataReader dr = new DataReader(inputStream); DataReader drIndex = new DataReader(indexStream); DataWriter dw = new DataWriter(sortedFilename, memoryLimit)) {
+		//@formatter:off
+		try (DataReader dr = new DataReader(inputStream); 
+			 DataReader drIndex = new DataReader(indexStream); 
+			 DataWriter dw = new DataWriter(sortedFilename, memoryLimit)) {
+			//@formatter:on
 			String[] columnNames = dr.getColumnNames();
 			DataType[] columnTypes = dr.getDataTypes();
 			dw.setDataColumns(columnNames, columnTypes);

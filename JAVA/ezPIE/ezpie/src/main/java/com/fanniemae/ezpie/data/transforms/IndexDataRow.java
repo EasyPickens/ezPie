@@ -132,7 +132,7 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 	public boolean equals(Object o) {
 		return compareTo((IndexDataRow) o) == 0;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return super.hashCode();
@@ -146,5 +146,16 @@ class IndexDataRow implements Comparable<IndexDataRow> {
 			}
 		}
 		return 0;
+	}
+
+	public IndexDataRow clone() {
+		IndexDataRow idr = new IndexDataRow(_streamChannel, _rowStart, _dataRowKeys.length - 1);
+		idr.setUsedFlag(_used);
+
+		for (int i = 0; i < _dataRowKeys.length; i++) {
+			idr.setDataPoint(i, _dataRowKeys[i].getValue(), _dataRowKeys[i].getDataType(), _dataRowKeys[i].isAscending());
+		}
+
+		return idr;
 	}
 }

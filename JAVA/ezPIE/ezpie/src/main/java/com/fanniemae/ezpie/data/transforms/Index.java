@@ -357,7 +357,7 @@ public class Index extends DataTransform {
 			outputStream = dw.getDataStream();
 			_indexDataList = null;
 			_indexData = null;
-			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
+			_session.addLogMessage("", "Index Built", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
 		} catch (Exception ex) {
 			throw new RuntimeException("Could not combine external index streams.", ex);
 		} finally {

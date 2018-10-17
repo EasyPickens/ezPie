@@ -12,6 +12,7 @@
 package com.fanniemae.ezpie.common;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -180,5 +181,13 @@ public final class ArrayUtilities {
 	        System.arraycopy(source[i], 0, clone[i], 0, source[i].length);
 	    }
 	    return clone;
-	}	
+	}
+	
+	public static <T> T[] clone(T[] source) {
+		if (source == null) {
+			return null;
+		}
+		
+		return Arrays.copyOf(source, source.length);
+	}
 }

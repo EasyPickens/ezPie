@@ -24,7 +24,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
  * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-21
  * 
- * A single data point from one row of data. See IndexKeys class for the rest of the data row.
+ *        A single data point from one row of data. See IndexKeys class for the rest of the data row.
  * 
  */
 
@@ -206,9 +206,17 @@ class IndexDataPoint implements Comparable<IndexDataPoint> {
 	public boolean equals(Object o) {
 		return compareTo((IndexDataPoint) o) == 0;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return super.hashCode();
+	}
+
+	public DataType getDataType() {
+		return _dataType;
+	}
+
+	public boolean isAscending() {
+		return _isAscending;
 	}
 }
