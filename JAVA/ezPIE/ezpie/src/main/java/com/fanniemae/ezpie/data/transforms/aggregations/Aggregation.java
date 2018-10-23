@@ -7,9 +7,20 @@ import java.util.UUID;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-10-20
+ * 
+ */
+
 public abstract class Aggregation {
 
 	protected DataType _dataType = DataType.StringData;
+	protected int _dataColumnIndex = -1;
+	
+	protected String _newColumnName;
+	protected DataType _newColumnType;
 
 	protected int _totalCount = 0;
 	protected int _countWithoutNulls = 0;
@@ -32,12 +43,15 @@ public abstract class Aggregation {
 	// E.g. Sum integer becomes a long.
 	protected Object _objValue = null;
 
-	public Aggregation(DataType columnDataType) {
+	public Aggregation(DataType columnDataType, int dataColumnIndex) {
 		_dataType = columnDataType;
+		_dataColumnIndex = dataColumnIndex;
 	}
 
 	public void evaluate(Object value) {
+		_totalCount++;
 		if (value != null) {
+			_countWithoutNulls++;
 			switch (_dataType) {
 			case StringData:
 				if (_isFirst) {
@@ -182,6 +196,28 @@ public abstract class Aggregation {
 			throw new PieException(String.format("Aggregatio operations do not currently support %s data types.", _dataType.toString()));
 		}
 	}
+	
+	public String getNewColumnName() {
+		return _newColumnName;
+	}
+	
+	public void setNewColumnName(String value) {
+		_newColumnName = value;
+	}
+	
+	public DataType getNewColumnType() {
+		return _newColumnType;
+	}
+	
+	public void setDataColumnIndex(int value) {
+		_dataColumnIndex = value;
+	}
+	
+	public int getDataColumnIndex() {
+		return _dataColumnIndex;
+	}
+	
+	public abstract Aggregation clone();
 
 	protected abstract void calculate();
 

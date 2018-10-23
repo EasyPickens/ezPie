@@ -7,11 +7,25 @@ import java.util.UUID;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-10-20
+ * 
+ */
+
 public class Median extends Aggregation {
 
-	public Median(DataType columnDataType) {
-		super(columnDataType);
+	public Median(DataType columnDataType, int dataColumnIndex) {
+		super(columnDataType, dataColumnIndex);
 		throw new PieException("Median has not been implemented yet.");
+	}
+	
+	@Override
+	public Aggregation clone() {
+		Aggregation agg = new Median(_dataType, _dataColumnIndex);
+		agg.setNewColumnName(_newColumnName);
+		return agg;
 	}
 
 	@Override

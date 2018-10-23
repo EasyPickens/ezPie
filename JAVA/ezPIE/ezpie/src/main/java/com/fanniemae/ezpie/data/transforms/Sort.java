@@ -28,20 +28,19 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
  * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-21
  * 
-*/
+ */
 
 public class Sort extends Index {
 
 	public Sort(SessionManager session, Element transform) {
 		super(session, transform);
 	}
-	
+
 	@Override
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
 		DataStream indexStream = super.processDataStream(inputStream, memoryLimit);
 		return writeSortedFile(inputStream, indexStream, memoryLimit);
 	}
-
 
 	protected DataStream writeSortedFile(DataStream inputStream, DataStream indexStream, int memoryLimit) {
 		DataStream outputStream = null;
@@ -60,7 +59,9 @@ public class Sort extends Index {
 				rowCount++;
 			}
 			Calendar calendarExpires = Calendar.getInstance();
-			calendarExpires.add(Calendar.MINUTE, 30);
+			if (_localCacheEnabled) {
+				calendarExpires.add(Calendar.MINUTE, _localCacheMinutes);
+			}
 			dw.setFullRowCount(rowCount);
 			dw.setBufferFirstRow(1);
 			dw.setBufferLastRow(rowCount);

@@ -38,7 +38,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
  * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2016-02-04
  * 
-*/
+ */
 
 public class Join extends DataTransform {
 	protected int INDEX_BUFFER_LIMIT = 10000;
@@ -129,7 +129,7 @@ public class Join extends DataTransform {
 	public DataStream processDataStream(DataStream inputStream, int memoryLimit) {
 		if (_joinType == JoinType.UNION) {
 			return unionDataStreams(inputStream, memoryLimit);
-		} 
+		}
 		return joinDataStreams(inputStream, memoryLimit);
 	}
 
@@ -155,7 +155,7 @@ public class Join extends DataTransform {
 			return JoinType.UNION;
 		case "cross":
 		case "cross join":
-			// May not add support for this type of join until requested.  Very edge case and could create HUGE datasets.			
+			// May not add support for this type of join until requested. Very edge case and could create HUGE datasets.
 			_joinText = "Cross Join";
 			return JoinType.CROSSJOIN;
 		default:
@@ -222,7 +222,7 @@ public class Join extends DataTransform {
 			throw new RuntimeException("Error while buffering join index data.", e);
 		}
 	}
-	
+
 	protected DataStream joinDataStreams(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
 		// Get the right side data (create new instance of data engine)
@@ -332,7 +332,9 @@ public class Join extends DataTransform {
 			leftIndex.close();
 
 			Calendar calendarExpires = Calendar.getInstance();
-			calendarExpires.add(Calendar.MINUTE, 30);
+			if (_localCacheEnabled) {
+				calendarExpires.add(Calendar.MINUTE, _localCacheMinutes);
+			}
 			dw.setFullRowCount(rowCount);
 			dw.setBufferFirstRow(1);
 			dw.setBufferLastRow(rowCount);
@@ -346,7 +348,7 @@ public class Join extends DataTransform {
 		}
 		return outputStream;
 	}
-	
+
 	protected DataStream unionDataStreams(DataStream inputStream, int memoryLimit) {
 		DataStream outputStream = null;
 		// Get the right side data (create new instance of data engine)
@@ -368,7 +370,7 @@ public class Join extends DataTransform {
 			dw.setDataColumns(_finalColumnNames, _finalDataTypes);
 			Object[] completeDataRow = new Object[_joinSchema.length];
 			int rowCount = 0;
-			
+
 			// Write left side data first
 			while (!leftData.eof()) {
 				Object[] leftRow = leftData.getDataRow();
@@ -379,7 +381,7 @@ public class Join extends DataTransform {
 				dw.writeDataRow(completeDataRow);
 				rowCount++;
 			}
-			
+
 			// Write right side data next
 			while (!rightData.eof()) {
 				Object[] rightRow = rightData.getDataRow();
@@ -407,6 +409,6 @@ public class Join extends DataTransform {
 		} catch (Exception ex) {
 			throw new RuntimeException("Error during union operation of the data sources.", ex);
 		}
-		return outputStream;		
+		return outputStream;
 	}
 }

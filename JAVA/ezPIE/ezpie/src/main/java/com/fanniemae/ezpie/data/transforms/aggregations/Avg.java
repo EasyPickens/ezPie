@@ -5,10 +5,24 @@ import java.math.BigDecimal;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-10-20
+ * 
+ */
+
 public class Avg extends Sum {
 
-	public Avg(DataType columnDataType) {
-		super(columnDataType);
+	public Avg(DataType columnDataType, int dataColumnIndex) {
+		super(columnDataType, dataColumnIndex);
+	}
+	
+	@Override
+	public Aggregation clone() {
+		Aggregation agg = new Avg(_dataType, _dataColumnIndex);
+		agg.setNewColumnName(_newColumnName);
+		return agg;
 	}
 
 	@Override

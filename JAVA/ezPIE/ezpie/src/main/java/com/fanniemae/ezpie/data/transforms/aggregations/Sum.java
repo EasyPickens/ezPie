@@ -7,10 +7,24 @@ import java.util.UUID;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-10-20
+ * 
+ */
+
 public class Sum extends Aggregation {
 
-	public Sum(DataType columnDataType) {
-		super(columnDataType);
+	public Sum(DataType columnDataType, int dataColumnIndex) {
+		super(columnDataType, dataColumnIndex);
+	}
+	
+	@Override
+	public Aggregation clone() {
+		Aggregation agg = new Sum(_dataType, _dataColumnIndex);
+		agg.setNewColumnName(_newColumnName);
+		return agg;
 	}
 
 	@Override

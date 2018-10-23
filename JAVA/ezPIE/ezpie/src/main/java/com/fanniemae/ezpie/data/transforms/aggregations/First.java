@@ -6,6 +6,13 @@ import java.util.UUID;
 
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-10-20
+ * 
+ */
+
 public class First extends Aggregation {
 	
 	/*
@@ -14,10 +21,17 @@ public class First extends Aggregation {
 	 * perform any operations.
 	 */
 
-	public First(DataType columnDataType) {
-		super(columnDataType);
+	public First(DataType columnDataType, int dataColumnIndex) {
+		super(columnDataType, dataColumnIndex);
 	}
 
+	@Override
+	public Aggregation clone() {
+		Aggregation agg = new First(_dataType, _dataColumnIndex);
+		agg.setNewColumnName(_newColumnName);
+		return agg;
+	}
+	
 	@Override
 	protected void calculate() {
 	}

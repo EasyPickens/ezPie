@@ -7,10 +7,24 @@ import java.util.UUID;
 import com.fanniemae.ezpie.common.PieException;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
 
+/**
+ * 
+ * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
+ * @since 2018-10-20
+ * 
+ */
+
 public class Min extends Aggregation {
 
-	public Min(DataType columnDataType) {
-		super(columnDataType);
+	public Min(DataType columnDataType, int dataColumnIndex) {
+		super(columnDataType, dataColumnIndex);
+	}
+	
+	@Override
+	public Aggregation clone() {
+		Aggregation agg = new Min(_dataType, _dataColumnIndex);
+		agg.setNewColumnName(_newColumnName);
+		return agg;
 	}
 
 	@Override

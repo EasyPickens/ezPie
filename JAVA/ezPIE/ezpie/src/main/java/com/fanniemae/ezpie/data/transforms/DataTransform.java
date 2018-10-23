@@ -121,7 +121,7 @@ public abstract class DataTransform {
 
 			Calendar calendarExpires = Calendar.getInstance();
 			if (_session.cachingEnabled())
-				calendarExpires.add(Calendar.MINUTE, _session.getCacheMinutes());
+				calendarExpires.add(Calendar.MINUTE, _localCacheMinutes);
 			bw.setFullRowCount(rowCount); // dc.getFullRowCount(_lFullRowCount));
 			bw.setBufferFirstRow(1); // dc.getBufferFirstRow());
 			bw.setBufferLastRow(rowCount); // dc.getBufferLastRow());

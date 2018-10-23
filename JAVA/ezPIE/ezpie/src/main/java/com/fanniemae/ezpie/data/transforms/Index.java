@@ -348,7 +348,7 @@ public class Index extends DataTransform {
 
 			Calendar calendarExpires = Calendar.getInstance();
 			if (_localCacheEnabled) {
-				calendarExpires.add(Calendar.MINUTE, 30);	
+				calendarExpires.add(Calendar.MINUTE, _localCacheMinutes);	
 			}
 			dw.setFullRowCount(rowCount);
 			dw.setBufferFirstRow(1);
