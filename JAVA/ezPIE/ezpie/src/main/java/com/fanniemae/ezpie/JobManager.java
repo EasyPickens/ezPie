@@ -105,11 +105,9 @@ public class JobManager {
 	public String processActions(NodeList nlActions) {
 		return ProcessActions.run(_session, nlActions, null);
 	}
-	
+
 	protected void deleteDataSets() {
-		if (!_session.cachingEnabled()) {
-			_session.deleteDataSets();
-		}
+		_session.deleteDataSets();
 	}
 
 }

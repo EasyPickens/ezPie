@@ -340,6 +340,7 @@ public class Join extends DataTransform {
 			dw.setFullRowCountKnown(true);
 			dw.close();
 			outputStream = dw.getDataStream();
+			outputStream.setCacheFile(_localCacheEnabled);
 		} catch (Exception ex) {
 			throw new RuntimeException("Error while joining data sources.", ex);
 		}

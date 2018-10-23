@@ -66,7 +66,7 @@ public class DataReader extends DataFormat {
 	protected String[][] _dataSchema = new String[][] {};
 
 	public DataReader(DataStream ds) throws IOException {
-		if (ds.IsMemory()) {
+		if (ds.isMemory()) {
 			_bis = new BinaryInputStream(ds.getMemorystream());
 		} else {
 			_filename = ds.getFilename();

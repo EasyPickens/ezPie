@@ -1,6 +1,9 @@
 package com.fanniemae.ezpie.data.transforms;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Element;
 
@@ -9,6 +12,7 @@ import com.fanniemae.ezpie.common.DataStream;
 import com.fanniemae.ezpie.common.ExceptionUtilities;
 import com.fanniemae.ezpie.common.FileUtilities;
 import com.fanniemae.ezpie.common.PieException;
+import com.fanniemae.ezpie.data.transforms.aggregations.Aggregation;
 import com.fanniemae.ezpie.datafiles.DataReader;
 import com.fanniemae.ezpie.datafiles.DataWriter;
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
@@ -20,6 +24,12 @@ public class Group extends DataTransform {
 
 	protected int _indexColumnCount;
 	protected DataType[] _indexDataTypes;
+	
+	protected String[] _inputColumnNames;
+	protected DataType[] _inputColumnTypes;
+	
+	protected Map<String,List<Aggregation>> _aggregates = new HashMap<String,List<Aggregation>>();
+	protected boolean _haveAggregate = false;
 
 	public Group(SessionManager session, Element transform) {
 		super(session, transform, false);
@@ -55,13 +65,17 @@ public class Group extends DataTransform {
 			 DataReader drIndex = new DataReader(indexStream);
 			 DataWriter dw = new DataWriter(outputFilename, memoryLimit)) {
 		     //@formatter:on
-			String[] columnNames = dr.getColumnNames();
-			DataType[] columnTypes = dr.getDataTypes();
+			_inputColumnNames = dr.getColumnNames();
+			_inputColumnTypes = dr.getDataTypes();
 			_indexColumnCount = drIndex.getColumnNames().length;
 			_indexDataTypes = drIndex.getDataTypes();
-			dw.setDataColumns(columnNames, columnTypes);
+			
+			//setupAggregations();
+			
+			dw.setDataColumns(_inputColumnNames, _inputColumnTypes);
 			IndexDataRow previousRow = null;
 			while (!drIndex.eof()) {
+				// Read in the index row
 				Object[] indexRow = drIndex.getDataRow();
 				IndexDataRow currentRow = new IndexDataRow(0L, _indexColumnCount - 1);
 
@@ -69,7 +83,7 @@ public class Group extends DataTransform {
 					currentRow.setDataPoint(i, indexRow[i], _indexDataTypes[i], true);
 				}
 
-				if ((previousRow == null) || (currentRow.compareTo(currentRow) > 0)) {
+				if ((previousRow == null) || (currentRow.compareTo(previousRow) > 0)) {
 					dw.writeDataRow(dr.getDataRowAt((long) indexRow[indexRow.length - 1]));
 					rowCount++;
 					previousRow = currentRow.clone();
@@ -87,7 +101,8 @@ public class Group extends DataTransform {
 			dr.close();
 			drIndex.close();
 			outputStream = dw.getDataStream();
-			_session.addLogMessage("", "Grouping Completed", String.format("%,d rows (%,d bytes in %s, args)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
+			outputStream.setCacheFile(_localCacheEnabled);
+			_session.addLogMessage("", "Grouping Completed", String.format("%,d rows (%,d bytes in %s, args)", rowCount, outputStream.getSize(), outputStream.isMemory() ? "memorystream" : "filestream"));
 		} catch (Exception e) {
 			throw new PieException("Error while trying to write final grouped file. " + e.getMessage(), e);
 		} finally {

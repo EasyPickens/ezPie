@@ -190,7 +190,7 @@ public class DataSet extends Action {
 
 			fullDataStream = dw.getDataStream();
 			fullDataStream.setInternal(_isInternal);
-			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", fullRowCount, fullDataStream.getSize(), fullDataStream.IsMemory() ? "memorystream" : "filestream"));
+			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", fullRowCount, fullDataStream.getSize(), fullDataStream.isMemory() ? "memorystream" : "filestream"));
 			_session.addDataSet(_name, fullDataStream);
 		} catch (RuntimeException ex) {
 			throw ex;

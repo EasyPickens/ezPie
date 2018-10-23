@@ -138,7 +138,7 @@ public class TensorFlow extends Action {
 				DataStream dataStream = dw.getDataStream();
 				dataStream.setInternal(_isInternal);
 				_session.addDataSet(_name, dataStream);
-				_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, dataStream.getSize(), dataStream.IsMemory() ? "memorystream" : "filestream"));
+				_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, dataStream.getSize(), dataStream.isMemory() ? "memorystream" : "filestream"));
 			} catch (IOException e) {
 				throw new PieException(String.format("Error while saving model results. %s", e.getMessage()), e);
 			}

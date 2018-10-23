@@ -454,7 +454,7 @@ public class SessionManager {
 
 		DataStream dataStream = _dataSets.get(name);
 		if (!silent) {
-			if (dataStream.IsMemory()) {
+			if (dataStream.isMemory()) {
 				addLogMessage("", "DataStream Details", String.format("MemoryStream of %,d bytes", dataStream.getSize()));
 			} else {
 				addLogMessage("", "DataStream Details", String.format("FileStream (%s) of %,d bytes", dataStream.getFilename(), dataStream.getSize()));
@@ -541,12 +541,14 @@ public class SessionManager {
 	public int getCacheMinutes() {
 		return _cacheMinutes;
 	}
-	
+
 	public void deleteDataSets() {
 		if (_dataSets != null) {
-			for(Map.Entry<String,DataStream> entry : _dataSets.entrySet()) {
+			for (Map.Entry<String, DataStream> entry : _dataSets.entrySet()) {
 				try {
-					entry.getValue().delete();
+					if (!entry.getValue().keepFile()) {
+						entry.getValue().delete();
+					}
 				} catch (Exception ex) {
 					ExceptionUtilities.goSilent(ex);
 				}

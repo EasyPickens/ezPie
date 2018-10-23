@@ -118,8 +118,9 @@ public class Validation extends DataTransform {
 			dw.close();
 			dr.close();
 			validationStream = dw.getDataStream();
+			validationStream.setCacheFile(_localCacheEnabled);
 			_session.addDataSet(_name, validationStream);
-			_session.addLogMessage("", "Validation Results", String.format("Checked %,d rows and found %,d validation errors (%,d bytes in %s, args)", rowCount, problemCount, validationStream.getSize(), validationStream.IsMemory() ? "memorystream" : "filestream"));
+			_session.addLogMessage("", "Validation Results", String.format("Checked %,d rows and found %,d validation errors (%,d bytes in %s, args)", rowCount, problemCount, validationStream.getSize(), validationStream.isMemory() ? "memorystream" : "filestream"));
 			_session.addToken(_name,  "validationErrors", String.format("%d", problemCount));
 		} catch (Exception ex) {
 			throw new PieException(String.format("Error while running data set validation. %s", ex.getMessage()), ex);

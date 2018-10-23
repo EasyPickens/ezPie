@@ -130,6 +130,7 @@ public abstract class DataTransform {
 			bw.close();
 			br.close();
 			outputStream = bw.getDataStream();
+			outputStream.setCacheFile(_localCacheEnabled);
 		} catch (Exception ex) {
 			throw new PieException(String.format("Error while running %s data stream transformation.", _transformElementName), ex);
 

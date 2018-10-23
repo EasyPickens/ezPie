@@ -177,7 +177,8 @@ public class DataEngine {
 						dw.close();
 						dc.close();
 						dataStream = dw.getDataStream();
-						_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, dataStream.getSize(), dataStream.IsMemory() ? "memorystream" : "filestream"));
+						dataStream.setCacheFile(_localCacheEnabled);
+						_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, dataStream.getSize(), dataStream.isMemory() ? "memorystream" : "filestream"));
 					} catch (IOException e) {
 						_session.addErrorMessage(e);
 					}
@@ -265,7 +266,9 @@ public class DataEngine {
 		if (expired)
 			return null;
 
-		return new DataStream(filename, header, schema);
+		DataStream ds =  new DataStream(filename, header, schema);
+		ds.setCacheFile(true);
+		return ds;
 	}
 
 }

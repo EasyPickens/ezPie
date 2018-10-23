@@ -69,9 +69,10 @@ public class Sort extends Index {
 			dw.close();
 			dr.close();
 			outputStream = dw.getDataStream();
+			outputStream.setCacheFile(_localCacheEnabled);
 			_indexDataList = null;
 			_indexData = null;
-			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
+			_session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.isMemory() ? "memorystream" : "filestream"));
 		} catch (Exception ex) {
 			throw new PieException("Error while trying to write final sorted file.", ex);
 		}

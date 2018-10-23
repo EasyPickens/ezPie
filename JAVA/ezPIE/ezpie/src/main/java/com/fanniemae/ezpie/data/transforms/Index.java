@@ -347,7 +347,9 @@ public class Index extends DataTransform {
 			}
 
 			Calendar calendarExpires = Calendar.getInstance();
-			calendarExpires.add(Calendar.MINUTE, 30);
+			if (_localCacheEnabled) {
+				calendarExpires.add(Calendar.MINUTE, 30);	
+			}
 			dw.setFullRowCount(rowCount);
 			dw.setBufferFirstRow(1);
 			dw.setBufferLastRow(rowCount);
@@ -355,9 +357,10 @@ public class Index extends DataTransform {
 			dw.setFullRowCountKnown(true);
 			dw.close();
 			outputStream = dw.getDataStream();
+			outputStream.setCacheFile(_localCacheEnabled);
 			_indexDataList = null;
 			_indexData = null;
-			_session.addLogMessage("", "Index Built", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
+			_session.addLogMessage("", "Index Built", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.isMemory() ? "memorystream" : "filestream"));
 		} catch (Exception ex) {
 			throw new RuntimeException("Could not combine external index streams.", ex);
 		} finally {

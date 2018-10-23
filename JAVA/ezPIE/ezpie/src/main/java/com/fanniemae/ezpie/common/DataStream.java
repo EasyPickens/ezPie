@@ -25,67 +25,91 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums;
 
 public class DataStream {
 	protected boolean _isInternal = false;
-    protected boolean _isMemory = true;
-    protected byte[] _data;
-    protected String _filename;
-    protected String[][] _schema;
-    protected Map<DataFileEnums.BinaryFileInfo, Object> _headerInformation;
-    
-    public DataStream(byte[] data, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation, String[][] schema) {
-        _data = data;
-        _isMemory = true;
-        _headerInformation = headerInformation;
-        _schema = schema;
-    }
-    
-    public DataStream(String Filename, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation, String[][] schema) {
-        _filename = Filename;
-        _isMemory = false;
-        _headerInformation = headerInformation;
-        _schema = schema;
-    }
-    
-    public boolean isInternal() {
-    	return _isInternal;
-    }
-    
-    public boolean IsMemory() {
-        return _isMemory;
-    }
-    
-    public byte[] getMemorystream() {
-        return _data;
-    }
-    
-    public String getFilename() {
-        return _filename;
-    }
-    
-    public long getSize() {
-    	if (_isMemory) {
-    		return _data.length;
-    	} else {
-    		File fi = new File(_filename);
-    		return fi.length();
-    	}
-    }
-    
-    public void setInternal(boolean flag) {
-    	_isInternal = flag;
-    }
-    
-    public Map<DataFileEnums.BinaryFileInfo, Object> getHeader() {
-    	return _headerInformation;
-    }
-    
-    public String[][] getSchema() {
-    	return _schema;
-    }
-    
-    public void delete() {
-    	if (!_isMemory) {
-    		File fi = new File(_filename);
-    		fi.delete();
-    	}
-    }
+	protected boolean _isMemory = true;
+	protected boolean _keepFile = false;
+	protected byte[] _data;
+	protected String _filename;
+	protected String[][] _schema;
+	protected Map<DataFileEnums.BinaryFileInfo, Object> _headerInformation;
+
+	public DataStream(byte[] data, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation, String[][] schema) {
+		_data = data;
+		_isMemory = true;
+		_headerInformation = headerInformation;
+		_schema = schema;
+	}
+
+	public DataStream(String Filename, Map<DataFileEnums.BinaryFileInfo, Object> headerInformation, String[][] schema) {
+		_filename = Filename;
+		_isMemory = false;
+		_headerInformation = headerInformation;
+		_schema = schema;
+	}
+
+	public boolean isInternal() {
+		return _isInternal;
+	}
+
+	public boolean isMemory() {
+		return _isMemory;
+	}
+
+	public boolean isFile() {
+		return !_isMemory;
+	}
+
+	public byte[] getMemorystream() {
+		return _data;
+	}
+
+	public String getFilename() {
+		return _filename;
+	}
+
+	public long getSize() {
+		if (_isMemory) {
+			return _data.length;
+		} else {
+			File fi = new File(_filename);
+			return fi.length();
+		}
+	}
+
+	public void renameFile(String newFilename) {
+		if (!_isMemory) {
+			File origName = new File(_filename);
+			File newName = new File(newFilename);
+			origName.renameTo(newName);
+		}
+		_filename = newFilename;
+	}
+
+	public void setInternal(boolean flag) {
+		_isInternal = flag;
+	}
+
+	public Map<DataFileEnums.BinaryFileInfo, Object> getHeader() {
+		return _headerInformation;
+	}
+
+	public String[][] getSchema() {
+		return _schema;
+	}
+
+	public boolean keepFile() {
+		return _keepFile;
+	}
+
+	public void setCacheFile(boolean value) {
+		_keepFile = value;
+	}
+
+	public void delete() {
+		if (!_isMemory) {
+			File fi = new File(_filename);
+			fi.delete();
+		} else {
+			_data = null;
+		}
+	}
 }

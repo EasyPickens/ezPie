@@ -218,9 +218,14 @@ public final class FileUtilities {
 		}
 		return filename;
 	}
-	
+
 	public static DataStream writeDataStream(String filename, DataStream data) {
-		if ((data == null) || (!data.IsMemory()) ) {
+		if (data == null) {
+			return data;
+		} else if (data.isFile() && !filename.equals(data.getFilename())) {
+			data.renameFile(filename);
+			return data;
+		} else if (data.isFile() && filename.equals(data.getFilename())) {
 			return data;
 		}
 		try (FileOutputStream fos = new FileOutputStream(filename)) {
