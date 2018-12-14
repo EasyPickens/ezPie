@@ -249,11 +249,17 @@ public class DelimitedConnector extends DataConnector {
 			Element columnElement = (Element) outputColumns.item(i);
 
 			String inputName = _session.getAttribute(columnElement, "Name");
-			String alais = _session.getAttribute(columnElement, "Alias");
+			String alias = _session.getAttribute(columnElement, "Alias");
+			String inputDateFormat = _session.getAttribute(columnElement, "DateFormat");
+			String inputDataType = _session.getAttribute(columnElement, "DataType");
 
 			int sourceIndex = ArrayUtilities.indexOf(_dataSchema, inputName);
-
-			dataSchema[i][0] = alais;
+			
+			if ("".equals(alias)) {
+				alias = inputName;
+			}
+			
+			dataSchema[i][0] = alias;
 			dataSchema[i][1] = _dataSchema[sourceIndex][1];
 			dataTypes[i] = _dataTypes[sourceIndex];
 			_sourceIndex[i] = sourceIndex;

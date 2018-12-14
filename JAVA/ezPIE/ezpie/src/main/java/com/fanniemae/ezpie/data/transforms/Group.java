@@ -109,7 +109,7 @@ public class Group extends DataTransform {
 				if (_haveAggregate) {
 					dataRow = dr.getDataRowAt((long)indexRow[indexRow.length -1]);
 					// if new group, the clone the aggregates before evaluating them.
-					if ((previousRow != null) || (currentRow.compareTo(previousRow) > 0)) {
+					if ((previousRow != null) && (currentRow.compareTo(previousRow) > 0)) {
 						for (Map.Entry<String,List<Aggregation>> kvp : _aggregates.entrySet() ) {
 							Aggregation agg = kvp.getValue().get(0);
 							if (agg != null) {
