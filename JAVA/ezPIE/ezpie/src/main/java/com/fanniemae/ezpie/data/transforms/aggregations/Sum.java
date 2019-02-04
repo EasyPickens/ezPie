@@ -19,7 +19,7 @@ public class Sum extends Aggregation {
 	public Sum(DataType columnDataType, int dataColumnIndex) {
 		super(columnDataType, dataColumnIndex);
 	}
-	
+
 	@Override
 	public Aggregation clone() {
 		Aggregation agg = new Sum(_dataType, _dataColumnIndex);
@@ -106,4 +106,17 @@ public class Sum extends Aggregation {
 		throw new PieException("sum aggregation cannot be applied to char values.");
 	}
 
+	@Override
+	protected DataType newColumnType() {
+		switch (_dataType) {
+		case ByteData:
+			return DataType.IntegerData;
+		case IntegerData:
+			return DataType.LongData;
+		case ShortData:
+			return DataType.IntegerData;
+		default:
+			return _dataType;
+		}
+	}
 }

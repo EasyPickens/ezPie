@@ -114,5 +114,10 @@ public class Min extends Aggregation {
 			_charValue = value;
 		}
 	}
+	
+	@Override
+	protected DataType newColumnType() {
+		return _dataType;
+	}
 
 }

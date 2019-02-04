@@ -106,4 +106,10 @@ public class Mode extends Aggregation {
 
 	}
 
+	@Override
+	protected DataType newColumnType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

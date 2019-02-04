@@ -54,8 +54,10 @@ public class Sort extends Index {
 			String[] columnNames = dr.getColumnNames();
 			DataType[] columnTypes = dr.getDataTypes();
 			dw.setDataColumns(columnNames, columnTypes);
-			for (IndexDataRow keys : _indexData) {
-				dw.writeDataRow(dr.getDataRowAt(keys.getRowStart()));
+			while (!drIndex.eof()) {
+				Object[] indexRow = drIndex.getDataRow();
+				Object[] dataRow = dr.getDataRowAt((long) indexRow[indexRow.length - 1]);
+				dw.writeDataRow(dataRow);
 				rowCount++;
 			}
 			Calendar calendarExpires = Calendar.getInstance();

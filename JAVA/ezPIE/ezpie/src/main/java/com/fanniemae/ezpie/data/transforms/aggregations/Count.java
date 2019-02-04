@@ -79,4 +79,8 @@ public class Count extends Aggregation {
 	protected void eval(char value) {
 	}
 
+	@Override
+	protected DataType newColumnType() {
+		return DataType.IntegerData;
+	}
 }

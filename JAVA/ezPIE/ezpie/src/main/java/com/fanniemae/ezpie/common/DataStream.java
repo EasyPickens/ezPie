@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.Map;
 
 import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums;
+import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.BinaryFileInfo;
 
 /**
  * 
@@ -44,6 +45,10 @@ public class DataStream {
 		_isMemory = false;
 		_headerInformation = headerInformation;
 		_schema = schema;
+	}
+	
+	public long getRowCount() {
+		return (long)_headerInformation.get(BinaryFileInfo.RowCount);
 	}
 
 	public boolean isInternal() {

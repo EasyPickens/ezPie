@@ -90,5 +90,10 @@ public class Last extends Aggregation {
 	protected void eval(char value) {
 		_charValue = value;
 	}
+	
+	@Override
+	protected DataType newColumnType() {
+		return _dataType;
+	}
 
 }

@@ -34,7 +34,7 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
  * @author Rick Monson (https://www.linkedin.com/in/rick-monson/)
  * @since 2016-01-21
  * 
-*/
+ */
 
 public class Index extends DataTransform {
 
@@ -61,9 +61,9 @@ public class Index extends DataTransform {
 
 	public Index(SessionManager session, String[] columnNames) {
 		super(session, "Index");
-		initialize(columnNames,null);
+		initialize(columnNames, null);
 	}
-	
+
 	public Index(SessionManager session, Element transform) {
 		super(session, transform, false);
 		_isolate = true;
@@ -72,18 +72,18 @@ public class Index extends DataTransform {
 		String indexDirectionList = _session.getAttribute(transform, "SortDirections");
 
 		if (StringUtilities.isNullOrEmpty(dataColumnList)) {
-			throw new PieException(String.format("%s transform requires at least one column name in DataColumns.",transform.getNodeName()));
+			throw new PieException(String.format("%s transform requires at least one column name in DataColumns.", transform.getNodeName()));
 		}
 
 		String[] columnNames = dataColumnList.split(",");
 		String[] indexDirections = (StringUtilities.isNullOrEmpty(indexDirectionList)) ? null : indexDirectionList.split(",");
-		
+
 		initialize(columnNames, indexDirections);
 	}
 
 	@Override
 	public Object[] processDataRow(Object[] dataRow) {
-		throw new PieException(String.format("%s requires access to the entire data set.  It cannot be combined with other data transformations.",_transform.getNodeName()));
+		throw new PieException(String.format("%s requires access to the entire data set.  It cannot be combined with other data transformations.", _transform.getNodeName()));
 	}
 
 	@Override
@@ -144,7 +144,7 @@ public class Index extends DataTransform {
 		}
 		return outputStream;
 	}
-	
+
 	protected void initialize(String[] columnNames, String[] directions) {
 		_numberOfKeys = columnNames.length;
 		_inputColumnIndexes = new int[_numberOfKeys];
@@ -209,8 +209,10 @@ public class Index extends DataTransform {
 		String indexFilename = FileUtilities.getRandomFilename(_session.getStagingPath(), "ntx");
 		try (DataWriter dw = new DataWriter(indexFilename, memoryLimit);) {
 			dw.setDataColumns(_columnNames, _dataTypes);
-			for (IndexDataRow keys : _indexData) {
-				dw.writeDataRow(keys.getIndexValues());
+			if (_indexData != null) {
+				for (IndexDataRow keys : _indexData) {
+					dw.writeDataRow(keys.getIndexValues());
+				}
 			}
 			dw.close();
 			indexStream = dw.getDataStream();
@@ -220,39 +222,8 @@ public class Index extends DataTransform {
 		return indexStream;
 	}
 
-//	protected DataStream writeSortedFile(DataStream inputStream) {
-//		DataStream outputStream = null;
-//		String sortedFilename = FileUtilities.getRandomFilename(_Session.getStagingPath());
-//		int rowCount = 0;
-//		try (DataReader dr = new DataReader(inputStream); DataWriter dw = new DataWriter(sortedFilename, 0)) {
-//			String[] columnNames = dr.getColumnNames();
-//			DataType[] columnTypes = dr.getDataTypes();
-//			dw.setDataColumns(columnNames, columnTypes);
-//			for (IndexDataRow keys : _indexData) {
-//				dw.writeDataRow(dr.getDataRowAt(keys.getRowStart()));
-//				rowCount++;
-//			}
-//			Calendar calendarExpires = Calendar.getInstance();
-//			calendarExpires.add(Calendar.MINUTE, 30);
-//			dw.setFullRowCount(rowCount);
-//			dw.setBufferFirstRow(1);
-//			dw.setBufferLastRow(rowCount);
-//			dw.setBufferExpires(calendarExpires.getTime());
-//			dw.setFullRowCountKnown(true);
-//			dw.close();
-//			dr.close();
-//			outputStream = dw.getDataStream();
-//			_indexDataList = null;
-//			_indexData = null;
-//			_Session.addLogMessage("", "Data Returned", String.format("%,d rows (%,d bytes in %s)", rowCount, outputStream.getSize(), outputStream.IsMemory() ? "memorystream" : "filestream"));
-//		} catch (Exception ex) {
-//			throw new RuntimeException("Error while trying to write final index file.", ex);
-//		}
-//		return outputStream;
-//	}
-
-	// This method is only used for detailed development debugging - It is not used by application. If the method is needed, 
-	// I will add a static version to the ArrayUtilities class in the common package.  
+	// This method is only used for detailed development debugging - It is not used by application. If the method is needed,
+	// I will add a static version to the ArrayUtilities class in the common package.
 	protected void saveIndexToTextFile(IndexDataRow[] indexData, String outFilename) {
 		try (FileWriter fw = new FileWriter(outFilename)) {
 			for (int i = 0; i < _columnNames.length; i++) {
@@ -287,7 +258,7 @@ public class Index extends DataTransform {
 
 		_countIndexFiles = _indexFilenameBlocks.size();
 		_activeBuffers = _countIndexFiles;
-		_bufferSize = INDEX_ARRAY_MAX_ITEMS / _activeBuffers;
+		_bufferSize = Math.max(INDEX_ARRAY_MAX_ITEMS / _activeBuffers, 1000);
 		_indexStreams = new DataReader[_countIndexFiles];
 		_bufferedRows = new int[_countIndexFiles];
 
@@ -313,7 +284,7 @@ public class Index extends DataTransform {
 			int rowCount = 0;
 			int streamChannel = 0;
 			int nextRow = 0;
-			while ((_activeBuffers > 0) && (_indexData.length > 0)) {
+			while (_activeBuffers > 0) { // && (_indexData.length > 0)) {
 				int length = _indexData.length;
 				for (int i = 0; i < length; i++) {
 					streamChannel = _indexData[i].getStreamChannel();
@@ -336,7 +307,7 @@ public class Index extends DataTransform {
 					_bufferedRows[streamChannel] = bufferIndexData(streamChannel);
 					if (_bufferedRows[streamChannel] == -1) {
 						_activeBuffers--;
-						_bufferSize = INDEX_ARRAY_MAX_ITEMS / Math.max(_activeBuffers, 1);
+						_bufferSize = Math.max(INDEX_ARRAY_MAX_ITEMS / Math.max(_activeBuffers, 1), 1000);
 					}
 					// Sort the array
 					_indexData = new IndexDataRow[_indexDataList.size()];
@@ -348,7 +319,7 @@ public class Index extends DataTransform {
 
 			Calendar calendarExpires = Calendar.getInstance();
 			if (_localCacheEnabled) {
-				calendarExpires.add(Calendar.MINUTE, _localCacheMinutes);	
+				calendarExpires.add(Calendar.MINUTE, _localCacheMinutes);
 			}
 			dw.setFullRowCount(rowCount);
 			dw.setBufferFirstRow(1);

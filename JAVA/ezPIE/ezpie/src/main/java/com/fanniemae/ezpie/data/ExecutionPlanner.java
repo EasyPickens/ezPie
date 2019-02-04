@@ -54,6 +54,9 @@ public class ExecutionPlanner {
 		for (int i = 0; i < iLen; i++) {
 			Element eleTransform = (Element) transforms.item(i);
 			DataTransform currentTransform = TransformFactory.getTransform(_session, eleTransform);
+			if (currentTransform == null) {
+				continue;
+			}
 			currentTransform.setLocalCacheConfiguration(_localCacheEnabled, _localCacheMinutes);
 			if (currentTransform.isolated()) {
 				if ((processingGroups.size() == 0) && (currentTransformGroup.size() == 0)) {

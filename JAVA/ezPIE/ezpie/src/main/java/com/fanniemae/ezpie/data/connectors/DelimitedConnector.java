@@ -48,10 +48,13 @@ public class DelimitedConnector extends DataConnector {
 	protected boolean _fullSchemaScan = false;
 
 	protected int _columnCount;
+	protected int _schemaScanLimit = 1000;
 
 	protected int[] _sourceIndex;
+	protected String[] _sourceDateFormat;
 	protected Object[] _dataRow;
 	protected DataType[] _dataTypes;
+	protected NodeList _outputColumns;
 
 	public DelimitedConnector(SessionManager session, Element dataSource, boolean isSchemaOnly) {
 		super(session, dataSource, isSchemaOnly);
@@ -75,6 +78,13 @@ public class DelimitedConnector extends DataConnector {
 		}
 		_includesColumnNames = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "IncludesColumnNames"), _includesColumnNames);
 		_fullSchemaScan = StringUtilities.toBoolean(_session.optionalAttribute(dataSource, "FullScan"),_fullSchemaScan);
+		
+		// Check for provided output column list, if found scan only the first 2 rows
+		_outputColumns = XmlUtilities.selectNodes(_dataSource, "Column");
+		if (_outputColumns.getLength() > 0) {
+			_fullSchemaScan = false;
+			_schemaScanLimit = 2;
+		}
 		scanSchema(_filename);
 		selectedColumns();
 	}
@@ -99,7 +109,11 @@ public class DelimitedConnector extends DataConnector {
 	public Boolean eof() {
 		String[] dataRow;
 		try {
+			if (_rowLimit > 0) {
+				return true;
+			}
 			dataRow = _reader.readNext();
+			_rowCount++;
 			if (dataRow == null) {
 				return true;
 			}
@@ -107,17 +121,12 @@ public class DelimitedConnector extends DataConnector {
 			// null the previous row values before reading the next row.
 			Arrays.fill(_dataRow, null);
 
-//			// strongly type the new row values.
-//			for (int i = 0; i < iLen; i++) {
-//				_dataRow[i] = castValue(i, dataRow[i].trim());
-//			}
-
 			// strongly type the new row values.
 			for (int i = 0; i < iLen; i++) {
 				if (_sourceIndex[i] == -1) {
 					_dataRow[i] = null;
 				} else {
-					_dataRow[i] = castValue(i, dataRow[_sourceIndex[i]].trim());
+					_dataRow[i] = castValue(i, dataRow[_sourceIndex[i]].trim(), _sourceDateFormat[_sourceIndex[i]]);
 				}
 			}
 		} catch (IOException ex) {
@@ -151,6 +160,7 @@ public class DelimitedConnector extends DataConnector {
 			_dataRow = new Object[dataRow.length];
 			_dataTypes = new DataType[dataRow.length];
 			_sourceIndex = new int[dataRow.length];
+			_sourceDateFormat = new String[dataRow.length];
 			boolean[] skipSchemaCheck = new boolean[dataRow.length];
 			for (int i = 0; i < dataRow.length; i++) {
 				String columnName = String.format("Column%d", i);
@@ -183,7 +193,7 @@ public class DelimitedConnector extends DataConnector {
 					}
 				}
 				row++;
-				if ((row > 1000) && !_fullSchemaScan) {
+				if ((row > _schemaScanLimit) && !_fullSchemaScan) {
 					break;
 				}
 				dataRow = rdr.readNext();
@@ -209,7 +219,7 @@ public class DelimitedConnector extends DataConnector {
 		}
 	}
 
-	protected Object castValue(int i, String value) {
+	protected Object castValue(int i, String value, String dateFormat) {
 		if (StringUtilities.isNullOrEmpty(value)) {
 			return null;
 		}
@@ -218,7 +228,7 @@ public class DelimitedConnector extends DataConnector {
 		case StringData:
 			return value;
 		case DateData:
-			return StringUtilities.toDate(value);
+			return StringUtilities.toDate(value, null, dateFormat);
 		case IntegerData:
 			return StringUtilities.toInteger(value);
 		case LongData:
@@ -235,23 +245,24 @@ public class DelimitedConnector extends DataConnector {
 	}
 
 	protected void selectedColumns() {
-		NodeList outputColumns = XmlUtilities.selectNodes(_dataSource, "Column");
-		if (outputColumns.getLength() == 0) {
+		if (_outputColumns.getLength() == 0) {
 			return;
 		}
 
-		int columnCount = outputColumns.getLength();
+		int columnCount = _outputColumns.getLength();
 		String[][] dataSchema = new String[columnCount][2];
 		Object[] dataRow = new Object[columnCount];
 		DataType[] dataTypes = new DataType[columnCount];
 		_sourceIndex = new int[columnCount];
+		_sourceDateFormat = new String[_dataSchema.length];
 		for (int i = 0; i < columnCount; i++) {
-			Element columnElement = (Element) outputColumns.item(i);
+			Element columnElement = (Element) _outputColumns.item(i);
 
 			String inputName = _session.getAttribute(columnElement, "Name");
 			String alias = _session.getAttribute(columnElement, "Alias");
-			String inputDateFormat = _session.getAttribute(columnElement, "DateFormat");
-			String inputDataType = _session.getAttribute(columnElement, "DataType");
+			String dataTypeString = _session.getAttribute(columnElement, "DataType");
+			String dateFormat = _session.getAttribute(columnElement, "DateFormat");
+			DataType columnDataType = null;
 
 			int sourceIndex = ArrayUtilities.indexOf(_dataSchema, inputName);
 			
@@ -259,12 +270,17 @@ public class DelimitedConnector extends DataConnector {
 				alias = inputName;
 			}
 			
+			if (!"".equals(dataTypeString)) {
+				columnDataType = DataUtilities.dataTypeToEnum(dataTypeString);
+			}
+			
 			dataSchema[i][0] = alias;
-			dataSchema[i][1] = _dataSchema[sourceIndex][1];
-			dataTypes[i] = _dataTypes[sourceIndex];
+			dataSchema[i][1] = columnDataType != null ? dataTypeString :  _dataSchema[sourceIndex][1];
+			dataTypes[i] = columnDataType != null ? columnDataType : _dataTypes[sourceIndex];
 			_sourceIndex[i] = sourceIndex;
+			_sourceDateFormat[i] = "".equals(dateFormat) ? null : dateFormat;
 		}
-		_columnCount = dataSchema.length;
+		_columnCount = columnCount;
 		_dataSchema = dataSchema;
 		_dataTypes = dataTypes;
 		_dataRow = dataRow;

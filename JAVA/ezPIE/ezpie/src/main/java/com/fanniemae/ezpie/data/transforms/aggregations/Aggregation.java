@@ -15,6 +15,8 @@ import com.fanniemae.ezpie.datafiles.lowlevel.DataFileEnums.DataType;
  */
 
 public abstract class Aggregation {
+	
+	protected Object[] _groupValues;
 
 	protected DataType _dataType = DataType.StringData;
 	protected int _dataColumnIndex = -1;
@@ -38,7 +40,7 @@ public abstract class Aggregation {
 	protected Date _dateValue;
 	protected boolean _booleanValue;
 	protected UUID _uuidValue;
-
+	
 	// Used if the type of the result does not match the original column type.
 	// E.g. Sum integer becomes a long.
 	protected Object _objValue = null;
@@ -46,6 +48,7 @@ public abstract class Aggregation {
 	public Aggregation(DataType columnDataType, int dataColumnIndex) {
 		_dataType = columnDataType;
 		_dataColumnIndex = dataColumnIndex;
+		_newColumnType = newColumnType();
 	}
 
 	public void evaluate(Object value) {
@@ -54,100 +57,40 @@ public abstract class Aggregation {
 			_countWithoutNulls++;
 			switch (_dataType) {
 			case StringData:
-				if (_isFirst) {
-					_stringValue = (String) value;
-					_isFirst = false;
-				} else {
 					eval((String) value);
-				}
 				break;
 			case BigDecimalData:
-				if (_isFirst) {
-					_bigdecimalValue = (BigDecimal) value;
-					_isFirst = false;
-				} else {
 					eval((BigDecimal) value);
-				}
 				break;
 			case ByteData:
-				if (_isFirst) {
-					_byteValue = (byte) value;
-					_isFirst = false;
-				} else {
 					eval((byte) value);
-				}
 				break;
 			case DoubleData:
-				if (_isFirst) {
-					_doubleValue = (double) value;
-					_isFirst = false;
-				} else {
 					eval((double) value);
-				}
 				break;
 			case FloatData:
-				if (_isFirst) {
-					_floatValue = (float) value;
-					_isFirst = false;
-				} else {
 					eval((float) value);
-				}
 				break;
 			case IntegerData:
-				if (_isFirst) {
-					_intValue = (int) value;
-					_isFirst = false;
-				} else {
 					eval((int) value);
-				}
 				break;
 			case LongData:
-				if (_isFirst) {
-					_longValue = (long) value;
-					_isFirst = false;
-				} else {
 					eval((long) value);
-				}
 				break;
 			case ShortData:
-				if (_isFirst) {
-					_shortValue = (short) value;
-					_isFirst = false;
-				} else {
 					eval((short) value);
-				}
 				break;
 			case CharData:
-				if (_isFirst) {
-					_charValue = (char) value;
-					_isFirst = false;
-				} else {
 					eval((char) value);
-				}
 				break;
 			case DateData:
-				if (_isFirst) {
-					_dateValue = (Date) value;
-					_isFirst = false;
-				} else {
 					eval((Date) value);
-				}
 				break;
 			case BooleanData:
-				if (_isFirst) {
-					_booleanValue = (boolean) value;
-					_isFirst = false;
-				} else {
 					eval((boolean) value);
-				}
 				break;
 			case UUIDData:
-				if (_isFirst) {
-					_uuidValue = (UUID) value;
-					_isFirst = false;
-				} else {
 					eval((UUID) value);
-				}
 				break;
 			default:
 				throw new PieException(String.format("Aggregatio operations do not currently support %s data types.", _dataType.toString()));
@@ -156,11 +99,6 @@ public abstract class Aggregation {
 	}
 
 	public Object getResult() {
-		if (_isFirst) {
-			// Column did not contain any values.
-			return null;
-		}
-
 		calculate();
 
 		if (_objValue != null) {
@@ -217,8 +155,38 @@ public abstract class Aggregation {
 		return _dataColumnIndex;
 	}
 	
+	public void setGroupValues(Object[] values) {
+		if (values != null) {
+			_groupValues = new Object[values.length];
+			for(int i= 0;i<values.length;i++) {
+				_groupValues[i] = values[i];
+			}
+		}
+	}
+	
+	public String getGroupValuesAsCSV() {
+		if (_groupValues == null) {
+			return "- No values defined -";
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		for(int i=0;i<_groupValues.length;i++) {
+			if (i > 0) {
+				sb.append(", ");
+			}
+			if (_groupValues[i] == null) {
+				sb.append("null");
+			} else {
+			sb.append(_groupValues[i].toString());
+			}
+		}
+		return sb.toString();
+	}
+	
 	public abstract Aggregation clone();
 
+	protected abstract DataType newColumnType();
+	
 	protected abstract void calculate();
 
 	protected abstract void eval(String value);

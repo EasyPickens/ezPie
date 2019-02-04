@@ -115,4 +115,8 @@ public class Max extends Aggregation {
 		}
 	}
 
+	@Override
+	protected DataType newColumnType() {
+		return _dataType;
+	}
 }
